@@ -1,12 +1,12 @@
 # Atlética Engênios
 
-**Sistema de gerenciamento da Atlética Engênios**, permitindo o cadastro e organização de membros da diretoria, além da gestão de cursos e possíveis eventos.
+**Sistema de gerenciamento da Atlética Engênios**, permitindo o cadastro e organização de membros da diretoria, além da gestão de produtos e financeiro.
 
 ---
 
 ## Sobre o Projeto
 
-O **Atlética Engênios** é uma plataforma para **gerenciar membros da diretoria**, controlar **estoque de produtos**, definir **cargos** e **registrar cursos dos membros**.
+A **Atlética Engênios** é uma plataforma para **gerenciar membros da diretoria**, controlar **estoque de produtos**, definir **cargos** e **registrar cursos dos membros**.
 
 **Principais funcionalidades:**
 - 🏆 **Cadastro de Membros** da Atlética (Nome, Cargo, Curso, Ano de ingresso).
@@ -22,7 +22,7 @@ O **Atlética Engênios** é uma plataforma para **gerenciar membros da diretori
 O projeto será desenvolvido utilizando as seguintes tecnologias:
 
 **📌 Front-end**:
-- ⚛️ [React.js](https://react.dev/) - Biblioteca para a construção da interface.
+- ⚛️ [Next.js] - Biblioteca para a construção da interface.
 - 🎨 [Tailwind CSS](https://tailwindcss.com/) - Framework de estilos CSS para design moderno e responsivo.
 
 **📌 Back-end**:
