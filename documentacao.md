@@ -10,7 +10,7 @@ Na primeira interação, foram feitas as seguintes decisões e ajustes para apri
 
 ## **2. Requisitos Funcionais e Não Funcionais**
 
-### **✅ Requisitos Funcionais**
+### **Requisitos Funcionais**
 
 1. **Cadastro de Membros da Diretoria**
    - Cada membro da diretoria poderá se cadastrar com nome, telefone, sexo, e-mail e ano de ingresso na Atlética.
@@ -30,7 +30,7 @@ Na primeira interação, foram feitas as seguintes decisões e ajustes para apri
 
 ---
 
-### **🚀 Requisitos Não Funcionais**
+### **Requisitos Não Funcionais**
 
 1. **Escalabilidade**: O sistema deve suportar um aumento no número de membros sem perda de desempenho.
 2. **Segurança**: Implementação de **JWT**, hashing de senhas e restrições de acesso.
@@ -44,16 +44,16 @@ Na primeira interação, foram feitas as seguintes decisões e ajustes para apri
 
 ## **3. Estratégia de Desenvolvimento e Arquitetura**
 
-### **📌 Arquitetura do Projeto**
+### **Arquitetura do Projeto**
 Optamos por uma **arquitetura monolítica modular**, pois:
 
-✅ **Fácil de gerenciar no início do projeto**.
+**Fácil de gerenciar no início do projeto**.
 
-✅ **Menos complexa do que microsserviços**.
+**Menos complexa do que microsserviços**.
 
-✅ **Escalável futuramente se necessário**.
+**Escalável futuramente se necessário**.
 
-✅ **O back-end pode se comunicar facilmente com Next.js via API REST**.
+**O back-end pode se comunicar facilmente com Next.js via API REST**.
 
 
 #### **Tecnologias Escolhidas e Justificativa**
@@ -69,26 +69,26 @@ Optamos por uma **arquitetura monolítica modular**, pois:
 
 ---
 
-## **4. Plano de Trabalho e Atividades**
+## **4 Plano de Trabalho e Atividades**
 
 O desenvolvimento será dividido em **três fases principais**, seguindo um ciclo ágil:
 
-### 📆 **Fase 1: Configuração e Setup Inicial**
-✅ Criar repositório no GitHub.  
-✅ Criar estrutura de pastas do projeto. 
-✅ Desenvolver o design no FIGMA para o desenvolvimento.
-✅ Criar tarefas de gestão de software no Jira para dividir os trabalhos.
-✅ Configurar Next.js com Tailwind CSS.  
-✅ Configurar Fastify e criar primeira rota REST.  
-✅ Criar conexão com o banco de dados Supabase.  
+### **Fase 1: Configuração e Setup Inicial**
+Criar repositório no GitHub.  
+Criar estrutura de pastas do projeto. 
+Desenvolver o design no FIGMA para o desenvolvimento.
+Criar tarefas de gestão de software no Jira para dividir os trabalhos.
+Configurar Next.js com Tailwind CSS.  
+Configurar Fastify e criar primeira rota REST.  
+Criar conexão com o banco de dados Supabase.  
 
 
-### 📆 **Fase 2: Implementação de Funcionalidades Básicas**
-✅ Criar CRUD de membros da diretoria.  
-✅ Implementar autenticação JWT.  
-✅ Criar sistema de login com validação de acesso.  
+### **Fase 2: Implementação de Funcionalidades Básicas**
+Criar CRUD de membros da diretoria.  
+Implementar autenticação JWT.  
+Criar sistema de login com validação de acesso.  
 
-### 📆 **Fase 3: Expansão do Projeto**
-🔲 Criar sistema de movimentação financeira.
-🔲 Melhorias na interface e experiência do usuário.
-🔲 Testes e deploy final.
+### **Fase 3: Expansão do Projeto**
+Criar sistema de movimentação financeira.
+Melhorias na interface e experiência do usuário.
+Testes e deploy final.
