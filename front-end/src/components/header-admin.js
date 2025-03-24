@@ -31,7 +31,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="bg-[#B3090F] text-white py-4 px-8 flex justify-between items-center">
+    <header className="bg-gray-900 text-white py-4 px-8 flex justify-between items-center">
       {/* Logo à esquerda */}
       <div className="flex items-center">
         <Image
@@ -44,18 +44,20 @@ export default function Header() {
 
       {/* Links centralizados */}
       <nav className="flex space-x-8">
-        <Link href="/">Início</Link>
+        <Link href="/" className=''>Inicio</Link>
+        <Link href="/produtos">Financeiro</Link>
         <Link href="/produtos">Produtos</Link>
         <Link href="/eventos">Eventos</Link>
         <Link href="/formularios">Formulários</Link>
-        <Link href="/sobre">Sobre</Link>
+        <Link href="/sobre">Usuários</Link>
       </nav>
+
       <div className='flex items-center justify-between gap-10 '>
         {/* Botão de "Área Admin" */}
         <div>
-          <Link href="/admin"> {/* Redireciona para a página admin.js */}
-            <button className="bg-gray-900 text-white px-4 py-2 rounded-lg">
-              Área Admin
+          <Link href="/home"> {/* Redireciona para a página admin.js */}
+            <button className="bg-[#B3090F] text-white px-4 py-2 rounded-lg">
+              Área Usuários
             </button>
           </Link>
         </div>
