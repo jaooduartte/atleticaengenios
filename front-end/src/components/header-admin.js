@@ -45,7 +45,7 @@ export default function Header() {
       {/* Links centralizados */}
       <nav className="flex space-x-8">
         <Link href="/" className=''>Inicio</Link>
-        <Link href="/produtos">Financeiro</Link>
+        <Link href="/financial">Financeiro</Link>
         <Link href="/produtos">Produtos</Link>
         <Link href="/eventos">Eventos</Link>
         <Link href="/formularios">Formulários</Link>
