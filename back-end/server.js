@@ -1,15 +1,17 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const financialService = require('./src/services/financial.service'); // Importa o serviço financeiro
+const financialService = require('./src/services/financial.service'); 
+const authRoutes = require('./src/routes/auth.routes');
+
 const app = express();
 
-// Permite que todas as origens acessem a API (para fins de desenvolvimento)
 app.use(cors());
 
 app.use(bodyParser.json());
 
-// Rota para criar transação
+app.use('/api/auth', authRoutes);
+
 app.post('/api/financial/transaction', async (req, res) => {
   try {
     const newTransaction = await financialService.createTransaction(req.body);
@@ -20,7 +22,6 @@ app.post('/api/financial/transaction', async (req, res) => {
   }
 });
 
-// Configuração do servidor
 app.listen(3001, () => {
   console.log('Servidor rodando na porta 3001');
 });
