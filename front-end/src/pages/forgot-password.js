@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Banner from '../components/banner';
 import Image from 'next/image';
+import Link from 'next/link';
+import { Envelope } from 'phosphor-react'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [showBanner, setShowBanner] = useState(false);
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerType, setBannerType] = useState('');
+  const [bannerDescription, setBannerDescription] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -23,14 +26,16 @@ export default function ForgotPassword() {
 
     if (response.ok) {
       setBannerMessage(data.message);
+      setBannerDescription('Verifique seu e-mail para redefinir a senha.');
       setBannerType('success');
       setShowBanner(true);
 
       setTimeout(() => {
         router.push('/login');
-      }, 5000);
+      }, 4500);
     } else {
       setBannerMessage(data.error || 'Erro ao enviar e-mail.');
+      setBannerDescription('Tente novamente mais tarde ou entre em contato com o suporte.');
       setBannerType('error');
       setShowBanner(true);
     }
@@ -44,32 +49,30 @@ export default function ForgotPassword() {
         </div>
         <h2 className="text-center text-2xl font-semibold mb-4">Redefinir senha</h2>
 
-        {showBanner && <Banner message={bannerMessage} type={bannerType} />}
+        {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="email" className="block text-gray-700">Digite seu e-mail cadastrado</label>
+          <div className="relative">
+            <Envelope size={30} className="absolute top-1/2 left-3 transform -translate-y-1/2 text-[#B3090F]" />
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Digite seu e-mail"
-              className="w-full p-3 mt-2 border border-gray-300 rounded-lg"
+              className="w-full p-3 pl-12 border border-gray-300 rounded-xl"
               required
             />
           </div>
 
           <div>
-            <button type="submit" className="w-full py-3 bg-[#B3090F] text-white rounded-lg font-semibold">
+            <button type="submit" className="w-full py-3 bg-[#B3090F] text-white rounded-xl font-semibold">
               Enviar link de redefinição
             </button>
           </div>
 
           <div className="text-center">
-            <a href="/login" className="text-sm text-[#B3090F] hover:underline">
-              Voltar ao login
-            </a>
+            <Link href="/login" legacyBehavior><a className="text-sm text-[#B3090F] hover:underline">Voltar ao login</a></Link>
           </div>
         </form>
       </div>

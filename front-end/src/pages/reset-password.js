@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Banner from '../components/banner';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState('');
@@ -10,6 +11,7 @@ export default function ResetPassword() {
   const [showBanner, setShowBanner] = useState(false);
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerType, setBannerType] = useState('');
+  const [bannerDescription, setBannerDescription] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -23,6 +25,7 @@ export default function ResetPassword() {
 
     if (newPassword !== confirmPassword) {
       setBannerMessage('As senhas não coincidem!');
+      setBannerDescription('Digite novamente os campos corretamente.');
       setBannerType('error');
       setShowBanner(true);
       return;
@@ -38,14 +41,16 @@ export default function ResetPassword() {
 
     if (response.ok) {
       setBannerMessage(data.message);
+      setBannerDescription('Você será redirecionado ao login em instantes.');
       setBannerType('success');
       setShowBanner(true);
 
       setTimeout(() => {
         router.push('/login');
-      }, 5000);
+      }, 4500);
     } else {
       setBannerMessage(data.error || 'Erro ao redefinir senha.');
+      setBannerDescription('');
       setBannerType('error');
       setShowBanner(true);
     }
@@ -70,7 +75,7 @@ export default function ResetPassword() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Digite a nova senha"
-              className="w-full p-3 mt-2 border border-gray-300 rounded-lg"
+              className="w-full p-3 mt-2 border border-gray-300 rounded-xl"
               required
             />
           </div>
@@ -83,21 +88,19 @@ export default function ResetPassword() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirme a nova senha"
-              className="w-full p-3 mt-2 border border-gray-300 rounded-lg"
+              className="w-full p-3 mt-2 border border-gray-300 rounded-xl"
               required
             />
           </div>
 
           <div>
-            <button type="submit" className="w-full py-3 bg-[#B3090F] text-white rounded-lg font-semibold">
+            <button type="submit" className="w-full py-3 bg-[#B3090F] text-white rounded-xl font-semibold">
               Redefinir senha
             </button>
           </div>
 
           <div className="text-center">
-            <a href="/login" className="text-sm text-[#B3090F] hover:underline">
-              Voltar ao login
-            </a>
+          <Link href="/login" legacyBehavior><a className="text-sm text-[#B3090F] hover:underline">Voltar ao login</a></Link>
           </div>
         </form>
       </div>
