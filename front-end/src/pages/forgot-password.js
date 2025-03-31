@@ -4,6 +4,8 @@ import Banner from '../components/banner';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Envelope } from 'phosphor-react'
+import CustomField from '../components/custom-field'
+import CustomButton from '../components/custom-buttom'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -43,7 +45,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="flex justify-center items-center h-screen bg-[#B3090F]">
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-xl">
         <div className="flex justify-center mb-8">
           <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
         </div>
@@ -52,23 +54,16 @@ export default function ForgotPassword() {
         {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="relative">
-            <Envelope size={30} className="absolute top-1/2 left-3 transform -translate-y-1/2 text-[#B3090F]" />
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Digite seu e-mail"
-              className="w-full p-3 pl-12 border border-gray-300 rounded-xl"
-              required
-            />
-          </div>
-
+          <CustomField
+            icon={Envelope}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Digite seu e-mail"
+            name="email"
+          />
           <div>
-            <button type="submit" className="w-full py-3 bg-[#B3090F] text-white rounded-xl font-semibold">
-              Enviar link de redefinição
-            </button>
+            <CustomButton type="submit" label="Enviar link de redefinição" />
           </div>
 
           <div className="text-center">
