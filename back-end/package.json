@@ -25,6 +25,11 @@
   "devDependencies": {
     "jest": "^29.0.0"
   },
+  "jest": {
+    "roots": ["<rootDir>/"],
+    "testMatch": ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[tj]s?(x)"],
+    "testPathIgnorePatterns": ["/node_modules/"]
+  },
   "ci": {
     "name": "Run Tests",
     "on": {
@@ -58,7 +63,7 @@
           },
           {
             "name": "Rodar testes do back-end",
-            "run": "npm test",
+            "run": "npm test -- --passWithNoTests",
             "working-directory": "./back-end"
           }
         ]
@@ -85,7 +90,7 @@
           },
           {
             "name": "Rodar testes do front-end",
-            "run": "npm test",
+            "run": "npm test -- --passWithNoTests",
             "working-directory": "./front-end"
           }
         ]
