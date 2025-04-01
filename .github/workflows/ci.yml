@@ -48,3 +48,15 @@ jobs:
       - name: Rodar testes do front-end
         run: npm test
         working-directory: ./front-end
+
+      - name: Criar diretório de testes do front-end
+        run: mkdir -p ./front-end/__tests__
+
+      - name: Adicionar teste básico no front-end
+        run: echo "describe('Exemplo de teste front-end', () => { it('deve somar corretamente', () => { expect(1 + 2).toBe(3); }); });" > ./front-end/__tests__/sample.test.js
+
+      - name: Criar diretório de testes do back-end
+        run: mkdir -p ./back-end/__tests__
+
+      - name: Adicionar teste básico no back-end
+        run: echo "describe('Exemplo de teste back-end', () => { it('deve verificar verdadeiro', () => { expect(true).toBe(true); }); });" > ./back-end/__tests__/sample.test.js

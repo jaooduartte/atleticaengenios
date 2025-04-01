@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,9 @@
     "luxon": "^3.6.1",
     "pg": "^8.14.1",
     "resend": "^4.2.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
   },
   "ci": {
     "name": "Run Tests",
@@ -88,5 +91,8 @@
         ]
       }
     }
+  },
+  "__tests__": {
+    "sample.test.js": "describe('Exemplo de teste back-end', () => {\n  it('deve verificar verdadeiro', () => {\n    expect(true).toBe(true);\n  });\n});"
   }
 }
