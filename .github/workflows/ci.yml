@@ -22,6 +22,8 @@ jobs:
 
       - name: Instalar dependências
         run: npm install
+        working-directory: ./back-end
 
       - name: Rodar testes
         run: npm test 
+        working-directory: ./back-end
