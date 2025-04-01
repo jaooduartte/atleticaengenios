@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { secret } = require('../config/jwt.config');
 const crypto = require('crypto');
 const emailService = require('../services/email.service');
+const { DateTime } = require('luxon');
 
 const login = async (req, res) => {
   const { email, password } = req.body;
@@ -54,7 +55,11 @@ const register = async (req, res) => {
       birthday,
     });
 
-    return res.status(201).json({ message: 'Usuário cadastrado com sucesso!', type: 'success' });
+    return res.status(201).json({
+      message: 'Usuário cadastrado com sucesso!',
+      description: 'Redirecionando para a tela de login.',
+      type: 'success'
+    });
 
   } catch (error) {
     console.error('Erro ao cadastrar:', error);
@@ -79,7 +84,7 @@ const forgotPassword = async (req, res) => {
     }
 
     const resetToken = crypto.randomBytes(20).toString('hex');
-    const tokenExpiry = Date.now() + 3600000; // 1 hora de validade
+    const tokenExpiry = DateTime.now().setZone('America/Sao_Paulo').plus({ hours: 1 }).toISO();
 
     await userService.saveResetToken(user.id, resetToken, tokenExpiry);
 

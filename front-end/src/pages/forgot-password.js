@@ -44,8 +44,18 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-[#B3090F]">
-      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-xl">
+    <div className="flex justify-center items-center h-screen relative">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/photos-login/1.png"
+          alt="Plano de fundo"
+          layout="fill"
+          objectFit="cover"
+          className="brightness-[.20]"
+          priority
+        />
+      </div>
+      <div className="w-full max-w-md p-6 bg-white rounded-xl shadow-xl relative z-10">
         <div className="flex justify-center mb-8">
           <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
         </div>
@@ -54,16 +64,20 @@ export default function ForgotPassword() {
         {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <CustomField
-            icon={Envelope}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Digite seu e-mail"
-            name="email"
-          />
+          <div className="w-full flex justify-center">
+            <div className="w-full max-w-sm">
+              <CustomField
+                icon={Envelope}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Digite seu e-mail"
+                name="email"
+              />
+            </div>
+          </div>
           <div>
-            <CustomButton type="submit" label="Enviar link de redefinição" />
+            <CustomButton type="submit">ENVIAR LINK</CustomButton>
           </div>
 
           <div className="text-center">

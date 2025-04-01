@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
+import { Lock, Eye, EyeSlash } from 'phosphor-react';
 
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState('');
@@ -16,6 +17,8 @@ export default function ResetPassword() {
   const [bannerDescription, setBannerDescription] = useState('');
   const [isNewPasswordInvalid, setIsNewPasswordInvalid] = useState(false);
   const [isConfirmPasswordInvalid, setIsConfirmPasswordInvalid] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -78,8 +81,18 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-[#B3090F]">
-      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-xl">
+    <div className="flex justify-center items-center h-screen relative">
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/photos-login/1.png"
+          alt="Plano de fundo"
+          layout="fill"
+          objectFit="cover"
+          className="brightness-[.20]"
+          priority
+        />
+      </div>
+      <div className="w-full max-w-md p-6 bg-white rounded-xl shadow-xl relative z-10">
         <div className="flex justify-center mb-8">
           <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
         </div>
@@ -88,28 +101,52 @@ export default function ResetPassword() {
         {showBanner && <Banner message={bannerMessage} type={bannerType} />}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <CustomField
-            icon={Lock}
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Digite a nova senha"
-            name="newPassword"
-            isInvalid={isNewPasswordInvalid}
-          />
+        <div className="w-full flex justify-center">
+          <div className="relative w-full max-w-sm">
+            <CustomField
+              icon={Lock}
+              type={showNewPassword ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Digite a nova senha"
+              name="newPassword"
+              isInvalid={isNewPasswordInvalid}
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+            >
+              {showNewPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
+            </button>
+          </div>
+        </div>
 
-          <CustomField
-            icon={Lock}
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Confirme a nova senha"
-            name="confirmPassword"
-            isInvalid={isConfirmPasswordInvalid}
-          />
+        <div className="w-full flex justify-center">
+          <div className="relative w-full max-w-sm">
+            <CustomField
+              icon={Lock}
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirme a nova senha"
+              name="confirmPassword"
+              isInvalid={isConfirmPasswordInvalid}
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+            >
+              {showConfirmPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
+            </button>
+          </div>
+        </div>
 
           <div>
-            <CustomButton type="submit" label="Redefinir senha" />
+            <CustomButton type="submit">Redefinir senha</CustomButton>
           </div>
 
           <div className="text-center">

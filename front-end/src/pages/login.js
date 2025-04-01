@@ -135,7 +135,7 @@ export default function Login() {
         />
       </div>
       <div
-        className="w-full max-w-xl p-6 bg-white rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out"
+        className="w-full max-w-2xl p-6 bg-white rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out"
       >
         <div className="flex justify-center mb-8">
           <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
@@ -260,15 +260,24 @@ export default function Login() {
                 />
               </div>
               <div className='col-span-2'>
-                <CustomField
-                  icon={Lock}
-                  type={showRegisterPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Digite sua senha"
-                  name="password"
-                  className="pr-10"
-                />
+                <div className="relative w-full">
+                  <CustomField
+                    icon={Lock}
+                    type={showRegisterPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Digite sua senha"
+                    name="password"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+                  >
+                    {showRegisterPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
+                  </button>
+                </div>
               </div>
               <div className="col-span-2 flex justify-center">
                 <CustomButton type="submit">

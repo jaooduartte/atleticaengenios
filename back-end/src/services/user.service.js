@@ -1,4 +1,5 @@
 const db = require('../utils/db');
+const { DateTime } = require('luxon');
 
 const getUserByEmail = async (email) => {
     const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -7,12 +8,12 @@ const getUserByEmail = async (email) => {
 
 const createUser = async (userData) => {
     const { name, email, password_hash, course, sex, birthday } = userData;
-    const createdAt = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+    const createdAt = DateTime.now().setZone('America/Sao_Paulo').toISO();
     const result = await db.query(
         'INSERT INTO users (name, email, password_hash, course, sex, birthday, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
         [name, email, password_hash, course, sex, birthday, createdAt]
     );
-    return result.rows[0]; // Retorna o usuário criado
+    return result.rows[0];
 };
 
 // Salva token para redefinição de senha
