@@ -1,4 +1,3 @@
-# .github/workflows/ci.yml
 name: Run Tests
 
 on:
@@ -8,7 +7,8 @@ on:
     branches: [main, develop]
 
 jobs:
-  test:
+  test-backend:
+    name: Test Back-End
     runs-on: ubuntu-latest
 
     steps:
@@ -20,10 +20,31 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Instalar dependências
+      - name: Instalar dependências do back-end
         run: npm install
         working-directory: ./back-end
 
-      - name: Rodar testes
-        run: npm test 
+      - name: Rodar testes do back-end
+        run: npm test
         working-directory: ./back-end
+
+  test-frontend:
+    name: Test Front-End
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Instalar dependências do front-end
+        run: npm install
+        working-directory: ./front-end
+
+      - name: Rodar testes do front-end
+        run: npm test
+        working-directory: ./front-end
