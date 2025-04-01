@@ -4,9 +4,11 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendResetPasswordEmail = async (email, token) => {
   const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
-
-  await resend.emails.send({
-    from: 'Atlética Engênios <onboarding@resend.dev>',
+ 
+  console.log('📤 Enviando e-mail para:', email);
+ 
+  const result = await resend.emails.send({
+    from: 'onboarding@resend.dev',
     to: email,
     subject: 'Redefinir Senha - Atlética Engênios',
     html: `
@@ -16,6 +18,9 @@ const sendResetPasswordEmail = async (email, token) => {
       <p>Este link expira em 1 hora.</p>
     `,
   });
+ 
+  console.log('✅ Resultado do envio:', result);
 };
+
 
 module.exports = { sendResetPasswordEmail };

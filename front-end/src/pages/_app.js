@@ -1,18 +1,10 @@
-import '../styles/globals.css';  // Importe o arquivo global de estilos
-import { useEffect, useState } from 'react';
+import '../styles/globals.css';
+import { ThemeProvider } from 'next-themes';
 
-function MyApp({ Component, pageProps }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;  // Impede o "flash" de renderização
-  }
-
-  return <Component {...pageProps} />;
+export default function App({ Component, pageProps }) {
+  return (
+    <ThemeProvider attribute="class" forcedTheme="light" enableSystem={false}>
+      <Component {...pageProps} />
+    </ThemeProvider>
+  );
 }
-
-export default MyApp;
