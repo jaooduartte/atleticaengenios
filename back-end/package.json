@@ -96,8 +96,5 @@
         ]
       }
     }
-  },
-  "__tests__": {
-    "sample.test.js": "describe('Exemplo de teste back-end', () => {\n  it('deve verificar verdadeiro', () => {\n    expect(true).toBe(true);\n  });\n});"
   }
 }
