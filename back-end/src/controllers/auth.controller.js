@@ -126,4 +126,15 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { login, register, forgotPassword, resetPassword };
+const getProfile = async (req, res) => {
+  try {
+    const user = await userService.getUserById(req.user.userId, true); // << aqui era o erro
+    if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+    res.json({ user: { ...user, is_admin: user.is_admin } });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao buscar usuário' });
+  }
+};
+module.exports = { login, register, forgotPassword, resetPassword, getProfile };

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import Header from '../components/header-admin';
 import Footer from '../components/footer-admin';
 import Modal from 'react-modal';
+import useAuth from '../hooks/useAuth';
 
 export default function FinancialPage() {
+    const user = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [transactionType, setTransactionType] = useState(null);
     const [title, setTitle] = useState('');
@@ -12,6 +14,31 @@ export default function FinancialPage() {
     const [relates_to, setrelates_to] = useState('');
     const [transactions, setTransactions] = useState([]);
     const [totalAmount, setTotalAmount] = useState(0);
+    
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            try {
+                const response = await fetch('http://localhost:3001/api/financial/transactions');
+                const data = await response.json();
+ 
+                if (response.ok) {
+                    setTransactions(data);
+ 
+                    const total = data.reduce((acc, t) => {
+                        const val = parseFloat(t.value);
+                        return t.type === 'receita' ? acc + val : acc - val;
+                    }, 0);
+                    setTotalAmount(total);
+                } else {
+                    console.error('Erro ao buscar transações');
+                }
+            } catch (error) {
+                console.error('Erro ao buscar transações:', error);
+            }
+        };
+ 
+        fetchTransactions();
+    }, []);
 
     const openModal = (type) => {
         setTransactionType(type);
@@ -40,7 +67,7 @@ export default function FinancialPage() {
             date,
             relates_to,
             type: transactionType,
-            user_id: 'f8664b4c-28c6-4d34-a750-48ab7308005b', // ID genérico
+            user_id: user?.id,
         };
 
         try {
@@ -56,7 +83,7 @@ export default function FinancialPage() {
 
             if (response.ok) {
                 setTransactions([...transactions, data]);
-                setTotalAmount(prevAmount => prevAmount + (transactionType === 'income' ? value : -value));
+                setTotalAmount(prevAmount => prevAmount + (transactionType === 'receita' ? value : -value));
                 closeModal();
             } else {
                 alert('Erro ao registrar transação');
@@ -90,19 +117,18 @@ export default function FinancialPage() {
                     </div>
                 </div>
 
-                {/* Buttons for adding income and expenses */}
                 <div className="flex gap-8 justify-center mb-6">
-                    <button className="bg-green-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-green-700" onClick={() => openModal('income')}>
+                    <button className="bg-green-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-green-700" onClick={() => openModal('receita')}>
                         Adicionar Entrada
                     </button>
-                    <button className="bg-red-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-red-700" onClick={() => openModal('expense')}>
+                    <button className="bg-red-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-red-700" onClick={() => openModal('despesa')}>
                         Adicionar Saída
                     </button>
                 </div>
 
                 {/* Modal for adding transactions */}
                 <Modal isOpen={isModalOpen} onRequestClose={closeModal} className="modal-container bg-white p-8 rounded-lg shadow-xl max-w-md mx-auto">
-                    <h2 className="text-2xl mb-4">{transactionType === 'income' ? 'Adicionar Entrada' : 'Adicionar Saída'}</h2>
+                    <h2 className="text-2xl mb-4">{transactionType === 'receita' ? 'Adicionar Entrada' : 'Adicionar Saída'}</h2>
                     <form className="space-y-4">
                         <div>
                             <label className="block text-sm font-semibold">Título</label>
@@ -159,7 +185,7 @@ export default function FinancialPage() {
                                     <td className="py-2 px-4">{transaction.relates_to}</td>
                                     <td className="py-2 px-4">{transaction.value}</td>
                                     <td className="py-2 px-4">{transaction.date}</td>
-                                    <td className="py-2 px-4">{user.name}</td>
+                                    <td className="py-2 px-4">{user?.name || 'Usuário'}</td>
                                 </tr>
                             ))}
                         </tbody>

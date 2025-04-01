@@ -49,11 +49,17 @@ const clearResetToken = async (userId) => {
     );
 };
 
+const getUserById = async (id) => {
+    const result = await db.query('SELECT id, name, email, photo, is_admin FROM users WHERE id = $1', [id]);
+    return result.rows[0];
+};
+
 module.exports = {
     getUserByEmail,
     createUser,
     saveResetToken,
     getUserByResetToken,
     updateUserPassword,
-    clearResetToken
+    clearResetToken,
+    getUserById
 };

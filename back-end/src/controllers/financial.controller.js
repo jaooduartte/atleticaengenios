@@ -9,10 +9,10 @@ const createTransaction = async (req, res) => {
         console.log('relates_to no backend:', relates_to);
 
         // Se não tiver user_id, insira um valor genérico
-        const finalUserId = user_id || '00000000-0000-0000-0000-000000000000'; // ID genérico
+        const finalUserId = user_id || 0; // ID genérico padrão como BIGINT
 
-        if (!title || !value || !date || !relates_to || !finalUserId || !type) {
-            return res.status(400).json({ message: 'Missing required fields' });
+        if (!title || !value || !date || !relates_to || finalUserId === undefined || finalUserId === null || isNaN(finalUserId) || !type) {
+            return res.status(400).json({ message: 'Missing or invalid required fields' });
         }
 
         const transaction = await financialService.createTransaction({

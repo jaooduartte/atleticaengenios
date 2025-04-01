@@ -10,12 +10,17 @@ const createTransaction = async (transactionData) => {
         throw new Error('Campo "relates_to" não foi preenchido');
     }
 
+    if (isNaN(user_id)) {
+        console.error('user_id deve ser um número inteiro');
+        throw new Error('user_id inválido');
+    }
+
     const queryText = `
         INSERT INTO transactions (title, value, date, relates_to, user_id, type, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *;
     `;
 
-    const queryValues = [title, value, date, relates_to, user_id, type];
+    const queryValues = [title, parseFloat(value), date, relates_to, parseInt(user_id), type];
 
     try {
         const res = await db.query(queryText, queryValues); // Realizando a consulta no banco
