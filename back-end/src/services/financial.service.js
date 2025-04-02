@@ -34,7 +34,13 @@ const createTransaction = async (transactionData) => {
 
 // Função para listar todas as transações
 const listTransactions = async () => {
-    const queryText = 'SELECT * FROM transactions ORDER BY created_at DESC LIMIT 100;';
+    const queryText = `
+        SELECT t.*, u.name AS user_name
+        FROM transactions t
+        LEFT JOIN users u ON t.user_id = u.id
+        ORDER BY t.created_at DESC
+        LIMIT 100;
+    `;
 
     try {
         const res = await db.query(queryText); // Realizando a consulta para listar transações
