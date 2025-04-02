@@ -27,7 +27,7 @@ export default function CustomField({
             value={value}
             onChange={onChange}
             className={twMerge(
-              "!text-sm w-full p-3 pl-12 rounded-xl transition-colors appearance-none focus:outline-none",
+              "text-sm w-full p-3 pl-12 rounded-xl transition-colors appearance-none focus:outline-none",
               isInvalid ? "border-2 border-red-500" : "border border-transparent",
               value ? "text-black" : "text-gray-400",
               "bg-gray-100",
@@ -52,9 +52,10 @@ export default function CustomField({
           onChange={onChange}
           placeholder={placeholder}
           className={twMerge(
-            "w-full border rounded-xl p-3 pl-12 transition-colors focus:outline-none",
+            "w-full border rounded-xl p-3 transition-colors focus:outline-none",
             isInvalid ? "border-2 border-red-500" : "border border-transparent",
             "bg-gray-100 text-black text-sm",
+            Icon ? "pl-12" : "pl-4",
             className
           )}
           {...props}

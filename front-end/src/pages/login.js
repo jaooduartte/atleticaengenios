@@ -189,7 +189,7 @@ export default function Login() {
                 </Link>
               </div>
               <div className="flex justify-center">
-                <CustomButton type="submit">
+                <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
                   ENTRAR
                 </CustomButton>
               </div>
@@ -280,7 +280,7 @@ export default function Login() {
                 </div>
               </div>
               <div className="col-span-2 flex justify-center">
-                <CustomButton type="submit">
+                <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
                   CADASTRAR
                 </CustomButton>
               </div>

@@ -1,10 +1,19 @@
 import { useState, useEffect } from 'react';
+import { HandArrowDown, HandArrowUp } from '@phosphor-icons/react';
 import Header from '../components/header-admin';
 import Footer from '../components/footer-admin';
 import Modal from 'react-modal';
 import useAuth from '../hooks/useAuth';
+import CustomField from '../components/custom-field';
+import CustomButton from '../components/custom-buttom';
+import CustomDropdown from '../components/custom-dropdown';
+import Banner from '../components/banner';
 
 export default function FinancialPage() {
+    const [showBanner, setShowBanner] = useState(false);
+    const [bannerMessage, setBannerMessage] = useState('');
+    const [bannerType, setBannerType] = useState('');
+    const [bannerDescription, setBannerDescription] = useState('');
     const user = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [transactionType, setTransactionType] = useState(null);
@@ -14,21 +23,30 @@ export default function FinancialPage() {
     const [relates_to, setrelates_to] = useState('');
     const [transactions, setTransactions] = useState([]);
     const [totalAmount, setTotalAmount] = useState(0);
-    
+    const [totalIncomes, setTotalIncomes] = useState(0);
+    const [totalExpenses, setTotalExpenses] = useState(0);
+    const [note, setNote] = useState('');
+
     useEffect(() => {
         const fetchTransactions = async () => {
             try {
                 const response = await fetch('http://localhost:3001/api/financial/transactions');
                 const data = await response.json();
- 
+
                 if (response.ok) {
                     setTransactions(data);
- 
+
                     const total = data.reduce((acc, t) => {
                         const val = parseFloat(t.value);
                         return t.type === 'receita' ? acc + val : acc - val;
                     }, 0);
                     setTotalAmount(total);
+
+                    const incomes = data.filter(t => t.type === 'receita').reduce((acc, t) => acc + parseFloat(t.value), 0);
+                    const expenses = data.filter(t => t.type === 'despesa').reduce((acc, t) => acc + parseFloat(t.value), 0);
+
+                    setTotalIncomes(incomes);
+                    setTotalExpenses(expenses);
                 } else {
                     console.error('Erro ao buscar transações');
                 }
@@ -36,9 +54,17 @@ export default function FinancialPage() {
                 console.error('Erro ao buscar transações:', error);
             }
         };
- 
+
         fetchTransactions();
     }, []);
+
+    const showBannerMessage = (message, type, description = '') => {
+        setBannerMessage(message);
+        setBannerDescription(description);
+        setBannerType(type);
+        setShowBanner(true);
+        setTimeout(() => setShowBanner(false), 4500);
+    };
 
     const openModal = (type) => {
         setTransactionType(type);
@@ -57,15 +83,16 @@ export default function FinancialPage() {
         console.log('relates_to:', relates_to);  // Verifique o valor aqui
 
         if (!relates_to) {
-            alert("Por favor, selecione a opção de 'Relacionado com'.");
+            showBannerMessage("Campo obrigatório!", "error", "Por favor, selecione a opção de 'Relacionado com'.");
             return;
         }
 
         const newTransaction = {
             title,
-            value,
+            value: parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')),
             date,
             relates_to,
+            note,
             type: transactionType,
             user_id: user?.id,
         };
@@ -83,14 +110,22 @@ export default function FinancialPage() {
 
             if (response.ok) {
                 setTransactions([...transactions, data]);
-                setTotalAmount(prevAmount => prevAmount + (transactionType === 'receita' ? value : -value));
+                const parsedValue = parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.'));
+                const newTotalIncomes = transactionType === 'receita' ? totalIncomes + parsedValue : totalIncomes;
+                const newTotalExpenses = transactionType === 'despesa' ? totalExpenses + parsedValue : totalExpenses;
+                const newTotalAmount = newTotalIncomes - newTotalExpenses;
+
+                setTotalIncomes(newTotalIncomes);
+                setTotalExpenses(newTotalExpenses);
+                setTotalAmount(newTotalAmount);
+                showBannerMessage("Transação registrada com sucesso!", "success");
                 closeModal();
             } else {
-                alert('Erro ao registrar transação');
+                showBannerMessage("Erro ao registrar transação", "error", "Verifique os campos preenchidos ou tente novamente.");
             }
         } catch (error) {
             console.error('Erro ao registrar transação:', error);
-            alert('Erro ao conectar com o servidor');
+            showBannerMessage("Erro de conexão", "error", "Não foi possível se conectar ao servidor.");
         }
     };
 
@@ -98,72 +133,125 @@ export default function FinancialPage() {
         <div className="financial-page flex flex-col min-h-screen">
             <Header />
 
+            {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
+
             <div className="container mx-auto p-6 flex-grow">
                 <h1 className="text-3xl font-semibold mb-6 text-center text-gray-800">Gestão Financeira</h1>
 
                 {/* Cards for total values */}
-                <div className="flex gap-8 justify-center mb-6">
-                    <div className="bg-green-500 text-white p-4 rounded-lg shadow-lg w-48 text-center">
-                        <h3 className="font-semibold">Total em Caixa</h3>
-                        <p className="text-2xl">{totalAmount}</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 text-white">
+                    <div className="m-8 bg-green-900 p-6 rounded-xl shadow-md text-center">
+                        <h3 className="text-lg font-semibold mb-2">Total de Receita</h3>
+                        <p className="text-2xl font-bold">{totalIncomes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                     </div>
-                    <div className="bg-yellow-500 text-white p-4 rounded-lg shadow-lg w-48 text-center">
-                        <h3 className="font-semibold">Total de Entradas</h3>
-                        <p className="text-2xl">{totalAmount > 0 ? totalAmount : '0'}</p>
+                    <div className="bg-gray-700 flex flex-col justify-center p-6 rounded-xl shadow-md text-center">
+                        <h3 className="text-2xl font-semibold mb-2">Total em Caixa</h3>
+                        <p className="text-4xl font-bold">{totalAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+
                     </div>
-                    <div className="bg-red-500 text-white p-4 rounded-lg shadow-lg w-48 text-center">
-                        <h3 className="font-semibold">Total de Saídas</h3>
-                        <p className="text-2xl">{totalAmount < 0 ? totalAmount : '0'}</p>
+                    <div className="m-8 bg-red-900 p-6 rounded-xl shadow-md text-center">
+                        <h3 className="text-lg font-semibold mb-2">Total de Despesas</h3>
+                        <p className="text-2xl font-bold">{totalExpenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                     </div>
                 </div>
 
-                <div className="flex gap-8 justify-center mb-6">
-                    <button className="bg-green-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-green-700" onClick={() => openModal('receita')}>
-                        Adicionar Entrada
+                <div className="grid grid-cols-2 gap-4 justify-center mb-8 px-4 max-w-xs mx-auto">
+                    <button
+                        className="flex flex-col items-center justify-center gap-2 bg-green-800 hover:bg-green-700 transition-colors text-white py-4 px-2 rounded-lg shadow-md text-sm font-medium"
+                        onClick={() => openModal('receita')}
+                    >
+                        <HandArrowDown size={36} />
+                        Registrar Entrada
                     </button>
-                    <button className="bg-red-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-red-700" onClick={() => openModal('despesa')}>
-                        Adicionar Saída
+                    <button
+                        className="flex flex-col items-center justify-center gap-2 bg-red-800 hover:bg-red-700 transition-colors text-white py-4 px-2 rounded-lg shadow-md text-sm font-medium"
+                        onClick={() => openModal('despesa')}
+                    >
+                        <HandArrowUp size={36} />
+                        Registrar Saída
                     </button>
                 </div>
 
-                {/* Modal for adding transactions */}
-                <Modal isOpen={isModalOpen} onRequestClose={closeModal} className="modal-container bg-white p-8 rounded-lg shadow-xl max-w-md mx-auto">
-                    <h2 className="text-2xl mb-4">{transactionType === 'receita' ? 'Adicionar Entrada' : 'Adicionar Saída'}</h2>
-                    <form className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-semibold">Título</label>
-                            <input type="text" className="w-full p-2 border border-gray-300 rounded" value={title} onChange={(e) => setTitle(e.target.value)} />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold">Valor</label>
-                            <input type="number" className="w-full p-2 border border-gray-300 rounded" value={value} onChange={(e) => setValue(e.target.value)} />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold">Data</label>
-                            <input type="date" className="w-full p-2 border border-gray-300 rounded" value={date} onChange={(e) => setDate(e.target.value)} />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold">Relacionado com</label>
-                            <select
-                                className="w-full p-2 border border-gray-300 rounded text-gray-500"
+                    <Modal
+                        isOpen={isModalOpen}
+                        onRequestClose={closeModal}
+                        shouldCloseOnOverlayClick={true}
+                        overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
+                        className={`relative bg-white text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out ${transactionType === 'receita' ? 'border-green-800' : 'border-red-800'
+                            } ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                    >
+                        <button
+                            onClick={closeModal}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-white text-xl"
+                        >
+                            ×
+                        </button>
+
+                        <h2
+                            className={`text-2xl mb-6 text-center font-bold ${transactionType === 'receita' ? 'text-green-800' : 'text-red-800'
+                                }`}
+                        >
+                            {transactionType === 'receita' ? 'ADICIONAR ENTRADA' : 'ADICIONAR SAÍDA'}
+                        </h2>
+
+                        <form className="space-y-4">
+                            <CustomField
+                                name="title"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="Título da transação"
+                                required />
+
+                            <CustomField
+                                name="value"
+                                value={value}
+                                onChange={(e) => {
+                                    let input = e.target.value.replace(/[^\d]/g, '');
+                                    const number = (parseFloat(input) / 100).toFixed(2);
+                                    const formatted = Number(number).toLocaleString('pt-BR', {
+                                        style: 'currency',
+                                        currency: 'BRL',
+                                    });
+                                    setValue(formatted);
+                                }}
+                                placeholder="Valor"
+                                required />
+
+                            <CustomField
+                                name="date"
+                                type="date"
+                                value={date}
+                                className={!date ? 'text-gray-400' : 'text-black'}
+                                onChange={(e) => setDate(e.target.value)}
+                                required />
+
+                            <CustomDropdown
                                 value={relates_to}
-                                onChange={(e) => setrelates_to(e.target.value)}
-                            >
-                                <option value="" disabled>Selecione uma opção</option> {/* Valor inicial com texto cinza */}
-                                <option value="events">Eventos</option>
-                                <option value="products">Produtos</option>
-                                <option value="games">Jogos</option>
-                                <option value="others">Outros</option>
-                            </select>
-                        </div>
-                        <div>
-                            <button type="button" className="bg-blue-600 text-white py-2 px-6 rounded-lg" onClick={handleRegisterTransaction}>
-                                Registrar
-                            </button>
-                        </div>
-                    </form>
-                    <button className="mt-4 bg-gray-500 text-white py-2 px-4 rounded-lg" onClick={closeModal}>Fechar</button>
-                </Modal>
+                                onChange={setrelates_to}
+                                options={['Eventos', 'Produtos', 'Jogos', 'Outros']}
+                                placeholder="Relacionado com"
+                                required />
+
+                            <CustomField
+                                name="note"
+                                value={note}
+                                onChange={(e) => setNote(e.target.value)}
+                                placeholder="Observações (opcional)"
+                            />
+
+                            <div className="flex justify-end gap-4 pt-4">
+                                <CustomButton
+                                    type="button"
+                                    onClick={handleRegisterTransaction}
+                                    className={transactionType === 'receita'
+                                        ? '!bg-green-800 hover:!bg-green-700 dark:!bg-green-800 dark:hover:!bg-green-700'
+                                        : '!bg-red-800 hover:!bg-red-700 dark:!bg-red-800 dark:hover:!bg-red-700'}
+                                >
+                                    Registrar
+                                </CustomButton>
+                            </div>
+                        </form>
+                    </Modal>
 
                 {/* Transaction Records Table */}
                 <div className="overflow-x-auto mt-8">
