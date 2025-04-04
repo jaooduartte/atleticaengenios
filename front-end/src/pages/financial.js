@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { HandArrowDown, HandArrowUp, MagnifyingGlass, DotsThreeVertical } from '@phosphor-icons/react';
+import { HandArrowDown, HandArrowUp, MagnifyingGlass, DotsThreeVertical, WarningCircle } from '@phosphor-icons/react';
 import Header from '../components/header-admin';
 import Footer from '../components/footer-admin';
 import Modal from 'react-modal';
@@ -267,7 +267,7 @@ export default function FinancialPage() {
 
                 {/* Transaction Records Table */}
                 {/* Transaction Records as Cards */}
-                <div className="mt-8 space-y-4 max-w-5xl mx-auto">
+                <div className="mt-8 space-y-4 max-w-9xl mx-auto">
                     <h3 className="text-xl text-center font-semibold mb-4">Extrato</h3>
                     <div className="mb-4 max-w-sm mx-auto">
                         <CustomField
@@ -276,76 +276,82 @@ export default function FinancialPage() {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="Buscar por título..."
+                            clearable
+                            onClear={() => setSearchTerm('')}
                         />
                     </div>
-                    <div className="grid grid-cols-7 text-sm font-semibold text-gray-600 px-4 mb-2 max-w-5xl mx-auto">
-                        <span>Título</span>
-                        <span>Valor</span>
-                        <span>Data</span>
-                        <span>Relacionado com</span>
-                        <span>Tipo</span>
-                        <span>Registrado por</span>
-                        <span className="text-right">Ações</span>
+                    <div className="relative flex justify-between pr-6 font-bold max-w-9xl mx-auto">
+                        <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
+                            <span className="text-md">Tipo</span>
+                            <span className="text-md">Título</span>
+                            <span className="text-md">Valor</span>
+                            <span className="text-md">Data</span>
+                            <span className="text-md">Relacionado com</span>
+                            <span className="text-md">Registrado por</span>
+                        </div>
+                        <div className="w-12 flex justify-center items-center">
+                            <span className="text-md text-center">Ações</span>
+                        </div>
                     </div>
-                    {transactions
-                        .filter((transaction) =>
-                            transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
-                        )
-                        .slice(0, 100)
-                        .map((transaction, index) => (
-                    <div key={index} className="relative bg-white justify-between rounded-xl shadow-md p-6 border border-gray-200 w-full">
-                        <div className="grid grid-cols-7 items-center gap-2">
-                                    <div>
-                                        <h4 className="font-medium">{transaction.title}</h4>
+                    {transactions.filter((transaction) =>
+                        transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).length === 0 ? (
+                        <div className="flex flex-col items-center justify-center text-red-900 rounded-xl px-8 py-12 text-center text-base max-w-2xl mx-auto mt-12 animate-fade-in space-y-4">
+                            <WarningCircle size={64} className="text-red-500" />
+                            <h3 className="text-2xl font-semibold">Nenhum resultado encontrado</h3>
+                            <p className="text-sm">Verifique se digitou corretamente o título da transação ou experimente outros termos para a busca.</p>
+                        </div>
+                    ) : (
+                        transactions
+                            .filter((transaction) =>
+                                transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
+                            )
+                            .slice(0, 100)
+                            .map((transaction, index) => (
+                                <div key={index} className="relative bg-white flex justify-between rounded-xl shadow-md pr-6 py-8 border border-gray-200">
+                                    <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
+                                        <div>
+                                            <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${transaction.type === 'receita' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'}`}>
+                                                {transaction.type === 'receita' ? 'Entrada' : 'Saída'}
+                                            </span>
+                                        </div>
+                                        <div><h4 className="font-medium">{transaction.title}</h4></div>
+                                        <div className="text-sm">{Number(transaction.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                                        <div className="text-sm">{new Date(transaction.date).toLocaleDateString('pt-BR')}</div>
+                                        <div className="text-sm">{transaction.relates_to}</div>
+
+                                        <div>
+                                            <span className="text-sm">{transaction.user_name ?? 'Usuário desconhecido'}</span>
+                                        </div>
                                     </div>
-                                    <div className="text-sm">
-                                        {Number(transaction.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                    </div>
-                                    <div className="text-sm">
-                                        {new Date(transaction.date).toLocaleDateString('pt-BR')}
-                                    </div>
-                                    <div className="text-sm">
-                                        {transaction.relates_to}
-                                    </div>
-                                    <div>
-                                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full 
-                                          ${transaction.type === 'receita'
-                                                ? 'bg-green-800 text-white'
-                                                : 'bg-red-800 text-white'}`}>
-                                            {transaction.type === 'receita' ? 'Entrada' : 'Saída'}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className="text-sm">{transaction.user_name ?? 'Usuário desconhecido'}</span>
-                                    </div>
-                                    <div className="flex justify-end">
+                                    <div className="w-12 flex justify-center">
                                         <div className="relative flex justify-end">
                                             <div className="relative group w-fit h-fit">
                                                 <DotsThreeVertical size={24} className="text-gray-700 cursor-pointer" />
                                                 <div className="absolute right-0 top-6 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
-                                                    <button
-                                                        onClick={() => handleEditTransaction(transaction)}
-                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                                                    >
-                                                        Editar transação
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteTransaction(transaction)}
-                                                        className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
-                                                    >
-                                                        Excluir transação
-                                                    </button>
+                                                    <button onClick={() => handleEditTransaction(transaction)} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">Editar transação</button>
+                                                    <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600">Excluir transação</button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                    )}
                 </div>
             </div>
 
             <Footer />
+            <style jsx global>{`
+              @keyframes fade-in {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+
+              .animate-fade-in {
+                animation: fade-in 0.4s ease-out;
+              }
+            `}</style>
         </div>
     );
 }
