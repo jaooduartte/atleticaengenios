@@ -17,10 +17,12 @@ export default function FinancialPage() {
     const user = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [transactionType, setTransactionType] = useState(null);
+    const [transactionToDelete, setTransactionToDelete] = useState(null);
     const [title, setTitle] = useState('');
     const [value, setValue] = useState('');
     const [date, setDate] = useState('');
     const [relates_to, setrelates_to] = useState('');
+    const [editingTransactionId, setEditingTransactionId] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [totalAmount, setTotalAmount] = useState(0);
     const [totalIncomes, setTotalIncomes] = useState(0);
@@ -63,11 +65,35 @@ export default function FinancialPage() {
     }, []);
 
     const handleEditTransaction = (transaction) => {
-        console.log('Editar', transaction);
+        setEditingTransactionId(transaction.id);
+        setTitle(transaction.title);
+        setValue(Number(transaction.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+        setDate(transaction.date.split('T')[0]);
+        setrelates_to(transaction.relates_to);
+        setNote(transaction.note || '');
+        setTransactionType(transaction.type);
+        setIsModalOpen(true);
     };
 
-    const handleDeleteTransaction = (transaction) => {
-        console.log('Excluir', transaction);
+    const handleDeleteTransaction = async (transaction) => {
+        const confirmDelete = confirm(`Deseja realmente excluir a transação "${transaction.title}"?`);
+        if (!confirmDelete) return;
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/financial/transaction/${transaction.id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                setTransactions((prev) => prev.filter((t) => t.id !== transaction.id));
+                showBannerMessage("Transação excluída com sucesso!", "success");
+            } else {
+                showBannerMessage("Erro ao excluir", "error", "Tente novamente mais tarde.");
+            }
+        } catch (error) {
+            console.error(error);
+            showBannerMessage("Erro de conexão", "error", "Não foi possível excluir a transação.");
+        }
     };
 
     const showBannerMessage = (message, type, description = '') => {
@@ -89,11 +115,12 @@ export default function FinancialPage() {
         setValue('');
         setDate('');
         setrelates_to('');
+        setNote('');
+        setTransactionType(null);
+        setEditingTransactionId(null);
     };
 
     const handleRegisterTransaction = async () => {
-        console.log('relates_to:', relates_to);  // Verifique o valor aqui
-
         if (!relates_to) {
             showBannerMessage("Campo obrigatório!", "error", "Por favor, selecione a opção de 'Relacionado com'.");
             return;
@@ -110,27 +137,49 @@ export default function FinancialPage() {
         };
 
         try {
-            const response = await fetch('http://localhost:3001/api/financial/transaction', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+            const url = editingTransactionId
+                ? `http://localhost:3001/api/financial/transaction/${editingTransactionId}`
+                : 'http://localhost:3001/api/financial/transaction';
+
+            const method = editingTransactionId ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newTransaction),
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                setTransactions([...transactions, data]);
-                const parsedValue = parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.'));
-                const newTotalIncomes = transactionType === 'receita' ? totalIncomes + parsedValue : totalIncomes;
-                const newTotalExpenses = transactionType === 'despesa' ? totalExpenses + parsedValue : totalExpenses;
-                const newTotalAmount = newTotalIncomes - newTotalExpenses;
+                if (editingTransactionId) {
+                    setTransactions((prev) =>
+                        prev.map((t) => {
+                            if (t.id === editingTransactionId) {
+                                return {
+                                    ...t,
+                                    ...data,
+                                    user_name: t.user_name, // preserva o nome do usuário original
+                                };
+                            }
+                            return t;
+                        })
+                    );
+                    showBannerMessage("Transação atualizada com sucesso!", "success");
+                } else {
+                    setTransactions([...transactions, data]);
 
-                setTotalIncomes(newTotalIncomes);
-                setTotalExpenses(newTotalExpenses);
-                setTotalAmount(newTotalAmount);
-                showBannerMessage("Transação registrada com sucesso!", "success");
+                    const parsedValue = newTransaction.value;
+                    const newTotalIncomes = transactionType === 'receita' ? totalIncomes + parsedValue : totalIncomes;
+                    const newTotalExpenses = transactionType === 'despesa' ? totalExpenses + parsedValue : totalExpenses;
+                    const newTotalAmount = newTotalIncomes - newTotalExpenses;
+
+                    setTotalIncomes(newTotalIncomes);
+                    setTotalExpenses(newTotalExpenses);
+                    setTotalAmount(newTotalAmount);
+                    showBannerMessage("Transação registrada com sucesso!", "success");
+                }
+
                 closeModal();
             } else {
                 showBannerMessage("Erro ao registrar transação", "error", "Verifique os campos preenchidos ou tente novamente.");
@@ -263,7 +312,44 @@ export default function FinancialPage() {
                             </CustomButton>
                         </div>
                     </form>
-                </Modal>
+            </Modal>
+            
+            <Modal
+                isOpen={Boolean(transactionToDelete)}
+                onRequestClose={() => setTransactionToDelete(null)}
+                shouldCloseOnOverlayClick={true}
+                overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
+                className="relative bg-white text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md mx-auto transform transition-all duration-300 ease-in-out"
+            >
+                <button
+                    onClick={() => setTransactionToDelete(null)}
+                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
+                >
+                    ×
+                </button>
+
+                <h2 className="text-2xl mb-4 text-center font-bold text-red-800">Confirmar Exclusão</h2>
+                <p className="text-center text-sm text-gray-700 mb-6">
+                    Tem certeza que deseja excluir a transação <strong>{transactionToDelete?.title}</strong>?
+                </p>
+
+                <div className="flex justify-center gap-4">
+                    <CustomButton
+                        type="button"
+                        onClick={() => handleConfirmDelete()}
+                        className="!bg-red-800 hover:!bg-red-700"
+                    >
+                        Excluir
+                    </CustomButton>
+                    <CustomButton
+                        type="button"
+                        onClick={() => setTransactionToDelete(null)}
+                        className="!bg-gray-500 hover:!bg-gray-600"
+                    >
+                        Cancelar
+                    </CustomButton>
+                </div>
+            </Modal>
 
                 {/* Transaction Records Table */}
                 {/* Transaction Records as Cards */}
