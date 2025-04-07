@@ -75,25 +75,8 @@ export default function FinancialPage() {
         setIsModalOpen(true);
     };
 
-    const handleDeleteTransaction = async (transaction) => {
-        const confirmDelete = confirm(`Deseja realmente excluir a transação "${transaction.title}"?`);
-        if (!confirmDelete) return;
-
-        try {
-            const response = await fetch(`http://localhost:3001/api/financial/transaction/${transaction.id}`, {
-                method: 'DELETE',
-            });
-
-            if (response.ok) {
-                setTransactions((prev) => prev.filter((t) => t.id !== transaction.id));
-                showBannerMessage("Transação excluída com sucesso!", "success");
-            } else {
-                showBannerMessage("Erro ao excluir", "error", "Tente novamente mais tarde.");
-            }
-        } catch (error) {
-            console.error(error);
-            showBannerMessage("Erro de conexão", "error", "Não foi possível excluir a transação.");
-        }
+    const handleDeleteTransaction = (transaction) => {
+        setTransactionToDelete(transaction);
     };
 
     const showBannerMessage = (message, type, description = '') => {
@@ -190,6 +173,26 @@ export default function FinancialPage() {
         }
     };
 
+    const handleConfirmDelete = async () => {
+        try {
+            const response = await fetch(`http://localhost:3001/api/financial/transaction/${transactionToDelete.id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                setTransactions((prev) => prev.filter((t) => t.id !== transactionToDelete.id));
+                showBannerMessage("Transação excluída com sucesso!", "error");
+            } else {
+                showBannerMessage("Erro ao excluir", "error", "Tente novamente mais tarde.");
+            }
+        } catch (error) {
+            console.error(error);
+            showBannerMessage("Erro de conexão", "error", "Não foi possível excluir a transação.");
+        } finally {
+            setTransactionToDelete(null);
+        }
+    };
+
     return (
         <div className="financial-page flex flex-col min-h-screen">
             <Header />
@@ -252,7 +255,7 @@ export default function FinancialPage() {
                         className={`text-2xl mb-6 text-center font-bold ${transactionType === 'receita' ? 'text-green-800' : 'text-red-800'
                             }`}
                     >
-                        {transactionType === 'receita' ? 'ADICIONAR ENTRADA' : 'ADICIONAR SAÍDA'}
+                        {transactionType === 'receita' ? 'Adicionar Entrada' : 'Adicionar Saída'}
                     </h2>
 
                     <form className="space-y-4">
@@ -315,46 +318,45 @@ export default function FinancialPage() {
             </Modal>
             
             <Modal
-                isOpen={Boolean(transactionToDelete)}
-                onRequestClose={() => setTransactionToDelete(null)}
-                shouldCloseOnOverlayClick={true}
-                overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
-                className="relative bg-white text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md mx-auto transform transition-all duration-300 ease-in-out"
+              isOpen={Boolean(transactionToDelete)}
+              onRequestClose={() => setTransactionToDelete(null)}
+              shouldCloseOnOverlayClick={true}
+              overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
+              className={`relative bg-white text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out border-red-800 ${transactionToDelete ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
             >
-                <button
-                    onClick={() => setTransactionToDelete(null)}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
+              <button
+                onClick={() => setTransactionToDelete(null)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-white text-xl"
+              >
+                ×
+              </button>
+
+              <h2 className="text-2xl mb-4 text-center font-bold text-red-800">Confirmar Exclusão</h2>
+              <p className="text-center text-sm text-gray-700 mb-6">
+                Tem certeza que deseja excluir a transação <strong>{transactionToDelete?.title}</strong>?
+              </p>
+
+              <div className="flex justify-center">
+                <CustomButton
+                  type="button"
+                  onClick={() => setTransactionToDelete(null)}
+                  className="!bg-gray-500 hover:!bg-gray-600"
                 >
-                    ×
-                </button>
-
-                <h2 className="text-2xl mb-4 text-center font-bold text-red-800">Confirmar Exclusão</h2>
-                <p className="text-center text-sm text-gray-700 mb-6">
-                    Tem certeza que deseja excluir a transação <strong>{transactionToDelete?.title}</strong>?
-                </p>
-
-                <div className="flex justify-center gap-4">
-                    <CustomButton
-                        type="button"
-                        onClick={() => handleConfirmDelete()}
-                        className="!bg-red-800 hover:!bg-red-700"
-                    >
-                        Excluir
-                    </CustomButton>
-                    <CustomButton
-                        type="button"
-                        onClick={() => setTransactionToDelete(null)}
-                        className="!bg-gray-500 hover:!bg-gray-600"
-                    >
-                        Cancelar
-                    </CustomButton>
-                </div>
+                  Cancelar
+                </CustomButton>
+                <CustomButton
+                  type="button"
+                  onClick={() => handleConfirmDelete()}
+                  className="!bg-red-800 hover:!bg-red-700"
+                >
+                  Excluir
+                </CustomButton>
+              </div>
             </Modal>
 
                 {/* Transaction Records Table */}
                 {/* Transaction Records as Cards */}
                 <div className="mt-8 space-y-4 max-w-9xl mx-auto">
-                    <h3 className="text-xl text-center font-semibold mb-4">Extrato</h3>
                     <div className="mb-4 max-w-sm mx-auto">
                         <CustomField
                             icon={MagnifyingGlass}
@@ -410,7 +412,7 @@ export default function FinancialPage() {
                                             <span className="text-sm">{transaction.user_name ?? 'Usuário desconhecido'}</span>
                                         </div>
                                     </div>
-                                    <div className="w-12 flex justify-center">
+                                    <div className="w-12 flex justify-center items-center">
                                         <div className="relative flex justify-end">
                                             <div className="relative group w-fit h-fit">
                                                 <DotsThreeVertical size={24} className="text-gray-700 cursor-pointer" />

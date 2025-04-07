@@ -146,7 +146,7 @@ export default function ResetPassword() {
         </div>
 
           <div>
-            <CustomButton type="submit">Redefinir senha</CustomButton>
+            <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>Redefinir senha</CustomButton>
           </div>
 
           <div className="text-center">

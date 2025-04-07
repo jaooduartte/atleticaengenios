@@ -26,6 +26,8 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+
+  const [isNameInvalid, setIsNameInvalid] = useState(false);
   const [isEmailInvalid, setIsEmailInvalid] = useState(false);
   const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
   const [isCourseInvalid, setIsCourseInvalid] = useState(false);
@@ -92,6 +94,13 @@ export default function Login() {
       hasError = true;
     } else {
       setIsBirthdayInvalid(false);
+    }
+
+    if (!name) {
+      setIsNameInvalid(true);
+      hasError = true;
+    } else {
+      setIsNameInvalid(false);
     }
 
     if (hasError) return;
@@ -212,6 +221,7 @@ export default function Login() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Digite seu nome"
                   name="name"
+                  isInvalid={isBirthdayInvalid}
                 />
               </div>
               <CustomField
