@@ -1,7 +1,7 @@
 const db = require('../utils/db');
 
 const createTransaction = async (transactionData) => {
-    const { title, value, date, relates_to, user_id, type } = transactionData;
+    const { title, value, date, relates_to, user_id, type, note } = transactionData;
 
     if (!relates_to) {
         console.error('Campo "relates_to" não foi preenchido');
@@ -15,10 +15,10 @@ const createTransaction = async (transactionData) => {
 
     const queryText = `
         INSERT INTO transactions (title, value, date, relates_to, user_id, type, created_at, note)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *;
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7) RETURNING *;
     `;
 
-    const queryValues = [title, parseFloat(value), date, relates_to, parseInt(user_id), type];
+    const queryValues = [title, parseFloat(value), date, relates_to, parseInt(user_id), type, note || null]; 
 
     try {
         const res = await db.query(queryText, queryValues);

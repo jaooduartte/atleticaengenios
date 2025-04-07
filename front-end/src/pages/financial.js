@@ -81,16 +81,29 @@ export default function FinancialPage() {
     const groupByMonth = () => {
       const monthMap = {};
 
+      // Obtendo a data atual e o limite para os últimos 6 meses
+      const currentDate = new Date();
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
+
       transactions.forEach(t => {
-        const date = new Date(t.date);
-        const month = `${date.getMonth() + 1}/${date.getFullYear()}`;
-        if (!monthMap[month]) {
-          monthMap[month] = { receita: 0, despesa: 0 };
+        const transactionDate = new Date(t.date);
+
+        // Verifique se a transação está dentro dos últimos 6 meses
+        if (transactionDate >= sixMonthsAgo) {
+          const month = `${(transactionDate.getMonth() + 1).toString().padStart(2, '0')}/${transactionDate.getFullYear()}`;
+          if (!monthMap[month]) {
+            monthMap[month] = { receita: 0, despesa: 0 };
+          }
+          monthMap[month][t.type] += parseFloat(t.value);
         }
-        monthMap[month][t.type] += parseFloat(t.value);
       });
 
-      const labels = Object.keys(monthMap).sort((a, b) => new Date(a) - new Date(b));
+      // Ordenar os meses em ordem cronológica (mais recentes à direita)
+      const labels = Object.keys(monthMap)
+        .sort((a, b) => new Date(a.split('/').reverse().join('/')) - new Date(b.split('/').reverse().join('/')))
+        .slice(0, 6);
+
       const incomes = labels.map(label => monthMap[label].receita || 0);
       const expenses = labels.map(label => monthMap[label].despesa || 0);
 
@@ -279,8 +292,26 @@ export default function FinancialPage() {
                 }}
                 options={{
                   responsive: true,
-                  plugins: { legend: { display: false } },
-                  scales: { x: { ticks: { font: { family: 'Kohinoor Bangla' } } }, y: { ticks: { font: { family: 'Kohinoor Bangla' } } } },
+                  plugins: {
+                    legend: { display: false },
+                    title: { display: false },
+                    tooltip: {
+                      callbacks: {
+                        label: (tooltipItem) => `R$ ${tooltipItem.raw.toFixed(2)}`,
+                      },
+                    },
+                  },
+                  scales: {
+                    x: {
+                      ticks: { font: { family: 'Kohinoor Bangla' } },
+                    },
+                    y: {
+                      ticks: {
+                        callback: (value) => `R$ ${value.toFixed(2)}`,
+                        font: { family: 'Kohinoor Bangla' },
+                      },
+                    },
+                  },
                 }}
               />
             </div>
@@ -292,14 +323,14 @@ export default function FinancialPage() {
             </div>
             <div className="flex justify-between gap-4 mt-auto">
               <button
-                className="flex flex-col items-center justify-center gap-1 bg-green-900 hover:bg-green-700 transition-colors text-white py-3 px-6 rounded-lg shadow text-xs font-medium w-full md:w-auto"
+                className="flex flex-col items-center justify-center gap-1 bg-green-900 hover:bg-green-700 transition-colors text-white py-3 px-6 rounded-lg shadow text-xs font-medium w-full"
                 onClick={() => openModal('receita')}
               >
                 <HandArrowDown size={20} />
                 Entrada
               </button>
               <button
-                className="flex flex-col items-center justify-center gap-1 bg-red-900 hover:bg-red-700 transition-colors text-white py-3 px-6 rounded-lg shadow text-xs font-medium w-full md:w-auto"
+                className="flex flex-col items-center justify-center gap-1 bg-red-900 hover:bg-red-700 transition-colors text-white py-3 px-6 rounded-lg shadow text-xs font-medium w-full"
                 onClick={() => openModal('despesa')}
               >
                 <HandArrowUp size={20} />
@@ -308,7 +339,7 @@ export default function FinancialPage() {
             </div>
           </div>
           <div className="m-4 bg-red-900 p-4 rounded-xl shadow-md text-center">
-            <h3 className="text-md font-semibold mb-1">Total de Despesas</h3>
+            <h3 className="text-md font-semibold mb-1">Despesas</h3>
             <p className="text-xl font-bold">{totalExpenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
             <div className="bg-white mt-3 rounded-lg p-2">
               <Bar
@@ -322,8 +353,26 @@ export default function FinancialPage() {
                 }}
                 options={{
                   responsive: true,
-                  plugins: { legend: { display: false } },
-                  scales: { x: { ticks: { font: { family: 'Kohinoor Bangla' } } }, y: { ticks: { font: { family: 'Kohinoor Bangla' } } } },
+                  plugins: {
+                    legend: { display: false },
+                    title: { display: false },
+                    tooltip: {
+                      callbacks: {
+                        label: (tooltipItem) => `R$ ${tooltipItem.raw.toFixed(2)}`,
+                      },
+                    },
+                  },
+                  scales: {
+                    x: {
+                      ticks: { font: { family: 'Kohinoor Bangla' } },
+                    },
+                    y: {
+                      ticks: {
+                        callback: (value) => `R$ ${value.toFixed(2)}`,
+                        font: { family: 'Kohinoor Bangla' },
+                      },
+                    },
+                  },
                 }}
               />
             </div>
