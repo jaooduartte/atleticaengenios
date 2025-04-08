@@ -39,12 +39,12 @@ export default function Banner({ message, description, type }) {
     type === 'error'
       ? 'border-red-900 bg-red-900 text-white'
       : type === 'success'
-      ? 'border-green-900 bg-green-900 text-white'
-      : 'border bg-background text-foreground';
+        ? 'border-green-900 bg-green-900 text-white'
+        : 'border bg-background text-foreground';
 
   return (
     <div
-      className={`fixed top-4 right-4 py-3 px-4 pr-6 w-96 rounded-md ${bannerClass} shadow-lg transform transition-all duration-500 ease-in-out ${hideClass}`}
+      className={`fixed top-4 right-4 py-3 z-50 px-4 pr-6 w-96 rounded-md ${bannerClass} shadow-lg transform transition-all duration-500 ease-in-out ${hideClass}`}
     >
       <div className="flex justify-between items-start">
         <div>

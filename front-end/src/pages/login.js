@@ -221,7 +221,7 @@ export default function Login() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Digite seu nome"
                   name="name"
-                  isInvalid={isBirthdayInvalid}
+                  isInvalid={isNameInvalid}
                 />
               </div>
               <CustomField

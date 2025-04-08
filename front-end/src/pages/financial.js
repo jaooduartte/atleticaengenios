@@ -41,8 +41,14 @@ export default function FinancialPage() {
   const [note, setNote] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null);
-  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
+  const [selectedPeriod, setSelectedPeriod] = useState('last6months');
   const [chartData, setChartData] = useState({ incomes: [], expenses: [], labels: [] });
+
+  const [isTitleInvalid, setIsTitleInvalid] = useState(false);
+  const [isValueInvalid, setIsValueInvalid] = useState(false);
+  const [isDateInvalid, setIsDateInvalid] = useState(false);
+  const [isRelatesToInvalid, setIsRelatesToInvalid] = useState(false);
+
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -124,6 +130,10 @@ export default function FinancialPage() {
     setIsModalOpen(true);
   };
 
+  const handlePeriodChange = (newPeriod) => {
+    setSelectedPeriod(newPeriod);
+  };
+
   const handleDeleteTransaction = (transaction) => {
     setTransactionToDelete(transaction);
   };
@@ -153,8 +163,34 @@ export default function FinancialPage() {
   };
 
   const handleRegisterTransaction = async () => {
+    // Validação de campos obrigatórios
+    if (!title) {
+      setIsTitleInvalid(true); // Marca o campo como inválido
+    } else {
+      setIsTitleInvalid(false); // Desmarca o campo como inválido
+    }
+
+    if (!value) {
+      setIsValueInvalid(true);
+    } else {
+      setIsValueInvalid(false);
+    }
+
+    if (!date) {
+      setIsDateInvalid(true);
+    } else {
+      setIsDateInvalid(false);
+    }
+
     if (!relates_to) {
-      showBannerMessage("Campo obrigatório!", "error", "Por favor, selecione a opção de 'Relacionado com'.");
+      setIsRelatesToInvalid(true);
+    } else {
+      setIsRelatesToInvalid(false);
+    }
+
+    if (isTitleInvalid || isValueInvalid || isDateInvalid || isRelatesToInvalid) {
+      // Se algum campo estiver inválido, não prosseguir com a criação da transação
+      showBannerMessage('Preencha todos os campos obrigatórios!', 'error');
       return;
     }
 
@@ -197,7 +233,7 @@ export default function FinancialPage() {
               return t;
             })
           );
-          showBannerMessage("Transação atualizada com sucesso!", "success");
+          showBannerMessage('Transação atualizada com sucesso!', 'success');
         } else {
           setTransactions([...transactions, data]);
 
@@ -209,16 +245,16 @@ export default function FinancialPage() {
           setTotalIncomes(newTotalIncomes);
           setTotalExpenses(newTotalExpenses);
           setTotalAmount(newTotalAmount);
-          showBannerMessage("Transação registrada com sucesso!", "success");
+          showBannerMessage('Transação registrada com sucesso!', 'success');
         }
 
         closeModal();
       } else {
-        showBannerMessage("Erro ao registrar transação", "error", "Verifique os campos preenchidos ou tente novamente.");
+        showBannerMessage('Erro ao registrar transação', 'error', 'Verifique os campos preenchidos ou tente novamente.');
       }
     } catch (error) {
       console.error('Erro ao registrar transação:', error);
-      showBannerMessage("Erro de conexão", "error", "Não foi possível se conectar ao servidor.");
+      showBannerMessage('Erro de conexão', 'error', 'Não foi possível se conectar ao servidor.');
     }
   };
 
@@ -270,7 +306,14 @@ export default function FinancialPage() {
     <div className="financial-page flex flex-col min-h-screen">
       <Header />
 
-      {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
+      {showBanner && (
+        <Banner
+          message={bannerMessage}
+          description={bannerDescription}
+          type={bannerType}
+          className="fixed top-0 left-0 right-0 z-50 p-4 bg-red-500 text-white text-center shadow-md"
+        />
+      )}
 
       <div className="container mx-auto p-6 flex-grow">
         <h1 className="text-3xl font-semibold mb-6 text-center text-gray-800">Gestão Financeira</h1>
@@ -294,7 +337,7 @@ export default function FinancialPage() {
                   responsive: true,
                   plugins: {
                     legend: { display: false },
-                    title: { display: false },
+                    title: { display: true },
                     tooltip: {
                       callbacks: {
                         label: (tooltipItem) => `R$ ${tooltipItem.raw.toFixed(2)}`,
@@ -392,7 +435,7 @@ export default function FinancialPage() {
         >
           <button
             onClick={closeModal}
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-white text-xl"
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 hover:text-black text-xl"
           >
             ×
           </button>
@@ -410,8 +453,9 @@ export default function FinancialPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Título da transação"
-              required />
-
+              required
+              isInvalid={isTitleInvalid} // Adicionando a validação de campo obrigatório
+            />
             <CustomField
               name="value"
               value={value}
@@ -425,22 +469,26 @@ export default function FinancialPage() {
                 setValue(formatted);
               }}
               placeholder="Valor"
-              required />
-
+              required
+              isInvalid={isValueInvalid} // Adicionando a validação de campo obrigatório
+            />
             <CustomField
               name="date"
               type="date"
               value={date}
               className={!date ? 'text-gray-400' : 'text-black'}
               onChange={(e) => setDate(e.target.value)}
-              required />
-
+              required
+              isInvalid={isDateInvalid} // Adicionando a validação de campo obrigatório
+            />
             <CustomDropdown
               value={relates_to}
               onChange={setrelates_to}
               options={['Eventos', 'Produtos', 'Jogos', 'Outros']}
               placeholder="Relacionado com"
-              required />
+              required
+              isInvalid={isRelatesToInvalid} // Adicionando a validação de campo obrigatório
+            />
 
             <CustomField
               name="note"
@@ -510,7 +558,7 @@ export default function FinancialPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por título..."
-              clearable
+              clearable={searchTerm ? 'true' : ''}
               onClear={() => setSearchTerm('')}
             />
           </div>
