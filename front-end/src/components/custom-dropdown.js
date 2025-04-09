@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { CaretDown } from 'phosphor-react';
+import { CaretDown, CaretUp } from 'phosphor-react';
 
-export default function CustomDropdown({ icon: Icon, options, value, onChange, placeholder = 'Selecione', isInvalid }) {
+export default function CustomDropdown({ icon: Icon, options, value, onChange, placeholder = 'Selecione', isInvalid, onFilterApplied }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [iconChanged, setIconChanged] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -18,6 +19,8 @@ export default function CustomDropdown({ icon: Icon, options, value, onChange, p
   const handleSelect = (option) => {
     onChange(option);
     setIsOpen(false);
+    setIconChanged(true);
+    if (onFilterApplied) onFilterApplied(option);
   };
 
   return (
@@ -33,7 +36,7 @@ export default function CustomDropdown({ icon: Icon, options, value, onChange, p
         <span className={`block truncate whitespace-nowrap !text-sm ${value ? 'text-black' : 'text-gray-400'}`}>
           {value || placeholder}
         </span>
-        <CaretDown className="absolute right-3 top-1/2 transform -translate-y-1/2" size={16} />
+        {iconChanged ? <CaretUp className="absolute right-3 top-1/2 transform -translate-y-1/2" size={16} /> : <CaretDown className="absolute right-3 top-1/2 transform -translate-y-1/2" size={16} />}
       </button>
       {isOpen && (
         <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-md max-h-60 overflow-auto text-sm">

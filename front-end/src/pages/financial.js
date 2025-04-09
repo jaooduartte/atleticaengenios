@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { HandArrowDown, HandArrowUp, MagnifyingGlass, DotsThreeVertical, WarningCircle } from '@phosphor-icons/react';
+import { HandArrowDown, HandArrowUp, MagnifyingGlass, DotsThreeVertical, WarningCircle, Funnel, FunnelX } from '@phosphor-icons/react';
 import Header from '../components/header-admin';
 import Footer from '../components/footer-admin';
 import Modal from 'react-modal';
@@ -49,7 +49,24 @@ export default function FinancialPage() {
   const [isDateInvalid, setIsDateInvalid] = useState(false);
   const [isRelatesToInvalid, setIsRelatesToInvalid] = useState(false);
 
+  const [filterActive, setFilterActive] = useState({ tipo: false, valor: false, data: false, relates_to: false, user: false });
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState(null);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [filterPosition, setFilterPosition] = useState({ top: 0, left: 0 });
+  const [filterMenuOptions, setFilterMenuOptions] = useState([]);
+  const [currentFilterValue, setCurrentFilterValue] = useState("");
+
   const dropdownRef = useRef(null);
+  const filterMenuRef = useRef(null);  // Referência para o menu de filtro
+
+  const filterButtonRefs = useRef({
+    tipo: null,
+    valor: null,
+    data: null,
+    relates_to: null,
+    user: null,
+  });
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -60,6 +77,7 @@ export default function FinancialPage() {
 
         if (response.ok) {
           setTransactions(data);
+          setFilteredTransactions(data);
 
           const total = data.reduce((acc, t) => {
             const val = parseFloat(t.value);
@@ -79,8 +97,20 @@ export default function FinancialPage() {
         console.error('Erro ao buscar transações:', error);
       }
     };
-
     fetchTransactions();
+    const handleClickOutside = (event) => {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target)) {
+        setShowFilterMenu(false);  // Fecha o menu de filtro
+      }
+    };
+  
+    // Adiciona o event listener quando o componente for montado
+    document.addEventListener('mousedown', handleClickOutside);
+  
+    // Remove o event listener quando o componente for desmontado
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   useEffect(() => {
@@ -118,6 +148,81 @@ export default function FinancialPage() {
 
     groupByMonth();
   }, [transactions, selectedPeriod]);
+
+  const toggleFilter = (column, e) => {
+    const rect = e.target.getBoundingClientRect();
+    setFilterPosition({
+      top: rect.bottom, // position below the icon
+      left: rect.left,  // align with the icon's left
+    });
+    if (filterActive[column]) {
+      // If filter already active, clear it
+      setFilterActive({ ...filterActive, [column]: false });
+      setFilteredTransactions(transactions);
+    } else {
+      // Activate filter and show options menu
+      setFilterActive({ ...filterActive, [column]: true });
+      setSelectedFilter(column);
+      setShowFilterMenu(true);
+      switch (column) {
+        case 'tipo':
+          setFilterMenuOptions(["Receita", "Despesa"]);
+          break;
+        case 'valor':
+          setFilterMenuOptions(["Crescente", "Decrescente"]);
+          break;
+        case 'data':
+          setFilterMenuOptions(["Últimos 6 meses", "Últimos 3 anos"]);
+          break;
+        case 'relates_to':
+          setFilterMenuOptions(["Eventos", "Produtos", "Jogos", "Outros"]);
+          break;
+        case 'user':
+          {
+            const userNames = transactions.map(t => t.user_name).filter((v, i, a) => a.indexOf(v) === i);
+            setFilterMenuOptions(userNames);
+          }
+          break;
+        default:
+          setFilterMenuOptions([]);
+      }
+    }
+  };
+  const applyFilter = (filterValue) => {
+    setShowFilterMenu(false);
+    setCurrentFilterValue(filterValue);
+    switch (selectedFilter) {
+      case 'tipo':
+        applyTypeFilter(filterValue);
+        break;
+      case 'valor':
+        applyValueFilter(filterValue);
+        break;
+      case 'data':
+        {
+          const currentDate = new Date();
+          if (filterValue === "Últimos 6 meses") {
+            const sixMonthsAgo = new Date();
+            sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
+            applyDateFilter(sixMonthsAgo, currentDate);
+          } else if (filterValue === "Últimos 3 anos") {
+            const threeYearsAgo = new Date();
+            threeYearsAgo.setFullYear(currentDate.getFullYear() - 3);
+            applyDateFilter(threeYearsAgo, currentDate);
+          }
+        }
+        break;
+      case 'relates_to':
+        applyRelatesToFilter(filterValue);
+        break;
+      case 'user':
+        applyUserFilter(filterValue);
+        break;
+      default:
+        setFilteredTransactions(transactions);
+    }
+  };
+
 
   const handleEditTransaction = (transaction) => {
     setEditingTransactionId(transaction.id);
@@ -165,9 +270,9 @@ export default function FinancialPage() {
   const handleRegisterTransaction = async () => {
     // Validação de campos obrigatórios
     if (!title) {
-      setIsTitleInvalid(true); // Marca o campo como inválido
+      setIsTitleInvalid(true);
     } else {
-      setIsTitleInvalid(false); // Desmarca o campo como inválido
+      setIsTitleInvalid(false);
     }
 
     if (!value) {
@@ -189,7 +294,6 @@ export default function FinancialPage() {
     }
 
     if (isTitleInvalid || isValueInvalid || isDateInvalid || isRelatesToInvalid) {
-      // Se algum campo estiver inválido, não prosseguir com a criação da transação
       showBannerMessage('Preencha todos os campos obrigatórios!', 'error');
       return;
     }
@@ -204,11 +308,12 @@ export default function FinancialPage() {
       user_id: user?.id,
     };
 
+    
+
     try {
       const url = editingTransactionId
         ? `http://localhost:3001/api/financial/transaction/${editingTransactionId}`
         : 'http://localhost:3001/api/financial/transaction';
-
       const method = editingTransactionId ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -220,34 +325,41 @@ export default function FinancialPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Atualizar a lista de transações e calcular os totais
+        const updatedTransaction = {
+          ...data,
+          user_name: user.name, // Atribuindo o nome do usuário logado
+        };
+
+        let updatedTransactions = [];
         if (editingTransactionId) {
-          setTransactions((prev) =>
-            prev.map((t) => {
-              if (t.id === editingTransactionId) {
-                return {
-                  ...t,
-                  ...data,
-                  user_name: t.user_name, // preserva o nome do usuário original
-                };
-              }
-              return t;
-            })
+          updatedTransactions = transactions.map((t) =>
+            t.id === editingTransactionId ? updatedTransaction : t
           );
-          showBannerMessage('Transação atualizada com sucesso!', 'success');
         } else {
-          setTransactions([...transactions, data]);
-
-          const parsedValue = newTransaction.value;
-          const newTotalIncomes = transactionType === 'receita' ? totalIncomes + parsedValue : totalIncomes;
-          const newTotalExpenses = transactionType === 'despesa' ? totalExpenses + parsedValue : totalExpenses;
-          const newTotalAmount = newTotalIncomes - newTotalExpenses;
-
-          setTotalIncomes(newTotalIncomes);
-          setTotalExpenses(newTotalExpenses);
-          setTotalAmount(newTotalAmount);
-          showBannerMessage('Transação registrada com sucesso!', 'success');
+          updatedTransactions = [...transactions, updatedTransaction];
         }
 
+        setTransactions(updatedTransactions);
+
+        // Recalcular totais
+        const total = updatedTransactions.reduce((acc, t) => {
+          const val = parseFloat(t.value);
+          return t.type === 'receita' ? acc + val : acc - val;
+        }, 0);
+        setTotalAmount(total);
+
+        const incomes = updatedTransactions
+          .filter((t) => t.type === 'receita')
+          .reduce((acc, t) => acc + parseFloat(t.value), 0);
+        const expenses = updatedTransactions
+          .filter((t) => t.type === 'despesa')
+          .reduce((acc, t) => acc + parseFloat(t.value), 0);
+
+        setTotalIncomes(incomes);
+        setTotalExpenses(expenses);
+
+        showBannerMessage('Transação registrada com sucesso!', 'success');
         closeModal();
       } else {
         showBannerMessage('Erro ao registrar transação', 'error', 'Verifique os campos preenchidos ou tente novamente.');
@@ -286,6 +398,38 @@ export default function FinancialPage() {
     }
   };
 
+  const applyTypeFilter = (value) => {
+    setFilteredTransactions(transactions.filter(t => t.type === value));
+  };
+
+  const applyValueFilter = (order) => {
+    setFilteredTransactions([...transactions].sort((a, b) => (order === 'asc' ? a.value - b.value : b.value - a.value)));
+  };
+
+  const applyDateFilter = (startDate, endDate) => {
+    setFilteredTransactions(transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate >= startDate && transactionDate <= endDate;
+    }));
+  };
+
+  const applyRelatesToFilter = (value) => {
+    setFilteredTransactions(transactions.filter(t => t.relates_to === value));
+  };
+
+  const applyUserFilter = (value) => {
+    setFilteredTransactions(transactions.filter(t => t.user_name === value));
+  };
+
+  const handleFilterSelection = (value) => {
+    setShowFilterMenu(false);
+    setCurrentFilterValue(value);
+    setFilterActive((prev) => ({ ...prev, [selectedFilter]: false }));
+    setSelectedFilter(null);
+    setShowFilterMenu(false);
+    // Aqui, aplique a lógica de filtro
+  }
+
   const data = {
     labels: chartData.labels,
     datasets: [
@@ -301,6 +445,7 @@ export default function FinancialPage() {
       },
     ],
   };
+  const sortedTransactions = filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
     <div className="financial-page flex flex-col min-h-screen">
@@ -311,12 +456,12 @@ export default function FinancialPage() {
           message={bannerMessage}
           description={bannerDescription}
           type={bannerType}
-          className="fixed top-0 left-0 right-0 z-50 p-4 bg-red-500 text-white text-center shadow-md"
+          className="absolute top-0 left-0 right-0 z-[100] p-4 bg-red-500 text-white text-center shadow-md"
         />
       )}
 
       <div className="container mx-auto p-6 flex-grow">
-        <h1 className="text-3xl font-semibold mb-6 text-center text-gray-800">Gestão Financeira</h1>
+        <h1 className="text-5xl font-bold mb-10 mt-4 text-center text-gray-800">Gestão Financeira</h1>
 
         {/* Cards for total values */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 text-white">
@@ -382,7 +527,7 @@ export default function FinancialPage() {
             </div>
           </div>
           <div className="m-4 bg-red-900 p-4 rounded-xl shadow-md text-center">
-            <h3 className="text-md font-semibold mb-1">Despesas</h3>
+            <h3 className="text-md font-semibold mb-1">Total de Despesas</h3>
             <p className="text-xl font-bold">{totalExpenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
             <div className="bg-white mt-3 rounded-lg p-2">
               <Bar
@@ -454,7 +599,7 @@ export default function FinancialPage() {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Título da transação"
               required
-              isInvalid={isTitleInvalid} // Adicionando a validação de campo obrigatório
+              isInvalid={isTitleInvalid}
             />
             <CustomField
               name="value"
@@ -470,7 +615,7 @@ export default function FinancialPage() {
               }}
               placeholder="Valor"
               required
-              isInvalid={isValueInvalid} // Adicionando a validação de campo obrigatório
+              isInvalid={isValueInvalid}
             />
             <CustomField
               name="date"
@@ -479,7 +624,7 @@ export default function FinancialPage() {
               className={!date ? 'text-gray-400' : 'text-black'}
               onChange={(e) => setDate(e.target.value)}
               required
-              isInvalid={isDateInvalid} // Adicionando a validação de campo obrigatório
+              isInvalid={isDateInvalid}
             />
             <CustomDropdown
               value={relates_to}
@@ -487,7 +632,7 @@ export default function FinancialPage() {
               options={['Eventos', 'Produtos', 'Jogos', 'Outros']}
               placeholder="Relacionado com"
               required
-              isInvalid={isRelatesToInvalid} // Adicionando a validação de campo obrigatório
+              isInvalid={isRelatesToInvalid}
             />
 
             <CustomField
@@ -548,7 +693,6 @@ export default function FinancialPage() {
           </div>
         </Modal>
 
-        {/* Transaction Records Table */}
         {/* Transaction Records as Cards */}
         <div className="mt-8 space-y-4 max-w-9xl mx-auto">
           <div className="mb-4 max-w-sm mx-auto">
@@ -564,18 +708,76 @@ export default function FinancialPage() {
           </div>
           <div className="relative flex justify-between pr-6 font-bold max-w-9xl mx-auto">
             <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
-              <span className="text-md">Tipo</span>
-              <span className="text-md">Título</span>
-              <span className="text-md">Valor</span>
-              <span className="text-md">Data</span>
-              <span className="text-md">Relacionado com</span>
-              <span className="text-md">Registrado por</span>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-md">Tipo</span>
+              <button
+                  ref={(el) => (filterButtonRefs.current.tipo = el)}
+                  onClick={(e) => toggleFilter('tipo', e)}
+                >
+                  {filterActive.tipo ? <FunnelX size={20} /> : <Funnel size={20} />}
+                </button>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-md">Título</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-md">Valor</span>
+                <button
+                  ref={(el) => (filterButtonRefs.current.valor = el)}
+                  onClick={(e) => toggleFilter('valor', e)}
+                >
+                  {filterActive.valor ? <FunnelX size={20} /> : <Funnel size={20} />}
+                </button>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-md">Data</span>
+                <button
+                  ref={(el) => (filterButtonRefs.current.data = el)}
+                  onClick={(e) => toggleFilter('data', e)}
+                >
+                  {filterActive.data ? <FunnelX size={20} /> : <Funnel size={20} />}
+                </button>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-md">Relacionado com</span>
+                <button
+                  ref={(el) => (filterButtonRefs.current.relates_to = el)}
+                  onClick={(e) => toggleFilter('relates_to', e)}
+                >
+                  {filterActive.relates_to ? <FunnelX size={20} /> : <Funnel size={20} />}
+                </button>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-md">Registrado por</span>
+                <button
+                  ref={(el) => (filterButtonRefs.current.user = el)}
+                  onClick={(e) => toggleFilter('user', e)}
+                >
+                  {filterActive.user ? <FunnelX size={20} /> : <Funnel size={20} />}
+                </button>
+              </div>
             </div>
-            <div className="w-12 flex justify-center items-center">
+            <div className='w-12 flex justify-center items-center'>
               <span className="text-md text-center">Ações</span>
             </div>
           </div>
-          {transactions.filter((transaction) =>
+
+          {showFilterMenu && (
+            <div
+              ref={filterMenuRef}
+              style={{ top: filterPosition.top, left: filterPosition.left }}
+              className="absolute bg-white p-4 shadow-lg rounded-md z-50"
+            >
+              <ul>
+                {filterMenuOptions.map((option, idx) => (
+                  <li key={idx} onClick={() => applyFilter(option)} className="cursor-pointer hover:bg-gray-100 py-1">
+                    {option}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {sortedTransactions.filter((transaction) =>
             transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
           ).length === 0 ? (
             <div className="flex flex-col items-center justify-center text-red-900 rounded-xl px-8 py-12 text-center text-base max-w-2xl mx-auto mt-12 animate-fade-in space-y-4">
@@ -584,7 +786,7 @@ export default function FinancialPage() {
               <p className="text-sm">Verifique se digitou corretamente o título da transação ou experimente outros termos para a busca.</p>
             </div>
           ) : (
-            transactions
+            sortedTransactions
               .filter((transaction) =>
                 transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
               )
@@ -634,6 +836,6 @@ export default function FinancialPage() {
                 animation: fade-in 0.4s ease-out;
               }
             `}</style>
-    </div>
+    </div >
   );
 }
