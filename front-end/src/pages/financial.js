@@ -62,6 +62,7 @@ export default function FinancialPage() {
   const [currentFilterValue, setCurrentFilterValue] = useState("");
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const menuRef = useRef(null);
 
   const dropdownRef = useRef(null);
@@ -323,6 +324,7 @@ export default function FinancialPage() {
       return;
     }
 
+    setIsLoading(true);
     const newTransaction = {
       title,
       value: parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')),
@@ -366,6 +368,7 @@ export default function FinancialPage() {
         }
 
         setTransactions(updatedTransactions);
+        setFilteredTransactions(updatedTransactions);
 
         // Recalcular totais
         const total = updatedTransactions.reduce((acc, t) => {
@@ -392,6 +395,8 @@ export default function FinancialPage() {
     } catch (error) {
       console.error('Erro ao registrar transação:', error);
       showBannerMessage('Erro de conexão', 'error', 'Não foi possível se conectar ao servidor.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -689,11 +694,12 @@ export default function FinancialPage() {
               <CustomButton
                 type="button"
                 onClick={handleRegisterTransaction}
+                disabled={isLoading}
                 className={transactionType === 'receita'
                   ? '!bg-green-800 hover:!bg-green-700 dark:!bg-green-800 dark:hover:!bg-green-700'
                   : '!bg-red-800 hover:!bg-red-700 dark:!bg-red-800 dark:hover:!bg-red-700'}
               >
-                Registrar
+                {isLoading ? 'Registrando...' : 'Registrar'}
               </CustomButton>
             </div>
           </form>

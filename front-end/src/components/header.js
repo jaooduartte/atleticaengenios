@@ -92,7 +92,15 @@ export default function Header() {
                 <div className="block px-4 py-2">Meu cadastro</div>
               </Link>
               <Link href="/login">
-                <div className="block px-4 py-2">Sair</div>
+                <div
+                  className="block px-4 py-2"
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                  }}
+                >
+                  Sair
+                </div>
               </Link>
             </div>
           )}
