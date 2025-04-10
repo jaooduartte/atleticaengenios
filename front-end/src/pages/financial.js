@@ -749,20 +749,19 @@ export default function FinancialPage() {
               onClear={() => setSearchTerm('')}
             />
           </div>
-          {Object.entries(isFilterApplied).some(([_, value]) => value) && (
-            <div className="flex flex-wrap gap-2 mb-4 mt-4">
+          <div className={`flex flex-wrap gap-2 justify-center mb-4 mt-4 ${Object.entries(isFilterApplied).some(([_, value]) => value) ? '' : 'invisible h-7'}`}>
               {Object.entries(isFilterApplied).map(([key, value]) => {
                 if (!value) return null;
                 return (
                   <div
                     key={key}
-                    className="flex items-center px-4 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium shadow-sm"
+                    className="flex items-center px-4 py-1 rounded-full bg-gray-100 text-gray-800 text-sm font-medium shadow-sm"
                   >
                     <span className="mr-2 capitalize">{key.replace('_', ' ')}:</span>
                     <span className="font-semibold">{filterValues[key]}</span>
                     <button
                       onClick={() => clearFilters(key)}
-                      className="ml-2 text-blue-500 hover:text-red-500"
+                      className="ml-2 text-gray-500 hover:text-red-500"
                       title="Limpar filtro"
                     >
                       ×
@@ -771,7 +770,6 @@ export default function FinancialPage() {
                 );
               })}
             </div>
-          )}
           <div className="relative flex justify-between pr-6 font-bold max-w-9xl mx-auto">
             <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
               <div className="flex items-center justify-center gap-2">
