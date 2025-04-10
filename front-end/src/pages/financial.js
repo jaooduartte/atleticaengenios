@@ -43,6 +43,8 @@ export default function FinancialPage() {
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState('last6months');
   const [chartData, setChartData] = useState({ incomes: [], expenses: [], labels: [] });
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [selectedFilterColumn, setSelectedFilterColumn] = useState(null);
 
   const [isTitleInvalid, setIsTitleInvalid] = useState(false);
   const [isValueInvalid, setIsValueInvalid] = useState(false);
@@ -50,12 +52,16 @@ export default function FinancialPage() {
   const [isRelatesToInvalid, setIsRelatesToInvalid] = useState(false);
 
   const [filterActive, setFilterActive] = useState({ tipo: false, valor: false, data: false, relates_to: false, user: false });
+  const [isFilterApplied, setIsFilterApplied] = useState({ tipo: false, valor: false, data: false, relates_to: false, user: false });
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filterPosition, setFilterPosition] = useState({ top: 0, left: 0 });
   const [filterMenuOptions, setFilterMenuOptions] = useState([]);
   const [currentFilterValue, setCurrentFilterValue] = useState("");
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState(null);
+  const menuRef = useRef(null);
 
   const dropdownRef = useRef(null);
   const filterMenuRef = useRef(null);  // Referência para o menu de filtro
@@ -103,10 +109,8 @@ export default function FinancialPage() {
         setShowFilterMenu(false);  // Fecha o menu de filtro
       }
     };
-  
-    // Adiciona o event listener quando o componente for montado
     document.addEventListener('mousedown', handleClickOutside);
-  
+
     // Remove o event listener quando o componente for desmontado
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -149,69 +153,62 @@ export default function FinancialPage() {
     groupByMonth();
   }, [transactions, selectedPeriod]);
 
-  const toggleFilter = (column, e) => {
-    const rect = e.target.getBoundingClientRect();
-    setFilterPosition({
-      top: rect.bottom, // position below the icon
-      left: rect.left,  // align with the icon's left
-    });
-    if (filterActive[column]) {
-      // If filter already active, clear it
-      setFilterActive({ ...filterActive, [column]: false });
-      setFilteredTransactions(transactions);
-    } else {
-      // Activate filter and show options menu
-      setFilterActive({ ...filterActive, [column]: true });
-      setSelectedFilter(column);
-      setShowFilterMenu(true);
-      switch (column) {
-        case 'tipo':
-          setFilterMenuOptions(["Receita", "Despesa"]);
-          break;
-        case 'valor':
-          setFilterMenuOptions(["Crescente", "Decrescente"]);
-          break;
-        case 'data':
-          setFilterMenuOptions(["Últimos 6 meses", "Últimos 3 anos"]);
-          break;
-        case 'relates_to':
-          setFilterMenuOptions(["Eventos", "Produtos", "Jogos", "Outros"]);
-          break;
-        case 'user':
-          {
-            const userNames = transactions.map(t => t.user_name).filter((v, i, a) => a.indexOf(v) === i);
-            setFilterMenuOptions(userNames);
-          }
-          break;
-        default:
-          setFilterMenuOptions([]);
+  const toggleFilter = (column) => {
+    if (isFilterApplied[column]) {
+      clearFilters();
+      return;
+    }
+
+    setSelectedFilterColumn(column);
+    setIsFilterModalOpen(true);
+  
+    switch (column) {
+      case 'tipo':
+        setFilterMenuOptions(["Entrada", "Saída"]);
+        break;
+      case 'valor':
+        setFilterMenuOptions(["Maior valor", "Menor valor"]);
+        break;
+      case 'data':
+        setFilterMenuOptions(["Últimos 6 meses", "Últimos 3 anos"]);
+        break;
+      case 'relates_to':
+        setFilterMenuOptions(["Eventos", "Produtos", "Jogos", "Outros"]);
+        break;
+      case 'user': {
+        const userNames = transactions.map(t => t.user_name).filter((v, i, a) => a.indexOf(v) === i);
+        setFilterMenuOptions(userNames);
+        break;
       }
+      default:
+        setFilterMenuOptions([]);
     }
   };
   const applyFilter = (filterValue) => {
     setShowFilterMenu(false);
     setCurrentFilterValue(filterValue);
-    switch (selectedFilter) {
+    setIsFilterApplied((prev) => ({ ...prev, [selectedFilterColumn]: true }));
+
+    switch (selectedFilterColumn) {
       case 'tipo':
         applyTypeFilter(filterValue);
         break;
       case 'valor':
         applyValueFilter(filterValue);
         break;
-      case 'data':
-        {
-          const currentDate = new Date();
-          if (filterValue === "Últimos 6 meses") {
-            const sixMonthsAgo = new Date();
-            sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
-            applyDateFilter(sixMonthsAgo, currentDate);
-          } else if (filterValue === "Últimos 3 anos") {
-            const threeYearsAgo = new Date();
-            threeYearsAgo.setFullYear(currentDate.getFullYear() - 3);
-            applyDateFilter(threeYearsAgo, currentDate);
-          }
+      case 'data': {
+        const currentDate = new Date();
+        if (filterValue === "Últimos 6 meses") {
+          const sixMonthsAgo = new Date();
+          sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
+          applyDateFilter(sixMonthsAgo, currentDate);
+        } else if (filterValue === "Últimos 3 anos") {
+          const threeYearsAgo = new Date();
+          threeYearsAgo.setFullYear(currentDate.getFullYear() - 3);
+          applyDateFilter(threeYearsAgo, currentDate);
         }
         break;
+      }
       case 'relates_to':
         applyRelatesToFilter(filterValue);
         break;
@@ -222,7 +219,12 @@ export default function FinancialPage() {
         setFilteredTransactions(transactions);
     }
   };
-
+  const clearFilters = () => {
+    setFilteredTransactions(transactions);
+    setIsFilterApplied({ tipo: false, valor: false, data: false, relates_to: false, user: false });
+    setCurrentFilterValue("");
+    setSelectedFilterColumn(null);
+  };
 
   const handleEditTransaction = (transaction) => {
     setEditingTransactionId(transaction.id);
@@ -308,7 +310,7 @@ export default function FinancialPage() {
       user_id: user?.id,
     };
 
-    
+
 
     try {
       const url = editingTransactionId
@@ -399,11 +401,22 @@ export default function FinancialPage() {
   };
 
   const applyTypeFilter = (value) => {
-    setFilteredTransactions(transactions.filter(t => t.type === value));
+    if (value === 'Entrada') {
+      setFilteredTransactions(transactions.filter(t => t.type === 'receita'));
+    } else if (value === 'Saída') {
+      setFilteredTransactions(transactions.filter(t => t.type === 'despesa'));
+    } else {
+      setFilteredTransactions(transactions);
+    }
   };
 
   const applyValueFilter = (order) => {
-    setFilteredTransactions([...transactions].sort((a, b) => (order === 'asc' ? a.value - b.value : b.value - a.value)));
+    const sortedTransactions = [...transactions].sort((a, b) => {
+      const valueA = parseFloat(a.value);
+      const valueB = parseFloat(b.value);
+      return order === 'Maior valor' ? valueB - valueA : valueA - valueB;
+    });
+    setFilteredTransactions(sortedTransactions);
   };
 
   const applyDateFilter = (startDate, endDate) => {
@@ -445,7 +458,14 @@ export default function FinancialPage() {
       },
     ],
   };
-  const sortedTransactions = filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+  const sortedTransactions = [...filteredTransactions].sort((a, b) => {
+    if (isFilterApplied.valor) {
+      const valueA = parseFloat(a.value);
+      const valueB = parseFloat(b.value);
+      return currentFilterValue === 'Maior valor' ? valueB - valueA : valueA - valueB;
+    }
+    return new Date(b.date) - new Date(a.date);
+  });
 
   return (
     <div className="financial-page flex flex-col min-h-screen">
@@ -665,7 +685,7 @@ export default function FinancialPage() {
         >
           <button
             onClick={() => setTransactionToDelete(null)}
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-white text-xl"
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
           >
             ×
           </button>
@@ -711,11 +731,11 @@ export default function FinancialPage() {
               <div className="flex items-center justify-center gap-2">
                 <span className="text-md">Tipo</span>
               <button
-                  ref={(el) => (filterButtonRefs.current.tipo = el)}
-                  onClick={(e) => toggleFilter('tipo', e)}
-                >
-                  {filterActive.tipo ? <FunnelX size={20} /> : <Funnel size={20} />}
-                </button>
+                ref={(el) => (filterButtonRefs.current.tipo = el)}
+                onClick={() => isFilterApplied.tipo ? clearFilters() : toggleFilter('tipo')}
+              >
+                {isFilterApplied.tipo ? <FunnelX size={20} /> : <Funnel size={20} />}
+              </button>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="text-md">Título</span>
@@ -724,36 +744,36 @@ export default function FinancialPage() {
                 <span className="text-md">Valor</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.valor = el)}
-                  onClick={(e) => toggleFilter('valor', e)}
+                onClick={() => isFilterApplied.valor ? clearFilters() : toggleFilter('valor')}
                 >
-                  {filterActive.valor ? <FunnelX size={20} /> : <Funnel size={20} />}
+                  {isFilterApplied.valor ? <FunnelX size={20} /> : <Funnel size={20} />}
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="text-md">Data</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.data = el)}
-                  onClick={(e) => toggleFilter('data', e)}
+                onClick={() => isFilterApplied.data ? clearFilters() : toggleFilter('data')}
                 >
-                  {filterActive.data ? <FunnelX size={20} /> : <Funnel size={20} />}
+                  {isFilterApplied.data ? <FunnelX size={20} /> : <Funnel size={20} />}
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="text-md">Relacionado com</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.relates_to = el)}
-                  onClick={(e) => toggleFilter('relates_to', e)}
+                onClick={() => isFilterApplied.relates_to ? clearFilters() : toggleFilter('relates_to')}
                 >
-                  {filterActive.relates_to ? <FunnelX size={20} /> : <Funnel size={20} />}
+                  {isFilterApplied.relates_to ? <FunnelX size={20} /> : <Funnel size={20} />}
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="text-md">Registrado por</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.user = el)}
-                  onClick={(e) => toggleFilter('user', e)}
+                onClick={() => isFilterApplied.user ? clearFilters() : toggleFilter('user')}
                 >
-                  {filterActive.user ? <FunnelX size={20} /> : <Funnel size={20} />}
+                  {isFilterApplied.user ? <FunnelX size={20} /> : <Funnel size={20} />}
                 </button>
               </div>
             </div>
@@ -766,15 +786,28 @@ export default function FinancialPage() {
             <div
               ref={filterMenuRef}
               style={{ top: filterPosition.top, left: filterPosition.left }}
-              className="absolute bg-white p-4 shadow-lg rounded-md z-50"
+              className="absolute bg-gray-50 p-4 shadow-xl rounded-md z-50"
             >
-              <ul>
+              <h3 className="text-lg font-semibold text-center mb-2">Selecione o filtro</h3>
+              <div className="grid grid-cols-2">
                 {filterMenuOptions.map((option, idx) => (
-                  <li key={idx} onClick={() => applyFilter(option)} className="cursor-pointer hover:bg-gray-100 py-1">
-                    {option}
-                  </li>
+                  <button
+                    key={idx}
+                    onClick={() => applyFilter(option)}
+                    className="rounded-full hover:shadow-xl text-sm font-semibold hover:bg-transparent"
+                  >
+                    {selectedFilter === 'tipo' ? (
+                      <span
+                        className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${option === 'Entrada' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'} inline-block`}
+                      >
+                        {option}
+                      </span>
+                    ) : (
+                      option
+                    )}
+                  </button>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
           {sortedTransactions.filter((transaction) =>
@@ -795,7 +828,8 @@ export default function FinancialPage() {
                 <div key={index} className="relative bg-white flex justify-between rounded-xl shadow-md pr-6 py-8 border border-gray-200">
                   <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
                     <div>
-                      <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${transaction.type === 'receita' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'}`}>
+                      <span className={`text-xs font-medium px-4 py-0.5 rounded-full ${transaction.type === 'receita' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'}`}
+                        style={{ minWidth: '80px', display: 'inline-flex', justifyContent: 'center', alignItems: 'center' }}>
                         {transaction.type === 'receita' ? 'Entrada' : 'Saída'}
                       </span>
                     </div>
@@ -825,13 +859,47 @@ export default function FinancialPage() {
         </div>
       </div>
 
+      <Modal
+        isOpen={isFilterModalOpen}
+        onRequestClose={() => setIsFilterModalOpen(false)}
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50"
+        className="relative bg-white p-6 rounded-xl shadow-xl w-full max-w-md border-t-[6px] border-gray-700"
+      >
+        <button
+          onClick={() => setIsFilterModalOpen(false)}
+          className="absolute top-3 right-4 text-gray-500 hover:text-black text-xl"
+        >
+          ×
+        </button>
+        <h2 className="text-xl font-bold mb-4 text-center text-gray-800">Filtrar por:</h2>
+        <div className="grid grid-cols-1 gap-3">
+          {filterMenuOptions.map((option, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                applyFilter(option);
+                setIsFilterModalOpen(false);
+              }}
+              className="py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 transition text-center text-gray-800 font-medium"
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+        <div className="flex justify-center mt-4">
+          <CustomButton type="button" onClick={() => setIsFilterModalOpen(false)}>
+            Fechar
+          </CustomButton>
+        </div>
+      </Modal>
+
       <Footer />
       <style jsx global>{`
               @keyframes fade-in {
                 from { opacity: 0; transform: translateY(10px); }
                 to { opacity: 1; transform: translateY(0); }
               }
-
+ 
               .animate-fade-in {
                 animation: fade-in 0.4s ease-out;
               }
