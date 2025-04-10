@@ -53,6 +53,7 @@ export default function FinancialPage() {
 
   const [filterActive, setFilterActive] = useState({ tipo: false, valor: false, data: false, relates_to: false, user: false });
   const [isFilterApplied, setIsFilterApplied] = useState({ tipo: false, valor: false, data: false, relates_to: false, user: false });
+  const [filterValues, setFilterValues] = useState({});
   const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -186,44 +187,66 @@ export default function FinancialPage() {
   };
   const applyFilter = (filterValue) => {
     setShowFilterMenu(false);
-    setCurrentFilterValue(filterValue);
-    setIsFilterApplied((prev) => ({ ...prev, [selectedFilterColumn]: true }));
+  const newFilterValues = { ...filterValues, [selectedFilterColumn]: filterValue };
+  setFilterValues(newFilterValues);
+  setIsFilterApplied(prev => ({ ...prev, [selectedFilterColumn]: true }));
 
-    switch (selectedFilterColumn) {
-      case 'tipo':
-        applyTypeFilter(filterValue);
-        break;
-      case 'valor':
-        applyValueFilter(filterValue);
-        break;
-      case 'data': {
-        const currentDate = new Date();
-        if (filterValue === "Últimos 6 meses") {
+  setFilteredTransactions(transactions.filter(t => {
+      const conditions = [];
+      if (newFilterValues.tipo) conditions.push(t.type === (newFilterValues.tipo === 'Entrada' ? 'receita' : 'despesa'));
+      if (newFilterValues.relates_to) conditions.push(t.relates_to === newFilterValues.relates_to);
+      if (newFilterValues.data) {
+        const d = new Date(t.date);
+        const now = new Date();
+        if (newFilterValues.data === 'Últimos 6 meses') {
           const sixMonthsAgo = new Date();
-          sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
-          applyDateFilter(sixMonthsAgo, currentDate);
-        } else if (filterValue === "Últimos 3 anos") {
-          const threeYearsAgo = new Date();
-          threeYearsAgo.setFullYear(currentDate.getFullYear() - 3);
-          applyDateFilter(threeYearsAgo, currentDate);
+          sixMonthsAgo.setMonth(now.getMonth() - 6);
+          conditions.push(d >= sixMonthsAgo && d <= now);
         }
-        break;
+        if (newFilterValues.data === 'Últimos 3 anos') {
+          const threeYearsAgo = new Date();
+          threeYearsAgo.setFullYear(now.getFullYear() - 3);
+          conditions.push(d >= threeYearsAgo && d <= now);
+        }
       }
-      case 'relates_to':
-        applyRelatesToFilter(filterValue);
-        break;
-      case 'user':
-        applyUserFilter(filterValue);
-        break;
-      default:
-        setFilteredTransactions(transactions);
-    }
+      if (newFilterValues.user) conditions.push(t.user_name === newFilterValues.user);
+      return conditions.every(Boolean);
+  }));
   };
-  const clearFilters = () => {
-    setFilteredTransactions(transactions);
-    setIsFilterApplied({ tipo: false, valor: false, data: false, relates_to: false, user: false });
-    setCurrentFilterValue("");
-    setSelectedFilterColumn(null);
+  const clearFilters = (column) => {
+  const updatedFilterValues = { ...filterValues };
+  delete updatedFilterValues[column];
+  setFilterValues(updatedFilterValues);
+  setIsFilterApplied(prev => ({ ...prev, [column]: false }));
+
+  const newFiltered = transactions.filter(t => {
+    let valid = true;
+    if (updatedFilterValues.tipo) {
+      valid = valid && (t.type === (updatedFilterValues.tipo === 'Entrada' ? 'receita' : 'despesa'));
+    }
+    if (updatedFilterValues.relates_to) {
+      valid = valid && (t.relates_to === updatedFilterValues.relates_to);
+    }
+    if (updatedFilterValues.data) {
+      const d = new Date(t.date);
+      const now = new Date();
+      if (updatedFilterValues.data === 'Últimos 6 meses') {
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(now.getMonth() - 6);
+        valid = valid && (d >= sixMonthsAgo && d <= now);
+      }
+      if (updatedFilterValues.data === 'Últimos 3 anos') {
+        const threeYearsAgo = new Date();
+        threeYearsAgo.setFullYear(now.getFullYear() - 3);
+        valid = valid && (d >= threeYearsAgo && d <= now);
+      }
+    }
+    if (updatedFilterValues.user) {
+      valid = valid && (t.user_name === updatedFilterValues.user);
+    }
+    return valid;
+  });
+  setFilteredTransactions(Object.keys(updatedFilterValues).length === 0 ? transactions : newFiltered);
   };
 
   const handleEditTransaction = (transaction) => {
@@ -462,7 +485,7 @@ export default function FinancialPage() {
     if (isFilterApplied.valor) {
       const valueA = parseFloat(a.value);
       const valueB = parseFloat(b.value);
-      return currentFilterValue === 'Maior valor' ? valueB - valueA : valueA - valueB;
+    return filterValues.valor === 'Maior valor' ? valueB - valueA : valueA - valueB;
     }
     return new Date(b.date) - new Date(a.date);
   });
@@ -726,15 +749,38 @@ export default function FinancialPage() {
               onClear={() => setSearchTerm('')}
             />
           </div>
+          {Object.entries(isFilterApplied).some(([_, value]) => value) && (
+            <div className="flex flex-wrap gap-2 mb-4 mt-4">
+              {Object.entries(isFilterApplied).map(([key, value]) => {
+                if (!value) return null;
+                return (
+                  <div
+                    key={key}
+                    className="flex items-center px-4 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium shadow-sm"
+                  >
+                    <span className="mr-2 capitalize">{key.replace('_', ' ')}:</span>
+                    <span className="font-semibold">{filterValues[key]}</span>
+                    <button
+                      onClick={() => clearFilters(key)}
+                      className="ml-2 text-blue-500 hover:text-red-500"
+                      title="Limpar filtro"
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div className="relative flex justify-between pr-6 font-bold max-w-9xl mx-auto">
             <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
               <div className="flex items-center justify-center gap-2">
                 <span className="text-md">Tipo</span>
               <button
                 ref={(el) => (filterButtonRefs.current.tipo = el)}
-                onClick={() => isFilterApplied.tipo ? clearFilters() : toggleFilter('tipo')}
+                onClick={() => isFilterApplied.tipo ? clearFilters('tipo') : toggleFilter('tipo')}
               >
-                {isFilterApplied.tipo ? <FunnelX size={20} /> : <Funnel size={20} />}
+                <Funnel size={20} />
               </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -744,36 +790,36 @@ export default function FinancialPage() {
                 <span className="text-md">Valor</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.valor = el)}
-                onClick={() => isFilterApplied.valor ? clearFilters() : toggleFilter('valor')}
+                  onClick={() => isFilterApplied.valor ? clearFilters('valor') : toggleFilter('valor')}
                 >
-                  {isFilterApplied.valor ? <FunnelX size={20} /> : <Funnel size={20} />}
+                <Funnel size={20} />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="text-md">Data</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.data = el)}
-                onClick={() => isFilterApplied.data ? clearFilters() : toggleFilter('data')}
+                  onClick={() => isFilterApplied.data ? clearFilters('data') : toggleFilter('data')}
                 >
-                  {isFilterApplied.data ? <FunnelX size={20} /> : <Funnel size={20} />}
+                <Funnel size={20} />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="text-md">Relacionado com</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.relates_to = el)}
-                onClick={() => isFilterApplied.relates_to ? clearFilters() : toggleFilter('relates_to')}
+                  onClick={() => isFilterApplied.relates_to ? clearFilters('relates_to') : toggleFilter('relates_to')}
                 >
-                  {isFilterApplied.relates_to ? <FunnelX size={20} /> : <Funnel size={20} />}
+                <Funnel size={20} />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="text-md">Registrado por</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.user = el)}
-                onClick={() => isFilterApplied.user ? clearFilters() : toggleFilter('user')}
+                  onClick={() => isFilterApplied.user ? clearFilters('user') : toggleFilter('user')}
                 >
-                  {isFilterApplied.user ? <FunnelX size={20} /> : <Funnel size={20} />}
+                <Funnel size={20} />
                 </button>
               </div>
             </div>
