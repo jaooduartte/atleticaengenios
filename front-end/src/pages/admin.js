@@ -1,11 +1,20 @@
 import { useEffect } from 'react';
 import Header from '../components/header-admin';
 import Footer from '../components/footer-admin';
+import { useRouter } from 'next/router';
+import useAuth from '../hooks/useAuth';
 
 export default function Admin() {
+  const user = useAuth();
+  const router = useRouter();
+ 
   useEffect(() => {
-    console.log('Área Admin');
-  }, []);
+    if (user && !user.isAdmin) {
+      router.replace('/');
+    }
+  }, [user, router]);
+ 
+  if (!user) return null;
 
   return (
     <div>

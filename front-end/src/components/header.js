@@ -2,14 +2,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { CaretDown } from 'phosphor-react';
+import useAuth from '../hooks/useAuth';
 
 export default function Header() {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null); // Cria uma referência para o dropdown
-  const [user] = useState({
-    name: 'João Duarte',
-    image: '/IMG_0345.JPG', // Substitua com a lógica para pegar a imagem do usuário
-  });
+  const user = useAuth();
 
   const toggleDropdown = () => setDropdownOpen(prevState => !prevState); // Alternar estado
 
@@ -66,26 +64,28 @@ export default function Header() {
             onClick={toggleDropdown} // Alterna entre abrir e fechar o menu
             className="cursor-pointer flex flex-col items-center"
           >
-            <div>
+            <div className='mb-2'>
               <Image
-                src={user.image}
-                alt={user.name}
+                src={user?.image || '/placeholder.png'}
+                alt={user?.name || 'Usuário'}
                 width={40}
                 height={40}
-                className="rounded-full object-cover" // Torna a foto redonda e corta a imagem
+                className="rounded-full object-cover"
               />
             </div>
-            <div className="flex gap-1">
-              <p className="text-center">{user.name}</p> {/* Nome ao lado da foto */}
-              <CaretDown size={16} className="mt-1" /> {/* A seta ao lado do nome */}
-            </div>
+            {user && (
+              <div className="flex gap-2">
+                <p className="text-center">{user?.name || 'Usuário'}</p>
+                <CaretDown size={16} className="mt-1" />
+              </div>
+            )}
           </div>
 
           {/* Dropdown */}
           {isDropdownOpen && (
             <div
               ref={dropdownRef} // Ref para capturar o clique fora
-              className="absolute right-0 mt-10 w-48 bg-white text-black rounded-lg shadow-lg"
+              className="absolute right-0 mt-8 w-48 bg-white text-black rounded-lg shadow-lg"
               style={{ top: '50px' }}
             >
               <Link href="/meu-cadastro">

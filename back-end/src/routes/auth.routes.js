@@ -7,4 +7,7 @@ router.post('/reset-password', authController.resetPassword);
 router.post('/login', authController.login);
 router.post('/register', authController.register);
 
+const authenticate = require('../middleware/auth.middleware');
+router.get('/me', authenticate, authController.getProfile);
+
 module.exports = router;

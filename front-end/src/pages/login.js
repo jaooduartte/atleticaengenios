@@ -26,6 +26,8 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+
+  const [isNameInvalid, setIsNameInvalid] = useState(false);
   const [isEmailInvalid, setIsEmailInvalid] = useState(false);
   const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
   const [isCourseInvalid, setIsCourseInvalid] = useState(false);
@@ -65,8 +67,8 @@ export default function Login() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-
     const data = await res.json();
+    localStorage.setItem('token', data.token);
 
     if (res.ok) {
       router.push('/home');
@@ -92,6 +94,13 @@ export default function Login() {
       hasError = true;
     } else {
       setIsBirthdayInvalid(false);
+    }
+
+    if (!name) {
+      setIsNameInvalid(true);
+      hasError = true;
+    } else {
+      setIsNameInvalid(false);
     }
 
     if (hasError) return;
@@ -189,7 +198,7 @@ export default function Login() {
                 </Link>
               </div>
               <div className="flex justify-center">
-                <CustomButton type="submit">
+                <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
                   ENTRAR
                 </CustomButton>
               </div>
@@ -212,6 +221,7 @@ export default function Login() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Digite seu nome"
                   name="name"
+                  isInvalid={isNameInvalid}
                 />
               </div>
               <CustomField
@@ -280,7 +290,7 @@ export default function Login() {
                 </div>
               </div>
               <div className="col-span-2 flex justify-center">
-                <CustomButton type="submit">
+                <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
                   CADASTRAR
                 </CustomButton>
               </div>

@@ -77,7 +77,7 @@ export default function ForgotPassword() {
             </div>
           </div>
           <div>
-            <CustomButton type="submit">ENVIAR LINK</CustomButton>
+            <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>ENVIAR LINK</CustomButton>
           </div>
 
           <div className="text-center">
