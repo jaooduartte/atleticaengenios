@@ -33,7 +33,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="bg-gray-900 text-white py-4 px-8 flex justify-between items-center">
+    <header className="bg-gray-800 dark:bg-gray-900 text-white py-4 px-8 flex justify-between items-center">
       <div className="flex items-center">
         <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={100} height={100} />
       </div>

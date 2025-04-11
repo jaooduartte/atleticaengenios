@@ -496,7 +496,7 @@ export default function FinancialPage() {
   });
 
   return (
-    <div className="financial-page flex flex-col min-h-screen">
+    <div className="financial-page flex flex-col min-h-screen dark:bg-black">
       <Header />
 
       {showBanner && (
@@ -509,14 +509,14 @@ export default function FinancialPage() {
       )}
 
       <div className="container mx-auto p-6 flex-grow">
-        <h1 className="text-5xl font-bold mb-10 mt-4 text-center text-gray-800">Gestão Financeira</h1>
+        <h1 className="text-5xl font-bold mb-10 mt-4 text-center text-gray-800 dark:text-white">Gestão Financeira</h1>
 
         {/* Cards for total values */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 text-white">
           <div className="m-4 bg-green-900 p-4 rounded-xl shadow-md text-center">
             <h3 className="text-md font-semibold mb-1">Total de Receita</h3>
             <p className="text-xl font-bold">{totalIncomes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-            <div className="bg-white mt-3 rounded-lg p-2">
+            <div className="bg-white dark:bg-gray-900 mt-3 rounded-lg p-2">
               <Bar
                 data={{
                   labels: chartData.labels,
@@ -552,7 +552,7 @@ export default function FinancialPage() {
               />
             </div>
           </div>
-          <div className="bg-gray-900 flex flex-col justify-between p-6 rounded-xl shadow-md text-center h-auto">
+          <div className="bg-gray-900 dark:bg-gray-500 flex flex-col justify-between p-6 rounded-xl shadow-md text-center h-auto">
             <div className="flex-grow flex flex-col justify-center items-center">
               <h3 className="text-2xl font-semibold mb-1">Total em Caixa</h3>
               <p className="text-3xl font-bold">{totalAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
@@ -577,7 +577,7 @@ export default function FinancialPage() {
           <div className="m-4 bg-red-900 p-4 rounded-xl shadow-md text-center">
             <h3 className="text-md font-semibold mb-1">Total de Despesas</h3>
             <p className="text-xl font-bold">{totalExpenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-            <div className="bg-white mt-3 rounded-lg p-2">
+            <div className="bg-white dark:bg-gray-900 mt-3 rounded-lg p-2">
               <Bar
                 data={{
                   labels: chartData.labels,
@@ -623,8 +623,10 @@ export default function FinancialPage() {
           onRequestClose={closeModal}
           shouldCloseOnOverlayClick={true}
           overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
-          className={`relative bg-white text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out ${transactionType === 'receita' ? 'border-green-800' : 'border-red-800'
-            } ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+          className={`relative bg-white dark:bg-gray-800 text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out ${transactionType === 'receita'
+                    ? 'border-green-800 dark:border-green-600'
+                    : 'border-red-800 dark:border-red-600'
+                } ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         >
           <button
             onClick={closeModal}
@@ -634,7 +636,10 @@ export default function FinancialPage() {
           </button>
 
           <h2
-            className={`text-2xl mb-6 text-center font-bold ${transactionType === 'receita' ? 'text-green-800' : 'text-red-800'
+            className={`text-2xl mb-6 text-center font-bold 
+              ${transactionType === 'receita' 
+                ? 'text-green-800 dark:text-green-600' 
+                : 'text-red-800 dark:text-red-600'
               }`}
           >
             {transactionType === 'receita' ? 'Adicionar Entrada' : 'Adicionar Saída'}
@@ -696,8 +701,8 @@ export default function FinancialPage() {
                 onClick={handleRegisterTransaction}
                 disabled={isLoading}
                 className={transactionType === 'receita'
-                  ? '!bg-green-800 hover:!bg-green-700 dark:!bg-green-800 dark:hover:!bg-green-700'
-                  : '!bg-red-800 hover:!bg-red-700 dark:!bg-red-800 dark:hover:!bg-red-700'}
+                  ? '!bg-green-800 hover:!bg-green-700 dark:!bg-green-600 dark:hover:!bg-green-700'
+                  : '!bg-red-800 hover:!bg-red-700 dark:!bg-red-600 dark:hover:!bg-red-700'}
               >
                 {isLoading ? 'Registrando...' : 'Registrar'}
               </CustomButton>
@@ -761,7 +766,7 @@ export default function FinancialPage() {
                 return (
                   <div
                     key={key}
-                    className="flex items-center px-4 py-1 rounded-full bg-gray-100 text-gray-800 text-sm font-medium shadow-sm"
+                    className="flex items-center px-4 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-medium shadow-sm"
                   >
                     <span className="mr-2 capitalize">{key.replace('_', ' ')}:</span>
                     <span className="font-semibold">{filterValues[key]}</span>
@@ -779,56 +784,56 @@ export default function FinancialPage() {
           <div className="relative flex justify-between pr-6 font-bold max-w-9xl mx-auto">
             <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md">Tipo</span>
+                <span className="text-md dark:text-white">Tipo</span>
               <button
                 ref={(el) => (filterButtonRefs.current.tipo = el)}
                 onClick={() => isFilterApplied.tipo ? clearFilters('tipo') : toggleFilter('tipo')}
               >
-                <Funnel size={20} />
+                <Funnel size={20} className='dark:text-white'/>
               </button>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md">Título</span>
+                <span className="text-md dark:text-white">Título</span>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md">Valor</span>
+                <span className="text-md dark:text-white">Valor</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.valor = el)}
                   onClick={() => isFilterApplied.valor ? clearFilters('valor') : toggleFilter('valor')}
                 >
-                <Funnel size={20} />
+                <Funnel size={20} className='dark:text-white'/>
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md">Data</span>
+                <span className="text-md dark:text-white">Data</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.data = el)}
                   onClick={() => isFilterApplied.data ? clearFilters('data') : toggleFilter('data')}
                 >
-                <Funnel size={20} />
+                <Funnel size={20} className='dark:text-white'/>
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md">Relacionado com</span>
+                <span className="text-md dark:text-white">Relacionado com</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.relates_to = el)}
                   onClick={() => isFilterApplied.relates_to ? clearFilters('relates_to') : toggleFilter('relates_to')}
                 >
-                <Funnel size={20} />
+                <Funnel size={20} className='dark:text-white'/>
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md">Registrado por</span>
+                <span className="text-md dark:text-white">Registrado por</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.user = el)}
                   onClick={() => isFilterApplied.user ? clearFilters('user') : toggleFilter('user')}
                 >
-                <Funnel size={20} />
+                <Funnel size={20} className='dark:text-white'/>
                 </button>
               </div>
             </div>
             <div className='w-12 flex justify-center items-center'>
-              <span className="text-md text-center">Ações</span>
+              <span className="text-md text-center dark:text-white">Ações</span>
             </div>
           </div>
 
@@ -836,7 +841,7 @@ export default function FinancialPage() {
             <div
               ref={filterMenuRef}
               style={{ top: filterPosition.top, left: filterPosition.left }}
-              className="absolute bg-gray-50 p-4 shadow-xl rounded-md z-50"
+              className="absolute bg-gray-50 dark:bg-gray-900 p-4 shadow-xl rounded-md z-50"
             >
               <h3 className="text-lg font-semibold text-center mb-2">Selecione o filtro</h3>
               <div className="grid grid-cols-2">
@@ -875,7 +880,7 @@ export default function FinancialPage() {
               )
               .slice(0, 100)
               .map((transaction, index) => (
-                <div key={index} className="relative bg-white flex justify-between rounded-xl shadow-md pr-6 py-8 border border-gray-200">
+                <div key={index} className="relative bg-white dark:bg-gray-700 flex justify-between rounded-xl shadow-md pr-6 py-8">
                   <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
                     <div>
                       <span className={`text-xs font-medium px-4 py-0.5 rounded-full ${transaction.type === 'receita' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'}`}
@@ -895,10 +900,10 @@ export default function FinancialPage() {
                   <div className="w-12 flex justify-center items-center">
                     <div className="relative flex justify-end">
                       <div className="relative group w-fit h-fit">
-                        <DotsThreeVertical size={24} className="text-gray-700 cursor-pointer" />
-                        <div className="absolute right-0 top-6 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
-                          <button onClick={() => handleEditTransaction(transaction)} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm">Editar transação</button>
-                          <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-red-600">Excluir transação</button>
+                        <DotsThreeVertical size={24} className="text-gray-700 dark:text-white cursor-pointer" />
+                        <div className="absolute right-0 top-6 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
+                          <button onClick={() => handleEditTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm">Editar transação</button>
+                          <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm text-red-600">Excluir transação</button>
                         </div>
                       </div>
                     </div>
@@ -913,7 +918,7 @@ export default function FinancialPage() {
         isOpen={isFilterModalOpen}
         onRequestClose={() => setIsFilterModalOpen(false)}
         overlayClassName="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50"
-        className="relative bg-white p-6 rounded-xl shadow-xl w-full max-w-md border-t-[6px] border-gray-700"
+        className="relative bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-md border-t-[6px] border-gray-700"
       >
         <button
           onClick={() => setIsFilterModalOpen(false)}
@@ -921,7 +926,7 @@ export default function FinancialPage() {
         >
           ×
         </button>
-        <h2 className="text-xl font-bold mb-4 text-center text-gray-800">Filtrar por:</h2>
+        <h2 className="text-xl font-bold mb-4 text-center text-gray-800 dark:text-white">Filtrar por:</h2>
         <div className="grid grid-cols-1 gap-3">
           {filterMenuOptions.map((option, idx) => (
             <button
@@ -930,14 +935,14 @@ export default function FinancialPage() {
                 applyFilter(option);
                 setIsFilterModalOpen(false);
               }}
-              className="py-2 px-4 rounded-lg bg-gray-100 hover:bg-gray-200 transition text-center text-gray-800 font-medium"
+              className="py-2 px-4 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-center text-gray-800 dark:text-white font-medium"
             >
               {option}
             </button>
           ))}
         </div>
         <div className="flex justify-center mt-4">
-          <CustomButton type="button" onClick={() => setIsFilterModalOpen(false)}>
+          <CustomButton type="button" className={'dark:bg-gray-950 dark:hover:bg-gray-900'} onClick={() => setIsFilterModalOpen(false)}>
             Fechar
           </CustomButton>
         </div>
