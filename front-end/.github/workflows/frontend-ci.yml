@@ -1,0 +1,28 @@
+name: Front-End CI
+
+on:
+  push:
+    paths:
+      - 'front-end/**'
+  pull_request:
+    paths:
+      - 'front-end/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: front-end
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Rodar lint
+        run: npm run lint
+
+      - name: Rodar testes
+        run: npm run test -- --watchAll=false
