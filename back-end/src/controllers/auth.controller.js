@@ -1,9 +1,10 @@
 const bcrypt = require('bcryptjs');
-const userService = require('../services/user.service');
+// Removed duplicate require; using userService below
 const jwt = require('jsonwebtoken');
 const { secret } = require('../config/jwt.config');
 const crypto = require('crypto');
 const emailService = require('../services/email.service');
+const userService = require('../services/user.service');
 const { DateTime } = require('luxon');
 
 const login = async (req, res) => {
@@ -137,4 +138,30 @@ const getProfile = async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar usuário' });
   }
 };
-module.exports = { login, register, forgotPassword, resetPassword, getProfile };
+const updateProfile = async (req, res) => {
+  const userId = req.user.userId;
+  const { name, course, sex, password, photo } = req.body;
+
+  try {
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
+
+    let photoUrl;
+    if (photo?.startsWith('data:image')) {
+      photoUrl = await userService.uploadUserPhoto(photo, userId);
+    }
+
+    await userService.updateUser(userId, {
+      name,
+      course,
+      sex,
+      ...(photoUrl && { photo: photoUrl }),
+      ...(hashedPassword && { password_hash: hashedPassword }),
+    });
+
+    res.json({ message: 'Perfil atualizado com sucesso.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao atualizar perfil.' });
+  }
+};
+module.exports = { login, register, forgotPassword, resetPassword, getProfile, updateProfile };

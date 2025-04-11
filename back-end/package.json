@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "@fastify/jwt": "^9.1.0",
+    "@supabase/supabase-js": "^2.49.4",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
@@ -20,24 +21,38 @@
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.6.1",
     "pg": "^8.14.1",
-    "resend": "^4.2.0"
+    "resend": "^4.2.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "jest": "^29.0.0"
   },
   "jest": {
-    "roots": ["<rootDir>/"],
-    "testMatch": ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[tj]s?(x)"],
-    "testPathIgnorePatterns": ["/node_modules/"]
+    "roots": [
+      "<rootDir>/"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.[jt]s?(x)",
+      "**/?(*.)+(spec|test).[tj]s?(x)"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ]
   },
   "ci": {
     "name": "Run Tests",
     "on": {
       "push": {
-        "branches": ["main", "develop"]
+        "branches": [
+          "main",
+          "develop"
+        ]
       },
       "pull_request": {
-        "branches": ["main", "develop"]
+        "branches": [
+          "main",
+          "develop"
+        ]
       }
     },
     "jobs": {

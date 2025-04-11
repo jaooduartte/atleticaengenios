@@ -9,5 +9,6 @@ router.post('/register', authController.register);
 
 const authenticate = require('../middleware/auth.middleware');
 router.get('/me', authenticate, authController.getProfile);
+router.put('/me', authenticate, authController.updateProfile);
 
 module.exports = router;

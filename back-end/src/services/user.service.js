@@ -50,8 +50,55 @@ const clearResetToken = async (userId) => {
 };
 
 const getUserById = async (id) => {
-    const result = await db.query('SELECT id, name, email, photo, is_admin FROM users WHERE id = $1', [id]);
+    const result = await db.query(
+        'SELECT id, name, email, is_admin, course, sex, photo FROM users WHERE id = $1',
+        [id]
+    );
     return result.rows[0];
+};
+
+const updateUser = async (userId, updates) => {
+    const fields = [];
+    const values = [];
+    let index = 1;
+
+    for (const [key, value] of Object.entries(updates)) {
+        fields.push(`${key} = $${index}`);
+        values.push(value);
+        index++;
+    }
+
+    const query = `UPDATE users SET ${fields.join(', ')} WHERE id = $${index}`;
+    values.push(userId);
+
+    await db.query(query, values);
+};
+
+const { createClient } = require('@supabase/supabase-js');
+const { v4: uuidv4 } = require('uuid');
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+
+const uploadUserPhoto = async (base64Image, userId) => {
+  const fileName = `${userId}-${uuidv4()}.png`;
+  const base64Data = base64Image.split(',')[1];
+  const buffer = Buffer.from(base64Data, 'base64');
+  const uint8Array = new Uint8Array(buffer);
+
+  const { error } = await supabase.storage
+    .from('profile-photos')
+    .upload(`users/${fileName}`, uint8Array, {
+      contentType: 'image/png',
+      upsert: true
+    });
+
+  if (error) {
+    console.error('Erro detalhado do Supabase:', error);
+    throw new Error('Erro ao fazer upload da imagem no Supabase');
+  }
+
+  const { data } = supabase.storage.from('profile-photos').getPublicUrl(`users/${fileName}`);
+  return data.publicUrl;
 };
 
 module.exports = {
@@ -61,5 +108,7 @@ module.exports = {
     getUserByResetToken,
     updateUserPassword,
     clearResetToken,
-    getUserById
+    getUserById,
+    updateUser,
+    uploadUserPhoto
 };

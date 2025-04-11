@@ -6,31 +6,23 @@ import useAuth from '../hooks/useAuth';
 
 export default function Header() {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null); // Cria uma referência para o dropdown
+  const dropdownRef = useRef(null);
   const user = useAuth();
 
-  const toggleDropdown = () => setDropdownOpen(prevState => !prevState); // Alternar estado
+  const toggleDropdown = () => setDropdownOpen(prevState => !prevState);
 
-  // Fechar o dropdown ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownOpen(false); // Fecha o dropdown
+        setDropdownOpen(false);
       }
     };
-
-    // Adiciona o event listener para o clique fora
     document.addEventListener('mousedown', handleClickOutside);
-
-    // Limpeza do event listener quando o componente for desmontado
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
     <header className="bg-[#B3090F] text-white py-4 px-8 flex justify-between items-center">
-      {/* Logo à esquerda */}
       <div className="flex items-center">
         <Image
           src="/Logo-Engenios.png"
@@ -39,8 +31,6 @@ export default function Header() {
           height={100}
         />
       </div>
-
-      {/* Links centralizados */}
       <nav className="flex space-x-8">
         <Link href="/">Início</Link>
         <Link href="/produtos">Produtos</Link>
@@ -49,16 +39,13 @@ export default function Header() {
         <Link href="/sobre">Sobre</Link>
       </nav>
       <div className='flex items-center justify-between gap-10 '>
-        {/* Botão de "Área Admin" */}
         <div>
-          <Link href="/admin"> {/* Redireciona para a página admin.js */}
-            <button className="bg-gray-900 text-white px-4 py-2 rounded-lg">
+          <Link href="/admin">
+            <button className="bg-gray-900 hover:bg-gray-800 hover:scale-[1.03] transition text-white px-4 py-2 rounded-lg">
               Área Admin
             </button>
           </Link>
         </div>
-
-        {/* Foto do perfil e dropdown */}
         <div className="relative flex items-center">
           <div
             onClick={toggleDropdown} // Alterna entre abrir e fechar o menu
@@ -81,15 +68,14 @@ export default function Header() {
             )}
           </div>
 
-          {/* Dropdown */}
           {isDropdownOpen && (
             <div
-              ref={dropdownRef} // Ref para capturar o clique fora
+              ref={dropdownRef}
               className="absolute right-0 mt-8 w-48 bg-white text-black rounded-lg shadow-lg"
               style={{ top: '50px' }}
             >
-              <Link href="/meu-cadastro">
-                <div className="block px-4 py-2">Meu cadastro</div>
+              <Link href="/my-account">
+                <div className="block px-4 py-2">Minha conta</div>
               </Link>
               <Link href="/login">
                 <div
