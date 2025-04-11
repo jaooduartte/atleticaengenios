@@ -129,7 +129,7 @@ export default function MyAccount() {
     };
 
     return (
-        <div>
+        <div className="flex flex-col min-h-screen">
             <Header />
             {showBanner && (
                 <Banner
@@ -138,7 +138,7 @@ export default function MyAccount() {
                     type={bannerType}
                 />
             )}
-            <section className="p-8 max-w-3xl mx-auto min-h-[80vh]">
+            <main className="flex-grow p-8 max-w-3xl mx-auto">
                 <h1 className="text-5xl font-bold mb-10 mt-4 text-center text-gray-800">Minha Conta</h1>
 
                 <div className="flex justify-center mb-8">
@@ -274,7 +274,7 @@ export default function MyAccount() {
                         <CustomButton className="!bg-[#B3090F] hover:!bg-red-600 mt-5" onClick={applyCrop}>Aplicar</CustomButton>
                     </div>
                 </Modal>
-            </section>
+            </main>
             <Footer />
         </div>
     );
