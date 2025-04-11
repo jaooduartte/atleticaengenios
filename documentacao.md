@@ -13,8 +13,8 @@ Na primeira interação, foram feitas as seguintes decisões e ajustes para apri
 ### **Requisitos Funcionais**
 
 1. **Cadastro de Membros da Diretoria**
-   - Cada membro da diretoria poderá se cadastrar com nome, telefone, sexo, e-mail e ano de ingresso na Atlética.
-   - Escolher um curso no qual estuda (associado a outra tabela).
+   - Cada membro poderá se cadastrar com nome, sexo, e-mail e curso na Atlética.
+   - O usuário pode ser definido se faz parte ou não da diretoria através de um admin.
    
 2. **Autenticação e Controle de Acesso**
    - Login seguro com **JWT**.
@@ -24,9 +24,9 @@ Na primeira interação, foram feitas as seguintes decisões e ajustes para apri
    - Cursos cadastrados previamente.
    - Membros vinculam-se a um curso no momento do cadastro.
    
-4. **Gerenciamento Financeiro** *(Futuro)*
+4. **Gerenciamento Financeiro**
    - Controle de entrada e saída de caixa.
-   - Relatórios financeiros para diretoria.
+   - Filtros de tipo de transação, ordenação de maior valor, registro de usuário no ato da transação, e etc.
 
 ---
 
@@ -38,7 +38,7 @@ Na primeira interação, foram feitas as seguintes decisões e ajustes para apri
 4. **Banco de Dados Gerenciado**: **Supabase** para facilitar autenticação e armazenamento de dados.
 5. **Versionamento e Colaboração**: Código hospedado no **GitHub**, seguindo boas práticas de Git.
 6. **Responsividade**: Design responsivo via **Tailwind CSS**.
-7. **Integração Contínua (CI/CD)**: Implementação futura para deploy automatizado.
+7. **Integração Contínua (CI/CD)**: Implementação para deploy e testes automatizados.
 
 ---
 
