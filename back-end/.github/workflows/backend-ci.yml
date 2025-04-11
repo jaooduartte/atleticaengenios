@@ -23,9 +23,12 @@ jobs:
 
       - name: Rodar lint
         run: npm run lint || echo "Lint falhou, mas não bloqueia o build"
+      
+      - name: Rodar testes unitários
+        run: npm run test:unit || echo "Testes unitários não implementados ainda"
 
-      - name: Rodar testes
-        run: npm test || echo "Testes não implementados ainda"
+      - name: Rodar testes de integração
+        run: npm run test:integration || echo "Testes de integração não implementados ainda"
 
       - name: Rodar verificação de vulnerabilidades
         run: npm audit --audit-level=high
