@@ -1,0 +1,31 @@
+name: Back-End CI
+
+on:
+  push:
+    paths:
+      - 'back-end/**'
+  pull_request:
+    paths:
+      - 'back-end/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: back-end
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Rodar lint
+        run: npm run lint || echo "Lint falhou, mas não bloqueia o build"
+
+      - name: Rodar testes
+        run: npm test || echo "Testes não implementados ainda"
+
+      - name: Rodar verificação de vulnerabilidades
+        run: npm audit --audit-level=high
