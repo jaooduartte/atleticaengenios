@@ -7,8 +7,8 @@ const financialRoutes = require('./src/routes/financial.routes');
 const app = express();
 
 app.use(cors());
-app.use(bodyParser.json());
-
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/financial', financialRoutes);
 

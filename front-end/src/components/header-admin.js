@@ -40,15 +40,13 @@ export default function Header() {
 
       {/* Área do usuário */}
       <div className="flex items-center justify-between gap-10">
-        {user?.isAdmin && (
-          <div>
-            <Link href="/home">
-              <button className="bg-[#B3090F] text-white px-4 py-2 rounded-lg">
-                Área Usuários
-              </button>
-            </Link>
-          </div>
-        )}
+      <div>
+          <Link href="/admin"> {/* Redireciona para a página admin.js */}
+            <button className="bg-[#B3090F] hover:bg-red-600 hover:scale-[1.03] transition text-white px-4 py-2 rounded-lg">
+              Área Usuários
+            </button>
+          </Link>
+        </div>
 
         {/* Foto de perfil + nome + dropdown */}
         <div className="relative flex items-center">
@@ -76,11 +74,15 @@ export default function Header() {
               className="absolute right-0 mt-8 w-48 bg-white text-black rounded-lg shadow-lg"
               style={{ top: '50px' }}
             >
-              <Link href="/meu-cadastro">
-                <div className="block px-4 py-2">Meu cadastro</div>
+              <Link href="/my-account">
+                <div className="block px-4 py-2">Minha conta</div>
               </Link>
               <Link href="/login">
-                <div className="block px-4 py-2">Sair</div>
+                <div className="block px-4 py-2"
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                  }}>Sair</div>
               </Link>
             </div>
           )}
