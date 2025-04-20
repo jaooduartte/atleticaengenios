@@ -13,5 +13,3 @@ export default function App({ Component, pageProps }) {
     </ThemeProvider>
   );
 }
-
-//py-2 px-4 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-center text-gray-800 dark:text-white font-medium

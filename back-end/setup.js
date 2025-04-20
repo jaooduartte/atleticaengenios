@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-// Função para criar pasta e arquivos
 const createDirectoryStructure = () => {
   const structure = {
     "src": {
@@ -25,7 +24,6 @@ const createDirectoryStructure = () => {
     "package.json": "",
   };
 
-  // Função recursiva para criar arquivos e pastas
   const createFiles = (folder, structure) => {
     for (const [key, value] of Object.entries(structure)) {
       const fullPath = path.join(folder, key);
@@ -42,9 +40,8 @@ const createDirectoryStructure = () => {
     }
   };
 
-  createFiles('./', structure);  // Corrigido o caminho da pasta 'back-end'
+  createFiles('./', structure);
   console.log('Estrutura criada com sucesso!');
 };
 
-// Criar a estrutura do projeto
 createDirectoryStructure();

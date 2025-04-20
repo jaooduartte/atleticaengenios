@@ -7,10 +7,10 @@ export default function Footer() {
       <div className="flex justify-center space-x-6">
         {/* Ícones das redes sociais */}
         <Link href="https://www.instagram.com/atleticaengenios" target="_blank">
-          <InstagramLogo size={30} />
+          <InstagramLogo size={30} className="hover:text-red-500 transform hover:scale-110 transition duration-300" />
         </Link>
         <Link href="mailto:atleticaengenios@gmail.com" target="_blank">
-          <EnvelopeSimple size={30}  />
+          <EnvelopeSimple size={30} className="hover:text-red-500 transform hover:scale-110 transition duration-300" />
         </Link>
       </div>
       <div className="text-center mt-4">

@@ -33,11 +33,11 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="bg-[#B3090F] text-white py-4 px-8 flex justify-between items-center">
+  <header className="bg-[#B3090F] text-white py-4 px-8 flex items-center justify-between relative">
       <div className="flex items-center">
         <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={100} height={100}/>
       </div>
-      <nav className="flex space-x-8">
+      <nav className="absolute left-1/2 transform -translate-x-1/2 flex space-x-8 z-10">
         <Link href="/home">Início</Link>
         <Link href="/products">Produtos</Link>
         <Link href="/events">Eventos</Link>

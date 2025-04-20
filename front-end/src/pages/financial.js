@@ -496,7 +496,7 @@ export default function FinancialPage() {
   });
 
   return (
-    <div className="financial-page flex flex-col min-h-screen dark:bg-black">
+    <div className="financial-page flex flex-col min-h-screen bg-white text-black dark:bg-gray-800 dark:text-white transition-colors duration-500 ease-in-out">
       <Header />
 
       {showBanner && (
@@ -516,7 +516,7 @@ export default function FinancialPage() {
           <div className="m-4 bg-green-900 p-4 rounded-xl shadow-md text-center">
             <h3 className="text-md font-semibold mb-1">Total de Receita</h3>
             <p className="text-xl font-bold">{totalIncomes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-            <div className="bg-white dark:bg-gray-900 mt-3 rounded-lg p-2">
+            <div className="bg-white dark:bg-gray-800 mt-3 rounded-lg p-2">
               <Bar
                 data={{
                   labels: chartData.labels,
@@ -552,7 +552,7 @@ export default function FinancialPage() {
               />
             </div>
           </div>
-          <div className="bg-gray-900 dark:bg-gray-500 flex flex-col justify-between p-6 rounded-xl shadow-md text-center h-auto">
+          <div className="bg-gray-900 dark:bg-gray-700 flex flex-col justify-between p-6 rounded-xl shadow-md text-center h-auto">
             <div className="flex-grow flex flex-col justify-center items-center">
               <h3 className="text-2xl font-semibold mb-1">Total em Caixa</h3>
               <p className="text-3xl font-bold">{totalAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
@@ -577,7 +577,7 @@ export default function FinancialPage() {
           <div className="m-4 bg-red-900 p-4 rounded-xl shadow-md text-center">
             <h3 className="text-md font-semibold mb-1">Total de Despesas</h3>
             <p className="text-xl font-bold">{totalExpenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-            <div className="bg-white dark:bg-gray-900 mt-3 rounded-lg p-2">
+            <div className="bg-white dark:bg-gray-800 mt-3 rounded-lg p-2">
               <Bar
                 data={{
                   labels: chartData.labels,
@@ -768,7 +768,16 @@ export default function FinancialPage() {
                     key={key}
                     className="flex items-center px-4 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-medium shadow-sm"
                   >
-                    <span className="mr-2 capitalize">{key.replace('_', ' ')}:</span>
+                  <span className="mr-2 capitalize">
+                    {{
+                      tipo: 'Tipo',
+                      valor: 'Valor',
+                      data: 'Data',
+                      relates_to: 'Relacionado com',
+                      user: 'Usuário'
+                    }[key] || key.replace('_', ' ')}
+                    :
+                  </span>
                     <span className="font-semibold">{filterValues[key]}</span>
                     <button
                       onClick={() => clearFilters(key)}
@@ -868,8 +877,8 @@ export default function FinancialPage() {
           {sortedTransactions.filter((transaction) =>
             transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
           ).length === 0 ? (
-            <div className="flex flex-col items-center justify-center text-red-900 rounded-xl px-8 py-12 text-center text-base max-w-2xl mx-auto mt-12 animate-fade-in space-y-4">
-              <WarningCircle size={64} className="text-red-500" />
+            <div className="flex flex-col items-center justify-center text-red-900 dark:text-red-400 rounded-xl px-8 py-12 text-center text-base max-w-2xl mx-auto mt-12 animate-fade-in space-y-4">
+              <WarningCircle size={64} />
               <h3 className="text-2xl font-semibold">Nenhum resultado encontrado</h3>
               <p className="text-sm">Verifique se digitou corretamente o título da transação ou experimente outros termos para a busca.</p>
             </div>
@@ -901,9 +910,9 @@ export default function FinancialPage() {
                     <div className="relative flex justify-end">
                       <div className="relative group w-fit h-fit">
                         <DotsThreeVertical size={24} className="text-gray-700 dark:text-white cursor-pointer" />
-                        <div className="absolute right-0 top-6 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
-                          <button onClick={() => handleEditTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm">Editar transação</button>
-                          <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm text-red-600">Excluir transação</button>
+                        <div className="absolute right-0 top-6 w-40 bg-white dark:bg-gray-800 border border-gray-800 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
+                          <button onClick={() => handleEditTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm">Editar transação</button>
+                          <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm text-red-600 dark:text-red-400">Excluir transação</button>
                         </div>
                       </div>
                     </div>
