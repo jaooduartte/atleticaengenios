@@ -33,7 +33,7 @@ export default function Header() {
   }, []);
 
   return (
-  <header className="bg-[#B3090F] text-white py-4 px-8 flex items-center justify-between relative">
+  <header className="bg-[#B3090F] dark:bg-red-900 text-white py-4 px-8 flex items-center justify-between relative">
       <div className="flex items-center">
         <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={100} height={100}/>
       </div>
@@ -47,7 +47,7 @@ export default function Header() {
       <div className='flex items-center justify-between gap-10 '>
         <div>
           <Link href="/admin">
-            <button className="bg-gray-900 hover:bg-gray-800 hover:scale-[1.03] transition text-white px-4 py-2 rounded-lg">
+            <button className="bg-black dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 hover:scale-[1.03] transition text-white px-4 py-2 rounded-lg">
               Área Admin
             </button>
           </Link>
@@ -79,17 +79,17 @@ export default function Header() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-8 w-48 bg-white text-black rounded-lg shadow-lg z-50"
+                className="absolute right-0 mt-8 w-48 bg-white dark:bg-gray-700 text-black dark:text-white rounded-lg shadow-lg z-50"
                 style={{ top: '50px' }}
               >
                 <Link href="/my-account">
-                  <div className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 rounded-lg">
+                  <div className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
                     <UserGear size={16}/>
                     Minha conta
                   </div>
                 </Link>
                 <div className="relative group" onClick={() => setThemeDropdownOpen(prev => !prev)}>
-                  <div className="block px-4 py-2 flex items-center gap-2 cursor-pointer hover:bg-gray-100 rounded-lg">
+                  <div className="block px-4 py-2 flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
                     <CaretLeft size={16}/>
                     <span>Tema</span>
                   </div>
@@ -100,24 +100,24 @@ export default function Header() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-full top-0 mr-1 w-64 bg-white text-black rounded-lg shadow-lg z-10"
+                        className="absolute right-full top-0 mr-1 w-64 bg-white dark:bg-gray-700 text-black dark:text-white rounded-lg shadow-lg z-10"
                       >
                         <div
-                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 rounded-lg ${theme === 'dark' ? 'text-[#B3090F] font-bold' : ''}`}
+                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'dark' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('dark')}
                         >
                           <Image src="/theme/dark.png" alt="Tema escuro" width={50} height={38} className="mr-2 rounded border" />
                           Tema escuro
                         </div>
                         <div
-                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 rounded-lg ${theme === 'light' ? 'text-[#B3090F] font-bold' : ''}`}
+                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'light' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('light')}
                         >
                           <Image src="/theme/light.png" alt="Tema claro" width={50} height={38} className="mr-2 rounded border" />
                           Tema claro
                         </div>
                         <div
-                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 rounded-lg ${theme === 'system' ? 'text-[#B3090F] font-bold' : ''}`}
+                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'system' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('system')}
                         >
                           <Image src="/theme/system.png" alt="Corresponder ao sistema" width={50} height={38} className="mr-2 rounded border" />
@@ -129,7 +129,7 @@ export default function Header() {
                 </div>
                 <Link href="/login">
                   <div
-                    className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 rounded-lg"
+                    className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
                     onClick={() => {
                       localStorage.removeItem('token');
                       localStorage.removeItem('user');

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 
 
 import { useState, useEffect } from 'react';
@@ -92,8 +93,6 @@ export default function MyAccount() {
             localStorage.setItem('user', JSON.stringify({ ...formData }));
       
             showBannerMessage('Perfil atualizado com sucesso!', 'success', 'As alterações foram salvas corretamente.');
-      
-            // Aguarda 1 segundo e redireciona para home
             setTimeout(() => {
               window.location.href = '/home';
             }, 1000);
@@ -123,13 +122,12 @@ export default function MyAccount() {
     };
 
     const applyCrop = () => {
-        // Simular corte e salvar preview (pode usar canvas ou API externa)
         setFormData(prev => ({ ...prev, photo: selectedImage }));
         setIsCropping(false);
     };
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col bg-white dark:bg-gray-800 min-h-screen">
             <Header />
             {showBanner && (
                 <Banner
@@ -139,7 +137,7 @@ export default function MyAccount() {
                 />
             )}
             <main className="flex-grow p-8 max-w-3xl mx-auto">
-                <h1 className="text-5xl font-bold mb-10 mt-4 text-center text-gray-800">Minha Conta</h1>
+                <h1 className="text-5xl font-bold mb-10 mt-4 text-center text-gray-800 dark:text-white">Minha Conta</h1>
 
                 <div className="flex justify-center mb-8">
                     <div className="relative group w-20 h-20">
@@ -150,7 +148,7 @@ export default function MyAccount() {
                         />
                         <label
                             htmlFor="profilePhoto"
-                            className="absolute inset-0 backdrop-blur-sm bg-white/40 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            className="absolute inset-0 backdrop-blur-sm bg-white/40 dark:bg-gray-800/40 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                         >
                             <Camera size={28} className="text-[#B3090F]" />
                             <input
