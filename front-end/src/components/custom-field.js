@@ -16,7 +16,7 @@ export default function CustomField({
       {Icon && (
         <Icon
           size={30}
-          className="absolute top-1/2 left-3 transform -translate-y-1/2 text-[#B3090F]"
+          className="absolute top-1/2 left-3 transform -translate-y-1/2 text-[#B3090F] "
         />
       )}
       {type === 'select' ? (
@@ -30,7 +30,7 @@ export default function CustomField({
               "text-sm w-full p-3 pl-12 rounded-xl transition-colors appearance-none focus:outline-none",
               isInvalid ? "border-2 border-red-500" : "border border-transparent",
               value ? "text-black" : "text-gray-400",
-              "bg-gray-100",
+              "bg-gray-100 dark:bg-gray-700",
               className
             )}
             {...props}
@@ -48,7 +48,7 @@ export default function CustomField({
           {Icon && (
             <Icon
               size={30}
-              className="absolute top-1/2 left-3 transform -translate-y-1/2 text-[#B3090F]"
+              className="absolute top-1/2 left-3 transform -translate-y-1/2 text-[#B3090F] dark:text-red-400"
             />
           )}
           <input
@@ -61,7 +61,8 @@ export default function CustomField({
             className={twMerge(
               "w-full border rounded-xl p-3 transition-colors focus:outline-none",
               isInvalid ? "border-2 border-red-500" : "border border-transparent",
-              "bg-gray-100 text-black text-sm",
+              "bg-gray-100 dark:bg-gray-700 text-sm",
+              type === 'date' && !value ? "text-gray-400 dark:text-gray-400" : "text-black dark:text-white",
               Icon ? "pl-12" : "pl-4",
               className
             )}

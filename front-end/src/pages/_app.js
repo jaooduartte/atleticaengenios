@@ -8,7 +8,7 @@ if (typeof window !== 'undefined') {
 
 export default function App({ Component, pageProps }) {
   return (
-    <ThemeProvider attribute="class" forcedTheme="light" enableSystem={false}>
+    <ThemeProvider attribute="class" enableSystem={true} defaultTheme="system">
       <Component {...pageProps} />
     </ThemeProvider>
   );

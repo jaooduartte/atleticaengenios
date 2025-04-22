@@ -3,13 +3,21 @@ import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Banner from '../components/banner';
 import Link from 'next/link';
-import { Eye, EyeSlash, UserCircle, Lock, Envelope, GenderIntersex, Cake, Student } from 'phosphor-react';
+import { Eye, EyeSlash, UserCircle, Lock, Envelope, GenderIntersex, Cake, Student, Gear, Moon, Sun } from 'phosphor-react';
 import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import CustomDropdown from '../components/custom-dropdown';
+import { useTheme } from 'next-themes';
 
 export default function Login() {
   const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [themeIcon, setThemeIcon] = useState('system');
+  
+  useEffect(() => {
+    setThemeIcon(theme);
+  }, [theme]);
+  
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -36,6 +44,16 @@ export default function Login() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const toggleTheme = () => {
+    if (theme === 'system') {
+      setTheme('light');
+    } else if (theme === 'light') {
+      setTheme('dark');
+    } else {
+      setTheme('system');
+    }
+  };
 
   if (!mounted) return null;
 
@@ -133,6 +151,15 @@ export default function Login() {
 
   return (
     <div className="flex justify-center items-center h-screen relative">
+      <button
+        onClick={toggleTheme}
+        className="absolute top-4 right-4 z-50 bg-white dark:bg-gray-800 p-2 rounded-full shadow hover:scale-105 transition-transform"
+        title="Alternar tema"
+      >
+        {theme === 'system' && <Gear size={20} className="text-gray-700 dark:text-gray-300" />}
+        {theme === 'light' && <Sun size={20} className="text-yellow-500" />}
+        {theme === 'dark' && <Moon size={20} className="text-blue-300" />}
+      </button>
       <div className="absolute inset-0 z-0">
         <Image
           src="/photos-login/1.png"
@@ -144,7 +171,7 @@ export default function Login() {
         />
       </div>
       <div
-        className="w-full max-w-2xl p-6 bg-white rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out"
+        className="w-full max-w-2xl p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out"
       >
         <div className="flex justify-center mb-8">
           <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
@@ -192,7 +219,7 @@ export default function Login() {
               </div>
               <div className="text-center mt-2">
                 <Link href="/forgot-password" legacyBehavior>
-                  <a className="text-sm text-[#B3090F] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B3090F] rounded">
+                  <a className="text-sm text-[#B3090F] dark:text-red-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B3090F] rounded">
                     Esqueceu sua senha?
                   </a>
                 </Link>
@@ -203,9 +230,9 @@ export default function Login() {
                 </CustomButton>
               </div>
               <div className="text-center">
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-gray-700 dark:text-gray-400">
                   Não é um usuário?{' '}
-                  <a href="#" onClick={(e) => { e.preventDefault(); setIsRegistering(true); }} className="text-[#B3090F] hover:underline">Cadastre-se!</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); setIsRegistering(true); }} className="text-[#B3090F] dark:text-red-400 hover:underline">Cadastre-se!</a>
                 </p>
               </div>
             </form>
@@ -294,9 +321,9 @@ export default function Login() {
                   CADASTRAR
                 </CustomButton>
               </div>
-              <p className="col-span-2 text-center text-sm text-gray-700">
+              <p className="col-span-2 text-center text-sm text-gray-700 dark:text-gray-400">
                 Já tem um cadastro?{' '}
-                <a href="#" onClick={(e) => { e.preventDefault(); setIsRegistering(false); }} className="col-span-2 text-center text-sm text-[#B3090F] hover:underline">Faça login!</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); setIsRegistering(false); }} className="col-span-2 text-center text-sm text-[#B3090F] dark:text-red-400 hover:underline">Faça login!</a>
               </p>
             </form>
           </div>
