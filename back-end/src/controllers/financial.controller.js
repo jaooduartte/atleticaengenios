@@ -3,7 +3,7 @@ const financialService = require('../services/financial.service');
 // Function to create a new transaction (income/expense)
 const createTransaction = async (req, res) => {
     try {
-    const { title, value, date, relates_to, user_id, type, note } = req.body;
+        const { title, value, date, relates_to, user_id, type, note } = req.body;
 
         // Verifique o valor de relates_to aqui
         console.log('relates_to no backend:', relates_to);
@@ -32,14 +32,18 @@ const createTransaction = async (req, res) => {
     }
 };
 
-// Function to list all transactions
 const listTransactions = async (req, res) => {
     try {
+        const user = await require('../services/user.service').getUserById(req.user.userId);
+        if (!user || !user.is_admin) {
+            return res.status(403).json({ message: 'Acesso negado: apenas administradores' });
+        }
+
         const transactions = await financialService.listTransactions();
         return res.status(200).json(transactions);
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Error listing transactions' });
+        return res.status(500).json({ message: 'Erro ao listar transações' });
     }
 };
 
