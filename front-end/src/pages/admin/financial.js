@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { HandArrowDown, HandArrowUp, MagnifyingGlass, DotsThreeVertical, WarningCircle, Funnel, FunnelX } from '@phosphor-icons/react';
-import Header from '../components/header-admin';
-import Footer from '../components/footer-admin';
+import useAuth from '../../hooks/useAuth';
+import Header from '../../components/header-admin';
+import Footer from '../../components/footer-admin';
 import Modal from 'react-modal';
-import useAuth from '../hooks/useAuth';
-import CustomField from '../components/custom-field';
-import CustomButton from '../components/custom-buttom';
-import CustomDropdown from '../components/custom-dropdown';
-import Banner from '../components/banner';
+import CustomField from '../../components/custom-field';
+import CustomButton from '../../components/custom-buttom';
+import CustomDropdown from '../../components/custom-dropdown';
+import Banner from '../../components/banner';
 import {
   Chart as ChartJS,
   BarElement,
@@ -20,7 +20,7 @@ import { Bar } from 'react-chartjs-2';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-export default function FinancialPage() {
+function FinancialPage() {
   const [showBanner, setShowBanner] = useState(false);
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerType, setBannerType] = useState('');
@@ -76,10 +76,17 @@ export default function FinancialPage() {
     user: null,
   });
 
+
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/financial/transactions');
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:3001/api/financial/transactions', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
         const data = await response.json();
         console.log(data);
 
@@ -163,7 +170,7 @@ export default function FinancialPage() {
 
     setSelectedFilterColumn(column);
     setIsFilterModalOpen(true);
-  
+
     switch (column) {
       case 'tipo':
         setFilterMenuOptions(["Entrada", "Saída"]);
@@ -188,11 +195,11 @@ export default function FinancialPage() {
   };
   const applyFilter = (filterValue) => {
     setShowFilterMenu(false);
-  const newFilterValues = { ...filterValues, [selectedFilterColumn]: filterValue };
-  setFilterValues(newFilterValues);
-  setIsFilterApplied(prev => ({ ...prev, [selectedFilterColumn]: true }));
+    const newFilterValues = { ...filterValues, [selectedFilterColumn]: filterValue };
+    setFilterValues(newFilterValues);
+    setIsFilterApplied(prev => ({ ...prev, [selectedFilterColumn]: true }));
 
-  setFilteredTransactions(transactions.filter(t => {
+    setFilteredTransactions(transactions.filter(t => {
       const conditions = [];
       if (newFilterValues.tipo) conditions.push(t.type === (newFilterValues.tipo === 'Entrada' ? 'receita' : 'despesa'));
       if (newFilterValues.relates_to) conditions.push(t.relates_to === newFilterValues.relates_to);
@@ -212,42 +219,42 @@ export default function FinancialPage() {
       }
       if (newFilterValues.user) conditions.push(t.user_name === newFilterValues.user);
       return conditions.every(Boolean);
-  }));
+    }));
   };
   const clearFilters = (column) => {
-  const updatedFilterValues = { ...filterValues };
-  delete updatedFilterValues[column];
-  setFilterValues(updatedFilterValues);
-  setIsFilterApplied(prev => ({ ...prev, [column]: false }));
+    const updatedFilterValues = { ...filterValues };
+    delete updatedFilterValues[column];
+    setFilterValues(updatedFilterValues);
+    setIsFilterApplied(prev => ({ ...prev, [column]: false }));
 
-  const newFiltered = transactions.filter(t => {
-    let valid = true;
-    if (updatedFilterValues.tipo) {
-      valid = valid && (t.type === (updatedFilterValues.tipo === 'Entrada' ? 'receita' : 'despesa'));
-    }
-    if (updatedFilterValues.relates_to) {
-      valid = valid && (t.relates_to === updatedFilterValues.relates_to);
-    }
-    if (updatedFilterValues.data) {
-      const d = new Date(t.date);
-      const now = new Date();
-      if (updatedFilterValues.data === 'Últimos 6 meses') {
-        const sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(now.getMonth() - 6);
-        valid = valid && (d >= sixMonthsAgo && d <= now);
+    const newFiltered = transactions.filter(t => {
+      let valid = true;
+      if (updatedFilterValues.tipo) {
+        valid = valid && (t.type === (updatedFilterValues.tipo === 'Entrada' ? 'receita' : 'despesa'));
       }
-      if (updatedFilterValues.data === 'Últimos 3 anos') {
-        const threeYearsAgo = new Date();
-        threeYearsAgo.setFullYear(now.getFullYear() - 3);
-        valid = valid && (d >= threeYearsAgo && d <= now);
+      if (updatedFilterValues.relates_to) {
+        valid = valid && (t.relates_to === updatedFilterValues.relates_to);
       }
-    }
-    if (updatedFilterValues.user) {
-      valid = valid && (t.user_name === updatedFilterValues.user);
-    }
-    return valid;
-  });
-  setFilteredTransactions(Object.keys(updatedFilterValues).length === 0 ? transactions : newFiltered);
+      if (updatedFilterValues.data) {
+        const d = new Date(t.date);
+        const now = new Date();
+        if (updatedFilterValues.data === 'Últimos 6 meses') {
+          const sixMonthsAgo = new Date();
+          sixMonthsAgo.setMonth(now.getMonth() - 6);
+          valid = valid && (d >= sixMonthsAgo && d <= now);
+        }
+        if (updatedFilterValues.data === 'Últimos 3 anos') {
+          const threeYearsAgo = new Date();
+          threeYearsAgo.setFullYear(now.getFullYear() - 3);
+          valid = valid && (d >= threeYearsAgo && d <= now);
+        }
+      }
+      if (updatedFilterValues.user) {
+        valid = valid && (t.user_name === updatedFilterValues.user);
+      }
+      return valid;
+    });
+    setFilteredTransactions(Object.keys(updatedFilterValues).length === 0 ? transactions : newFiltered);
   };
 
   const handleEditTransaction = (transaction) => {
@@ -352,10 +359,9 @@ export default function FinancialPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Atualizar a lista de transações e calcular os totais
         const updatedTransaction = {
           ...data,
-          user_name: user.name, // Atribuindo o nome do usuário logado
+          user_name: user.name,
         };
 
         let updatedTransactions = [];
@@ -490,7 +496,7 @@ export default function FinancialPage() {
     if (isFilterApplied.valor) {
       const valueA = parseFloat(a.value);
       const valueB = parseFloat(b.value);
-    return filterValues.valor === 'Maior valor' ? valueB - valueA : valueA - valueB;
+      return filterValues.valor === 'Maior valor' ? valueB - valueA : valueA - valueB;
     }
     return new Date(b.date) - new Date(a.date);
   });
@@ -624,9 +630,9 @@ export default function FinancialPage() {
           shouldCloseOnOverlayClick={true}
           overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
           className={`relative bg-white dark:bg-gray-800 text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out ${transactionType === 'receita'
-                    ? 'border-green-800 dark:border-green-600'
-                    : 'border-red-800 dark:border-red-600'
-                } ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+            ? 'border-green-800 dark:border-green-600'
+            : 'border-red-800 dark:border-red-600'
+            } ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         >
           <button
             onClick={closeModal}
@@ -637,8 +643,8 @@ export default function FinancialPage() {
 
           <h2
             className={`text-2xl mb-6 text-center font-bold 
-              ${transactionType === 'receita' 
-                ? 'text-green-800 dark:text-green-600' 
+              ${transactionType === 'receita'
+                ? 'text-green-800 dark:text-green-600'
                 : 'text-red-800 dark:text-red-600'
               }`}
           >
@@ -761,13 +767,13 @@ export default function FinancialPage() {
             />
           </div>
           <div className={`flex flex-wrap gap-2 justify-center mb-4 mt-4 ${Object.entries(isFilterApplied).some(([_, value]) => value) ? '' : 'invisible h-7'}`}>
-              {Object.entries(isFilterApplied).map(([key, value]) => {
-                if (!value) return null;
-                return (
-                  <div
-                    key={key}
-                    className="flex items-center px-4 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-medium shadow-sm"
-                  >
+            {Object.entries(isFilterApplied).map(([key, value]) => {
+              if (!value) return null;
+              return (
+                <div
+                  key={key}
+                  className="flex items-center px-4 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-medium shadow-sm"
+                >
                   <span className="mr-2 capitalize">
                     {{
                       tipo: 'Tipo',
@@ -778,28 +784,28 @@ export default function FinancialPage() {
                     }[key] || key.replace('_', ' ')}
                     :
                   </span>
-                    <span className="font-semibold">{filterValues[key]}</span>
-                    <button
-                      onClick={() => clearFilters(key)}
-                      className="ml-2 text-gray-500 hover:text-red-500"
-                      title="Limpar filtro"
-                    >
-                      ×
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+                  <span className="font-semibold">{filterValues[key]}</span>
+                  <button
+                    onClick={() => clearFilters(key)}
+                    className="ml-2 text-gray-500 hover:text-red-500"
+                    title="Limpar filtro"
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })}
+          </div>
           <div className="relative flex justify-between pr-6 font-bold max-w-9xl mx-auto">
             <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
               <div className="flex items-center justify-center gap-2">
                 <span className="text-md dark:text-white">Tipo</span>
-              <button
-                ref={(el) => (filterButtonRefs.current.tipo = el)}
-                onClick={() => isFilterApplied.tipo ? clearFilters('tipo') : toggleFilter('tipo')}
-              >
-                <Funnel size={20} className='dark:text-white'/>
-              </button>
+                <button
+                  ref={(el) => (filterButtonRefs.current.tipo = el)}
+                  onClick={() => isFilterApplied.tipo ? clearFilters('tipo') : toggleFilter('tipo')}
+                >
+                  <Funnel size={20} className='dark:text-white' />
+                </button>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="text-md dark:text-white">Título</span>
@@ -810,7 +816,7 @@ export default function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.valor = el)}
                   onClick={() => isFilterApplied.valor ? clearFilters('valor') : toggleFilter('valor')}
                 >
-                <Funnel size={20} className='dark:text-white'/>
+                  <Funnel size={20} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -819,7 +825,7 @@ export default function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.data = el)}
                   onClick={() => isFilterApplied.data ? clearFilters('data') : toggleFilter('data')}
                 >
-                <Funnel size={20} className='dark:text-white'/>
+                  <Funnel size={20} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -828,7 +834,7 @@ export default function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.relates_to = el)}
                   onClick={() => isFilterApplied.relates_to ? clearFilters('relates_to') : toggleFilter('relates_to')}
                 >
-                <Funnel size={20} className='dark:text-white'/>
+                  <Funnel size={20} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -837,7 +843,7 @@ export default function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.user = el)}
                   onClick={() => isFilterApplied.user ? clearFilters('user') : toggleFilter('user')}
                 >
-                <Funnel size={20} className='dark:text-white'/>
+                  <Funnel size={20} className='dark:text-white' />
                 </button>
               </div>
             </div>
@@ -971,3 +977,6 @@ export default function FinancialPage() {
     </div >
   );
 }
+
+import withAdminProtection from '../../utils/withAdminProtection';
+export default withAdminProtection(FinancialPage);

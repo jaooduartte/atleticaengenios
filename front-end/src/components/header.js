@@ -45,19 +45,21 @@ export default function Header() {
         <Link href="/about">Sobre</Link>
       </nav>
       <div className='flex items-center justify-between gap-10 '>
-        <div>
-          <Link href="/admin">
-            <button className="bg-black dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 hover:scale-[1.03] transition text-white px-4 py-2 rounded-lg">
-              Área Admin
-            </button>
-          </Link>
-        </div>
+      {user && user.is_admin && (
+          <div>
+            <Link href="/admin/home">
+              <button className="bg-black dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 hover:scale-[1.03] transition text-white px-4 py-2 rounded-lg">
+                Área Admin
+              </button>
+            </Link>
+          </div>
+        )}
         <div className="relative flex items-center">
           <div onClick={toggleDropdown} className="cursor-pointer flex flex-col items-center">
             <div className='mb-2'>
               <Image
-                src={user?.image || '/placeholder.png'}
-                alt={user?.name || 'Usuário'}
+                src={user && user.image ? user.image : '/placeholder.png'}
+                alt={user && user.name ? user.name : 'Usuário'}
                 width={40}
                 height={40}
                 className="rounded-full object-cover"
@@ -65,7 +67,7 @@ export default function Header() {
             </div>
             {user && (
               <div className="flex gap-2">
-                <p className="text-center">{user?.name || 'Usuário'}</p>
+                <p className="text-center">{user.name || 'Usuário'}</p>
                 <CaretDown size={16} className="mt-1" />
               </div>
             )}

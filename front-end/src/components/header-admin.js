@@ -38,12 +38,12 @@ export default function Header() {
         <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={100} height={100} />
       </div>
       <nav className="absolute left-1/2 transform -translate-x-1/2 flex space-x-8 z-10">
-        <Link href="/admin">Inicio</Link>
-        <Link href="/financial">Financeiro</Link>
-        <Link href="/products">Produtos</Link>
-        <Link href="/events">Eventos</Link>
-        <Link href="/forms">Formulários</Link>
-        <Link href="/users">Usuários</Link>
+        <Link href="/admin/home">Inicio</Link>
+        <Link href="/admin/financial">Financeiro</Link>
+        <Link href="/admin/products">Produtos</Link>
+        <Link href="/admin/events">Eventos</Link>
+        <Link href="/admin/forms">Formulários</Link>
+        <Link href="/admin/users">Usuários</Link>
       </nav>
 
       <div className="flex items-center gap-10 ml-auto">

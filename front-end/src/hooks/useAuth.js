@@ -19,7 +19,7 @@ export default function useAuth() {
                     id: Number(data.user?.id),
                     name: data.user?.name || 'Usuário',
                     image: data.user?.photo || '/placeholder.png',
-                    isAdmin: data.user?.is_admin || false
+                    is_admin: data.user?.is_admin ?? false
                 });
             }
         };
