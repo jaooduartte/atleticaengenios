@@ -16,7 +16,6 @@ const createUser = async (userData) => {
     return result.rows[0];
 };
 
-// Salva token para redefinição de senha
 const saveResetToken = async (userId, resetToken, tokenExpiry) => {
     await db.query(
         'UPDATE users SET reset_token = $1, token_expiry = $2 WHERE id = $3',
@@ -24,7 +23,6 @@ const saveResetToken = async (userId, resetToken, tokenExpiry) => {
     );
 };
 
-// Recupera usuário pelo token de redefinição
 const getUserByResetToken = async (token) => {
     const result = await db.query(
         'SELECT * FROM users WHERE reset_token = $1',

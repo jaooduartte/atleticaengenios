@@ -1,5 +1,4 @@
 const bcrypt = require('bcryptjs');
-// Removed duplicate require; using userService below
 const jwt = require('jsonwebtoken');
 const { secret } = require('../config/jwt.config');
 const crypto = require('crypto');
