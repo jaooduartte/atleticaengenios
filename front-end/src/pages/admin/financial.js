@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { HandArrowDown, HandArrowUp, MagnifyingGlass, DotsThreeVertical, WarningCircle, Funnel, FunnelX } from '@phosphor-icons/react';
+import { HandArrowDown, HandArrowUp, MagnifyingGlass, DotsThreeVertical, WarningCircle, Funnel } from '@phosphor-icons/react';
 import useAuth from '../../hooks/useAuth';
 import Header from '../../components/header-admin';
 import Footer from '../../components/footer-admin';
@@ -21,6 +21,7 @@ import { Bar } from 'react-chartjs-2';
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 function FinancialPage() {
+  // --- HOOKS DE ESTADO ---
   const [showBanner, setShowBanner] = useState(false);
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerType, setBannerType] = useState('');
@@ -40,34 +41,21 @@ function FinancialPage() {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [note, setNote] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState('last6months');
   const [chartData, setChartData] = useState({ incomes: [], expenses: [], labels: [] });
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [selectedFilterColumn, setSelectedFilterColumn] = useState(null);
-
   const [isTitleInvalid, setIsTitleInvalid] = useState(false);
   const [isValueInvalid, setIsValueInvalid] = useState(false);
   const [isDateInvalid, setIsDateInvalid] = useState(false);
   const [isRelatesToInvalid, setIsRelatesToInvalid] = useState(false);
-
-  const [filterActive, setFilterActive] = useState({ tipo: false, valor: false, data: false, relates_to: false, user: false });
   const [isFilterApplied, setIsFilterApplied] = useState({ tipo: false, valor: false, data: false, relates_to: false, user: false });
   const [filterValues, setFilterValues] = useState({});
   const [filteredTransactions, setFilteredTransactions] = useState([]);
-  const [selectedFilter, setSelectedFilter] = useState(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
-  const [filterPosition, setFilterPosition] = useState({ top: 0, left: 0 });
   const [filterMenuOptions, setFilterMenuOptions] = useState([]);
-  const [currentFilterValue, setCurrentFilterValue] = useState("");
-  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const menuRef = useRef(null);
-
-  const dropdownRef = useRef(null);
-  const filterMenuRef = useRef(null);  // Referência para o menu de filtro
-
+  const filterMenuRef = useRef(null);
   const filterButtonRefs = useRef({
     tipo: null,
     valor: null,
@@ -76,12 +64,12 @@ function FinancialPage() {
     user: null,
   });
 
-
+  // --- EFEITOS (useEffect) ---
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:3001/api/financial/transactions', {
+        const response = await fetch('http://localhost:3001/api/financial/transactions/', {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
@@ -162,15 +150,14 @@ function FinancialPage() {
     groupByMonth();
   }, [transactions, selectedPeriod]);
 
+  // --- FUNÇÕES DE FILTRO ---
   const toggleFilter = (column) => {
     if (isFilterApplied[column]) {
-      clearFilters();
+      clearFilters(column);
       return;
     }
-
     setSelectedFilterColumn(column);
     setIsFilterModalOpen(true);
-
     switch (column) {
       case 'tipo':
         setFilterMenuOptions(["Entrada", "Saída"]);
@@ -193,6 +180,7 @@ function FinancialPage() {
         setFilterMenuOptions([]);
     }
   };
+
   const applyFilter = (filterValue) => {
     setShowFilterMenu(false);
     const newFilterValues = { ...filterValues, [selectedFilterColumn]: filterValue };
@@ -221,6 +209,7 @@ function FinancialPage() {
       return conditions.every(Boolean);
     }));
   };
+
   const clearFilters = (column) => {
     const updatedFilterValues = { ...filterValues };
     delete updatedFilterValues[column];
@@ -257,6 +246,7 @@ function FinancialPage() {
     setFilteredTransactions(Object.keys(updatedFilterValues).length === 0 ? transactions : newFiltered);
   };
 
+  // --- HANDLERS MODAL & PRINCIPAIS ---
   const handleEditTransaction = (transaction) => {
     setEditingTransactionId(transaction.id);
     setTitle(transaction.title);
@@ -266,10 +256,6 @@ function FinancialPage() {
     setNote(transaction.note || '');
     setTransactionType(transaction.type);
     setIsModalOpen(true);
-  };
-
-  const handlePeriodChange = (newPeriod) => {
-    setSelectedPeriod(newPeriod);
   };
 
   const handleDeleteTransaction = (transaction) => {
@@ -307,30 +293,25 @@ function FinancialPage() {
     } else {
       setIsTitleInvalid(false);
     }
-
     if (!value) {
       setIsValueInvalid(true);
     } else {
       setIsValueInvalid(false);
     }
-
     if (!date) {
       setIsDateInvalid(true);
     } else {
       setIsDateInvalid(false);
     }
-
     if (!relates_to) {
       setIsRelatesToInvalid(true);
     } else {
       setIsRelatesToInvalid(false);
     }
-
     if (isTitleInvalid || isValueInvalid || isDateInvalid || isRelatesToInvalid) {
       showBannerMessage('Preencha todos os campos obrigatórios!', 'error');
       return;
     }
-
     setIsLoading(true);
     const newTransaction = {
       title,
@@ -341,29 +322,26 @@ function FinancialPage() {
       type: transactionType,
       user_id: user?.id,
     };
-
-
-
     try {
+      const token = localStorage.getItem('token');
       const url = editingTransactionId
         ? `http://localhost:3001/api/financial/transaction/${editingTransactionId}`
         : 'http://localhost:3001/api/financial/transaction';
       const method = editingTransactionId ? 'PUT' : 'POST';
-
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(newTransaction),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         const updatedTransaction = {
           ...data,
           user_name: user.name,
         };
-
         let updatedTransactions = [];
         if (editingTransactionId) {
           updatedTransactions = transactions.map((t) =>
@@ -372,27 +350,22 @@ function FinancialPage() {
         } else {
           updatedTransactions = [...transactions, updatedTransaction];
         }
-
         setTransactions(updatedTransactions);
         setFilteredTransactions(updatedTransactions);
-
         // Recalcular totais
         const total = updatedTransactions.reduce((acc, t) => {
           const val = parseFloat(t.value);
           return t.type === 'receita' ? acc + val : acc - val;
         }, 0);
         setTotalAmount(total);
-
         const incomes = updatedTransactions
           .filter((t) => t.type === 'receita')
           .reduce((acc, t) => acc + parseFloat(t.value), 0);
         const expenses = updatedTransactions
           .filter((t) => t.type === 'despesa')
           .reduce((acc, t) => acc + parseFloat(t.value), 0);
-
         setTotalIncomes(incomes);
         setTotalExpenses(expenses);
-
         showBannerMessage('Transação registrada com sucesso!', 'success');
         closeModal();
       } else {
@@ -407,14 +380,33 @@ function FinancialPage() {
   };
 
   const handleConfirmDelete = async () => {
+    setIsLoading(true);
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:3001/api/financial/transaction/${transactionToDelete.id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
-
       if (response.ok) {
-        setTransactions((prev) => prev.filter((t) => t.id !== transactionToDelete.id));
-        showBannerMessage("Transação excluída com sucesso!", "error");
+        // Recarrega as transações após excluir
+        const fetchTransactions = async () => {
+          const token = localStorage.getItem('token');
+          const response = await fetch('http://localhost:3001/api/financial/transactions/', {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setTransactions(data);
+            setFilteredTransactions(data);
+          }
+        };
+        await fetchTransactions();
+        showBannerMessage("Transação excluída com sucesso!", "success");
       } else {
         showBannerMessage("Erro ao excluir", "error", "Tente novamente mais tarde.");
       }
@@ -423,60 +415,11 @@ function FinancialPage() {
       showBannerMessage("Erro de conexão", "error", "Não foi possível excluir a transação.");
     } finally {
       setTransactionToDelete(null);
+      setIsLoading(false);
     }
   };
 
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: { position: 'top' },
-      title: { display: true, text: 'Gráfico de Receitas e Despesas' }
-    }
-  };
-
-  const applyTypeFilter = (value) => {
-    if (value === 'Entrada') {
-      setFilteredTransactions(transactions.filter(t => t.type === 'receita'));
-    } else if (value === 'Saída') {
-      setFilteredTransactions(transactions.filter(t => t.type === 'despesa'));
-    } else {
-      setFilteredTransactions(transactions);
-    }
-  };
-
-  const applyValueFilter = (order) => {
-    const sortedTransactions = [...transactions].sort((a, b) => {
-      const valueA = parseFloat(a.value);
-      const valueB = parseFloat(b.value);
-      return order === 'Maior valor' ? valueB - valueA : valueA - valueB;
-    });
-    setFilteredTransactions(sortedTransactions);
-  };
-
-  const applyDateFilter = (startDate, endDate) => {
-    setFilteredTransactions(transactions.filter(t => {
-      const transactionDate = new Date(t.date);
-      return transactionDate >= startDate && transactionDate <= endDate;
-    }));
-  };
-
-  const applyRelatesToFilter = (value) => {
-    setFilteredTransactions(transactions.filter(t => t.relates_to === value));
-  };
-
-  const applyUserFilter = (value) => {
-    setFilteredTransactions(transactions.filter(t => t.user_name === value));
-  };
-
-  const handleFilterSelection = (value) => {
-    setShowFilterMenu(false);
-    setCurrentFilterValue(value);
-    setFilterActive((prev) => ({ ...prev, [selectedFilter]: false }));
-    setSelectedFilter(null);
-    setShowFilterMenu(false);
-    // Aqui, aplique a lógica de filtro
-  }
-
+  // --- RENDERIZAÇÃO PRINCIPAL ---
   const data = {
     labels: chartData.labels,
     datasets: [
@@ -721,17 +664,17 @@ function FinancialPage() {
           onRequestClose={() => setTransactionToDelete(null)}
           shouldCloseOnOverlayClick={true}
           overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
-          className={`relative bg-white text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out border-red-800 ${transactionToDelete ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+          className={`relative bg-white dark:bg-gray-800 text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out border-red-800 ${transactionToDelete ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         >
           <button
             onClick={() => setTransactionToDelete(null)}
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-white text-xl"
           >
             ×
           </button>
 
-          <h2 className="text-2xl mb-4 text-center font-bold text-red-800">Confirmar Exclusão</h2>
-          <p className="text-center text-sm text-gray-700 mb-6">
+          <h2 className="text-2xl mb-4 text-center font-bold text-red-800 dark:text-red-600">Confirmar Exclusão</h2>
+          <p className="text-center text-sm text-gray-700 dark:text-gray-300 mb-6">
             Tem certeza que deseja excluir a transação <strong>{transactionToDelete?.title}</strong>?
           </p>
 
@@ -880,51 +823,58 @@ function FinancialPage() {
               </div>
             </div>
           )}
-          {sortedTransactions.filter((transaction) =>
-            transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
-          ).length === 0 ? (
-            <div className="flex flex-col items-center justify-center text-red-900 dark:text-red-400 rounded-xl px-8 py-12 text-center text-base max-w-2xl mx-auto mt-12 animate-fade-in space-y-4">
-              <WarningCircle size={64} />
-              <h3 className="text-2xl font-semibold">Nenhum resultado encontrado</h3>
-              <p className="text-sm">Verifique se digitou corretamente o título da transação ou experimente outros termos para a busca.</p>
+          {isLoading && (
+            <div className="flex justify-center items-center py-8">
+              <span className="text-lg animate-pulse text-gray-700 dark:text-gray-200">Carregando...</span>
             </div>
-          ) : (
-            sortedTransactions
-              .filter((transaction) =>
-                transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
-              )
-              .slice(0, 100)
-              .map((transaction, index) => (
-                <div key={index} className="relative bg-white dark:bg-gray-700 flex justify-between rounded-xl shadow-md pr-6 py-8">
-                  <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
-                    <div>
-                      <span className={`text-xs font-medium px-4 py-0.5 rounded-full ${transaction.type === 'receita' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'}`}
-                        style={{ minWidth: '80px', display: 'inline-flex', justifyContent: 'center', alignItems: 'center' }}>
-                        {transaction.type === 'receita' ? 'Entrada' : 'Saída'}
-                      </span>
-                    </div>
-                    <div><h4 className="font-medium">{transaction.title}</h4></div>
-                    <div className="text-sm">{Number(transaction.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
-                    <div className="text-sm">{new Date(transaction.date).toLocaleDateString('pt-BR')}</div>
-                    <div className="text-sm">{transaction.relates_to}</div>
+          )}
+          {!isLoading && (
+            sortedTransactions.filter((transaction) =>
+              transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
+            ).length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-red-900 dark:text-red-400 rounded-xl px-8 py-12 text-center text-base max-w-2xl mx-auto mt-12 animate-fade-in space-y-4">
+                <WarningCircle size={64} />
+                <h3 className="text-2xl font-semibold">Nenhum resultado encontrado</h3>
+                <p className="text-sm">Verifique se digitou corretamente o título da transação ou experimente outros termos para a busca.</p>
+              </div>
+            ) : (
+              sortedTransactions
+                .filter((transaction) =>
+                  transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                .slice(0, 100)
+                .map((transaction, index) => (
+                  <div key={index} className="relative bg-white dark:bg-gray-700 flex justify-between rounded-xl shadow-md pr-6 py-8">
+                    <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
+                      <div>
+                        <span className={`text-xs font-medium px-4 py-0.5 rounded-full ${transaction.type === 'receita' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'}`}
+                          style={{ minWidth: '80px', display: 'inline-flex', justifyContent: 'center', alignItems: 'center' }}>
+                          {transaction.type === 'receita' ? 'Entrada' : 'Saída'}
+                        </span>
+                      </div>
+                      <div><h4 className="font-medium">{transaction.title}</h4></div>
+                      <div className="text-sm">{Number(transaction.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                      <div className="text-sm">{new Date(transaction.date).toLocaleDateString('pt-BR')}</div>
+                      <div className="text-sm">{transaction.relates_to}</div>
 
-                    <div>
-                      <span className="text-sm">{transaction.user_name ?? 'Usuário desconhecido'}</span>
+                      <div>
+                        <span className="text-sm">{transaction.user_name ?? 'Usuário desconhecido'}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="w-12 flex justify-center items-center">
-                    <div className="relative flex justify-end">
-                      <div className="relative group w-fit h-fit">
-                        <DotsThreeVertical size={24} className="text-gray-700 dark:text-white cursor-pointer" />
-                        <div className="absolute right-0 top-6 w-40 bg-white dark:bg-gray-800 border border-gray-800 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
-                          <button onClick={() => handleEditTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm">Editar transação</button>
-                          <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm text-red-600 dark:text-red-400">Excluir transação</button>
+                    <div className="w-12 flex justify-center items-center">
+                      <div className="relative flex justify-end">
+                        <div className="relative group w-fit h-fit">
+                          <DotsThreeVertical size={24} className="text-gray-700 dark:text-white cursor-pointer" />
+                          <div className="absolute right-0 top-6 w-40 bg-white dark:bg-gray-800 border border-gray-800 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
+                            <button onClick={() => handleEditTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm">Editar transação</button>
+                            <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm text-red-600 dark:text-red-400">Excluir transação</button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))
+            )
           )}
         </div>
       </div>
