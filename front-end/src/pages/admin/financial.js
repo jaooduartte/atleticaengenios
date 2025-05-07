@@ -350,9 +350,14 @@ function FinancialPage() {
         : 'http://localhost:3001/api/financial/transaction';
       const method = editingTransactionId ? 'PUT' : 'POST';
 
+      const token = localStorage.getItem('token'); // PEGAR O TOKEN DO LOCALSTORAGE
+
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(newTransaction),
       });
 

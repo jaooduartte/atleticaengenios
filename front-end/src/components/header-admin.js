@@ -33,7 +33,7 @@ export default function Header() {
   }, []);
 
   return (
-  <header className="bg-black dark:bg-gray-800 text-white py-4 px-8 flex items-center justify-between relative">
+    <header className="bg-black text-white py-4 px-8 flex items-center justify-between relative">
       <div className="flex items-center">
         <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={100} height={100} />
       </div>
@@ -56,14 +56,16 @@ export default function Header() {
         </div>
         <div className="relative flex items-center">
           <div onClick={toggleDropdown} className="cursor-pointer flex flex-col items-center">
-            <div className='mb-2'>
-              <Image
-                src={user?.image || '/placeholder.png'}
-                alt={user?.name || 'Usuário'}
-                width={40}
-                height={40}
-                className="rounded-full object-cover"
-              />
+            <div className="mb-2">
+              <div className="w-10 h-10 rounded-full overflow-hidden">
+                <Image
+                  src={user && user.image ? user.image : '/placeholder.png'}
+                  alt={user && user.name ? user.name : 'Usuário'}
+                  width={40}
+                  height={40}
+                  className="object-cover w-full h-full"
+                />
+              </div>
             </div>
             {user && (
               <div className="flex gap-2">
@@ -108,14 +110,14 @@ export default function Header() {
                           className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'dark' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('dark')}
                         >
-                          <Image src="/theme/dark.png" alt="Tema escuro" width={50} height={38}className="mr-2 rounded border" />
+                          <Image src="/theme/dark.png" alt="Tema escuro" width={50} height={38} className="mr-2 rounded border" />
                           Tema escuro
                         </div>
                         <div
                           className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'light' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('light')}
                         >
-                          <Image src="/theme/light.png" alt="Tema claro" width={50} height={38}className="mr-2 rounded border" />
+                          <Image src="/theme/light.png" alt="Tema claro" width={50} height={38} className="mr-2 rounded border" />
                           Tema claro
                         </div>
                         <div

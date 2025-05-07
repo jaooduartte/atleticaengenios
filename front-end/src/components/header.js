@@ -56,14 +56,16 @@ export default function Header() {
         )}
         <div className="relative flex items-center">
           <div onClick={toggleDropdown} className="cursor-pointer flex flex-col items-center">
-            <div className='mb-2'>
-              <Image
-                src={user && user.image ? user.image : '/placeholder.png'}
-                alt={user && user.name ? user.name : 'Usuário'}
-                width={40}
-                height={40}
-                className="rounded-full object-cover"
-              />
+            <div className="mb-2">
+              <div className="w-10 h-10 rounded-full overflow-hidden">
+                <Image
+                  src={user && user.image ? user.image : '/placeholder.png'}
+                  alt={user && user.name ? user.name : 'Usuário'}
+                  width={40}
+                  height={40}
+                  className="object-cover w-full h-full"
+                />
+              </div>
             </div>
             {user && (
               <div className="flex gap-2">
