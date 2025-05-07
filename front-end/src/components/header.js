@@ -37,12 +37,19 @@ export default function Header() {
       <div className="flex items-center">
         <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={100} height={100}/>
       </div>
-      <nav className="absolute left-1/2 transform -translate-x-1/2 flex space-x-8 z-10">
-        <Link href="/home">Início</Link>
-        <Link href="/products">Produtos</Link>
-        <Link href="/events">Eventos</Link>
-        <Link href="/forms">Formulários</Link>
-        <Link href="/about">Sobre</Link>
+      <nav className="absolute left-1/2 transform -translate-x-1/2 flex gap-8 z-10">
+        {[
+          { href: "/home", label: "Início" },
+          { href: "/products", label: "Produtos" },
+          { href: "/events", label: "Eventos" },
+          { href: "/forms", label: "Formulários" },
+          { href: "/about", label: "Sobre" },
+        ].map(({ href, label }) => (
+          <Link href={href} key={label} className="group relative">
+            <span className="transition-colors duration-300 group-hover:text-gray-200">{label}</span>
+            <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-white transition-all duration-300 group-hover:w-full"></span>
+          </Link>
+        ))}
       </nav>
       <div className='flex items-center justify-between gap-10 '>
       {user && user.is_admin && (

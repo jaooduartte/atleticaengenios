@@ -37,13 +37,20 @@ export default function Header() {
       <div className="flex items-center">
         <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={100} height={100} />
       </div>
-      <nav className="absolute left-1/2 transform -translate-x-1/2 flex space-x-8 z-10">
-        <Link href="/admin/home">Inicio</Link>
-        <Link href="/admin/financial">Financeiro</Link>
-        <Link href="/admin/products">Produtos</Link>
-        <Link href="/admin/events">Eventos</Link>
-        <Link href="/admin/forms">Formulários</Link>
-        <Link href="/admin/users">Usuários</Link>
+      <nav className="absolute left-1/2 transform -translate-x-1/2 flex gap-8 z-10">
+        {[
+          { href: "/admin/home", label: "Inicio" },
+          { href: "/admin/financial", label: "Financeiro" },
+          { href: "/admin/products", label: "Produtos" },
+          { href: "/admin/events", label: "Eventos" },
+          { href: "/admin/forms", label: "Formulários" },
+          { href: "/admin/users", label: "Usuários" },
+        ].map(({ href, label }) => (
+          <Link href={href} key={label} className="group relative">
+            <span className="transition-colors duration-300 group-hover:text-gray-200">{label}</span>
+            <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-white transition-all duration-300 group-hover:w-full"></span>
+          </Link>
+        ))}
       </nav>
 
       <div className="flex items-center gap-10 ml-auto">
