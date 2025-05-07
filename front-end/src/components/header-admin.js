@@ -33,17 +33,24 @@ export default function Header() {
   }, []);
 
   return (
-  <header className="bg-black dark:bg-gray-800 text-white py-4 px-8 flex items-center justify-between relative">
+    <header className="bg-black text-white py-4 px-8 flex items-center justify-between relative">
       <div className="flex items-center">
         <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={100} height={100} />
       </div>
-      <nav className="absolute left-1/2 transform -translate-x-1/2 flex space-x-8 z-10">
-        <Link href="/admin/home">Inicio</Link>
-        <Link href="/admin/financial">Financeiro</Link>
-        <Link href="/admin/products">Produtos</Link>
-        <Link href="/admin/events">Eventos</Link>
-        <Link href="/admin/forms">Formulários</Link>
-        <Link href="/admin/users">Usuários</Link>
+      <nav className="absolute left-1/2 transform -translate-x-1/2 flex gap-8 z-10">
+        {[
+          { href: "/admin/home", label: "Inicio" },
+          { href: "/admin/financial", label: "Financeiro" },
+          { href: "/admin/products", label: "Produtos" },
+          { href: "/admin/events", label: "Eventos" },
+          { href: "/admin/forms", label: "Formulários" },
+          { href: "/admin/users", label: "Usuários" },
+        ].map(({ href, label }) => (
+          <Link href={href} key={label} className="group relative">
+            <span className="transition-colors duration-300 group-hover:text-gray-200">{label}</span>
+            <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-white transition-all duration-300 group-hover:w-full"></span>
+          </Link>
+        ))}
       </nav>
 
       <div className="flex items-center gap-10 ml-auto">
@@ -56,14 +63,16 @@ export default function Header() {
         </div>
         <div className="relative flex items-center">
           <div onClick={toggleDropdown} className="cursor-pointer flex flex-col items-center">
-            <div className='mb-2'>
-              <Image
-                src={user?.image || '/placeholder.png'}
-                alt={user?.name || 'Usuário'}
-                width={40}
-                height={40}
-                className="rounded-full object-cover"
-              />
+            <div className="mb-2">
+              <div className="w-10 h-10 rounded-full overflow-hidden">
+                <Image
+                  src={user && user.image ? user.image : '/placeholder.png'}
+                  alt={user && user.name ? user.name : 'Usuário'}
+                  width={40}
+                  height={40}
+                  className="object-cover w-full h-full"
+                />
+              </div>
             </div>
             {user && (
               <div className="flex gap-2">
@@ -108,14 +117,14 @@ export default function Header() {
                           className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'dark' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('dark')}
                         >
-                          <Image src="/theme/dark.png" alt="Tema escuro" width={50} height={38}className="mr-2 rounded border" />
+                          <Image src="/theme/dark.png" alt="Tema escuro" width={50} height={38} className="mr-2 rounded border" />
                           Tema escuro
                         </div>
                         <div
                           className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'light' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('light')}
                         >
-                          <Image src="/theme/light.png" alt="Tema claro" width={50} height={38}className="mr-2 rounded border" />
+                          <Image src="/theme/light.png" alt="Tema claro" width={50} height={38} className="mr-2 rounded border" />
                           Tema claro
                         </div>
                         <div

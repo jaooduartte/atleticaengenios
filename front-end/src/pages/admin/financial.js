@@ -350,9 +350,14 @@ function FinancialPage() {
         : 'http://localhost:3001/api/financial/transaction';
       const method = editingTransactionId ? 'PUT' : 'POST';
 
+      const token = localStorage.getItem('token'); // PEGAR O TOKEN DO LOCALSTORAGE
+
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(newTransaction),
       });
 
@@ -502,7 +507,7 @@ function FinancialPage() {
   });
 
   return (
-    <div className="financial-page flex flex-col min-h-screen bg-white text-black dark:bg-gray-800 dark:text-white transition-colors duration-500 ease-in-out">
+    <div className="financial-page flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">
       <Header />
 
       {showBanner && (
@@ -522,7 +527,7 @@ function FinancialPage() {
           <div className="m-4 bg-green-900 p-4 rounded-xl shadow-md text-center">
             <h3 className="text-md font-semibold mb-1">Total de Receita</h3>
             <p className="text-xl font-bold">{totalIncomes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-            <div className="bg-white dark:bg-gray-800 mt-3 rounded-lg p-2">
+            <div className="bg-white dark:bg-[#0e1117] mt-3 rounded-lg p-2">
               <Bar
                 data={{
                   labels: chartData.labels,
@@ -558,7 +563,7 @@ function FinancialPage() {
               />
             </div>
           </div>
-          <div className="bg-gray-900 dark:bg-gray-700 flex flex-col justify-between p-6 rounded-xl shadow-md text-center h-auto">
+          <div className="bg-gray-900 dark:bg-white/10 dark:backdrop-blur-md flex flex-col justify-between p-6 rounded-xl shadow-md text-center h-auto">
             <div className="flex-grow flex flex-col justify-center items-center">
               <h3 className="text-2xl font-semibold mb-1">Total em Caixa</h3>
               <p className="text-3xl font-bold">{totalAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
@@ -583,7 +588,7 @@ function FinancialPage() {
           <div className="m-4 bg-red-900 p-4 rounded-xl shadow-md text-center">
             <h3 className="text-md font-semibold mb-1">Total de Despesas</h3>
             <p className="text-xl font-bold">{totalExpenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-            <div className="bg-white dark:bg-gray-800 mt-3 rounded-lg p-2">
+            <div className="bg-white bg-[#0e1117]  mt-3 rounded-lg p-2">
               <Bar
                 data={{
                   labels: chartData.labels,
@@ -629,7 +634,7 @@ function FinancialPage() {
           onRequestClose={closeModal}
           shouldCloseOnOverlayClick={true}
           overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
-          className={`relative bg-white dark:bg-gray-800 text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out ${transactionType === 'receita'
+          className={`relative bg-white dark:bg-[#0e1117] dark:backdrop-blur-xl text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out ${transactionType === 'receita'
             ? 'border-green-800 dark:border-green-600'
             : 'border-red-800 dark:border-red-600'
             } ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
@@ -721,7 +726,7 @@ function FinancialPage() {
           onRequestClose={() => setTransactionToDelete(null)}
           shouldCloseOnOverlayClick={true}
           overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
-          className={`relative bg-white text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out border-red-800 ${transactionToDelete ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+          className={`relative bg-white dark:bg-[#0e1117] dark:backdrop-blur-xl text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out border-red-800 dark:border-red-600 ${transactionToDelete ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
         >
           <button
             onClick={() => setTransactionToDelete(null)}
@@ -730,8 +735,8 @@ function FinancialPage() {
             ×
           </button>
 
-          <h2 className="text-2xl mb-4 text-center font-bold text-red-800">Confirmar Exclusão</h2>
-          <p className="text-center text-sm text-gray-700 mb-6">
+          <h2 className="text-2xl mb-4 text-center font-bold text-red-800 dark:text-red-600">Confirmar Exclusão</h2>
+          <p className="text-center text-sm text-gray-700 dark:text-gray-300 mb-6">
             Tem certeza que deseja excluir a transação <strong>{transactionToDelete?.title}</strong>?
           </p>
 
@@ -772,7 +777,7 @@ function FinancialPage() {
               return (
                 <div
                   key={key}
-                  className="flex items-center px-4 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-medium shadow-sm"
+                  className="flex items-center px-4 py-1 rounded-full bg-gray-200 dark:bg-white/10 dark:backdrop-blur-md text-gray-800 dark:text-white text-sm font-medium shadow-sm"
                 >
                   <span className="mr-2 capitalize">
                     {{
@@ -799,56 +804,56 @@ function FinancialPage() {
           <div className="relative flex justify-between pr-6 font-bold max-w-9xl mx-auto">
             <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md dark:text-white">Tipo</span>
+                <span className="text-sm dark:text-white">Tipo</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.tipo = el)}
                   onClick={() => isFilterApplied.tipo ? clearFilters('tipo') : toggleFilter('tipo')}
                 >
-                  <Funnel size={20} className='dark:text-white' />
+                  <Funnel size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md dark:text-white">Título</span>
+                <span className="text-sm dark:text-white">Título</span>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md dark:text-white">Valor</span>
+                <span className="text-sm dark:text-white">Valor</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.valor = el)}
                   onClick={() => isFilterApplied.valor ? clearFilters('valor') : toggleFilter('valor')}
                 >
-                  <Funnel size={20} className='dark:text-white' />
+                  <Funnel size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md dark:text-white">Data</span>
+                <span className="text-sm dark:text-white">Data</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.data = el)}
                   onClick={() => isFilterApplied.data ? clearFilters('data') : toggleFilter('data')}
                 >
-                  <Funnel size={20} className='dark:text-white' />
+                  <Funnel size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md dark:text-white">Relacionado com</span>
+                <span className="text-sm dark:text-white">Relacionado com</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.relates_to = el)}
                   onClick={() => isFilterApplied.relates_to ? clearFilters('relates_to') : toggleFilter('relates_to')}
                 >
-                  <Funnel size={20} className='dark:text-white' />
+                  <Funnel size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <span className="text-md dark:text-white">Registrado por</span>
+                <span className="text-sm dark:text-white">Registrado por</span>
                 <button
                   ref={(el) => (filterButtonRefs.current.user = el)}
                   onClick={() => isFilterApplied.user ? clearFilters('user') : toggleFilter('user')}
                 >
-                  <Funnel size={20} className='dark:text-white' />
+                  <Funnel size={16} className='dark:text-white' />
                 </button>
               </div>
             </div>
             <div className='w-12 flex justify-center items-center'>
-              <span className="text-md text-center dark:text-white">Ações</span>
+              <span className="text-sm text-center dark:text-white">Ações</span>
             </div>
           </div>
 
@@ -895,7 +900,7 @@ function FinancialPage() {
               )
               .slice(0, 100)
               .map((transaction, index) => (
-                <div key={index} className="relative bg-white dark:bg-gray-700 flex justify-between rounded-xl shadow-md pr-6 py-8">
+                <div key={index} className="relative bg-white dark:bg-white/10 dark:backdrop-blur-md dark:border dark:border-white/10 flex justify-between rounded-xl shadow-md pr-6 py-8">
                   <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
                     <div>
                       <span className={`text-xs font-medium px-4 py-0.5 rounded-full ${transaction.type === 'receita' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'}`}
@@ -914,11 +919,11 @@ function FinancialPage() {
                   </div>
                   <div className="w-12 flex justify-center items-center">
                     <div className="relative flex justify-end">
-                      <div className="relative group w-fit h-fit">
+                      <div className=" relative group w-fit h-fit">
                         <DotsThreeVertical size={24} className="text-gray-700 dark:text-white cursor-pointer" />
-                        <div className="absolute right-0 top-6 w-40 bg-white dark:bg-gray-800 border border-gray-800 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
-                          <button onClick={() => handleEditTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm">Editar transação</button>
-                          <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm text-red-600 dark:text-red-400">Excluir transação</button>
+                        <div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
+                          <button onClick={() => handleEditTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Editar transação</button>
+                          <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-white/5 text-sm text-red-600 dark:text-red-400">Excluir transação</button>
                         </div>
                       </div>
                     </div>
@@ -932,8 +937,8 @@ function FinancialPage() {
       <Modal
         isOpen={isFilterModalOpen}
         onRequestClose={() => setIsFilterModalOpen(false)}
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50"
-        className="relative bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl w-full max-w-md border-t-[6px] border-gray-700"
+        overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
+        className="relative bg-white dark:bg-[#0e1117] dark:backdrop-blur-xl text-gray-800 p-6 rounded-xl shadow-xl w-full max-w-md border-t-[6px] border-gray-700 dark:border-white/10 transform transition-all duration-300 ease-in-out"
       >
         <button
           onClick={() => setIsFilterModalOpen(false)}
@@ -950,14 +955,14 @@ function FinancialPage() {
                 applyFilter(option);
                 setIsFilterModalOpen(false);
               }}
-              className="py-2 px-4 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-center text-gray-800 dark:text-white font-medium"
+              className="py-2 px-4 rounded-lg bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition text-center text-gray-800 dark:text-white font-medium"
             >
               {option}
             </button>
           ))}
         </div>
         <div className="flex justify-center mt-4">
-          <CustomButton type="button" className={'dark:bg-gray-950 dark:hover:bg-gray-900'} onClick={() => setIsFilterModalOpen(false)}>
+          <CustomButton type="button" className={'dark:bg-black dark:hover:bg-white/5'} onClick={() => setIsFilterModalOpen(false)}>
             Fechar
           </CustomButton>
         </div>

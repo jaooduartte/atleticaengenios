@@ -1,83 +1,68 @@
 const db = require('../utils/db');
 const { DateTime } = require('luxon');
+const bcrypt = require('bcrypt');
+const { createClient } = require('@supabase/supabase-js');
 
-const getUserByEmail = async (email) => {
-    const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-    return result.rows[0];
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+
+const createSupabaseUser = async ({ email, password, name, course, sex, birthday }) => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { name, course, sex, birthday },
+      emailRedirectTo: 'http://localhost:3000/confirm'
+    }
+  });
+
+  if (error) {
+    console.error('Erro detalhado do Supabase:', error.message, error.details);
+    throw new Error(error.message);
+  }
+
+  return data.user;
 };
 
-const createUser = async (userData) => {
-    const { name, email, password_hash, course, sex, birthday } = userData;
-    const createdAt = DateTime.now().setZone('America/Sao_Paulo').toISO();
-    const result = await db.query(
-        'INSERT INTO users (name, email, password_hash, course, sex, birthday, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-        [name, email, password_hash, course, sex, birthday, createdAt]
-    );
-    return result.rows[0];
-};
+// Criação dos metadados do usuário com vínculo no campo auth_id
+const createUserMetadata = async (uid, metadata, email) => {
+  const { course, sex, name, birthday } = metadata;
+  const createdAt = DateTime.now().setZone('America/Sao_Paulo').toISO();
 
-// Salva token para redefinição de senha
-const saveResetToken = async (userId, resetToken, tokenExpiry) => {
-    await db.query(
-        'UPDATE users SET reset_token = $1, token_expiry = $2 WHERE id = $3',
-        [resetToken, tokenExpiry, userId]
-    );
-};
+  const result = await db.query(
+    `INSERT INTO users (auth_id, course, sex, name, birthday, email, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    [uid, course, sex, name, birthday, email, createdAt]
+  );
 
-// Recupera usuário pelo token de redefinição
-const getUserByResetToken = async (token) => {
-    const result = await db.query(
-        'SELECT * FROM users WHERE reset_token = $1',
-        [token]
-    );
-    return result.rows[0];
-};
-
-// Atualiza a senha do usuário
-const updateUserPassword = async (userId, newPassword) => {
-    await db.query(
-        'UPDATE users SET password_hash = $1 WHERE id = $2',
-        [newPassword, userId]
-    );
-};
-
-// Limpa o token após redefinição
-const clearResetToken = async (userId) => {
-    await db.query(
-        'UPDATE users SET reset_token = NULL, token_expiry = NULL WHERE id = $1',
-        [userId]
-    );
+  return result.rows[0];
 };
 
 const getUserById = async (id) => {
-    const result = await db.query(
-        'SELECT id, name, email, is_admin, course, sex, photo FROM users WHERE id = $1',
-        [id]
-    );
-    return result.rows[0];
+  const result = await db.query(
+    'SELECT id, name, course, sex, photo, is_admin FROM users WHERE auth_id = $1',
+    [id]
+  );
+  return result.rows[0];
 };
 
-const updateUser = async (userId, updates) => {
-    const fields = [];
-    const values = [];
-    let index = 1;
+const updateUser = async (authId, updates) => {
+  const fields = [];
+  const values = [];
+  let index = 1;
 
-    for (const [key, value] of Object.entries(updates)) {
-        fields.push(`${key} = $${index}`);
-        values.push(value);
-        index++;
-    }
+  for (const [key, value] of Object.entries(updates)) {
+    fields.push(`${key} = $${index}`);
+    values.push(value);
+    index++;
+  }
 
-    const query = `UPDATE users SET ${fields.join(', ')} WHERE id = $${index}`;
-    values.push(userId);
-
-    await db.query(query, values);
+  if (fields.length === 0) return;
+  const query = `UPDATE users SET ${fields.join(', ')} WHERE auth_id = $${index}`;
+  values.push(authId);
+  await db.query(query, values);
 };
 
-const { createClient } = require('@supabase/supabase-js');
 const { v4: uuidv4 } = require('uuid');
-
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 const uploadUserPhoto = async (base64Image, userId) => {
   const fileName = `${userId}-${uuidv4()}.png`;
@@ -101,14 +86,19 @@ const uploadUserPhoto = async (base64Image, userId) => {
   return data.publicUrl;
 };
 
+const getUserByEmail = async (email) => {
+  const result = await db.query(
+    'SELECT * FROM users WHERE email = $1',
+    [email]
+  );
+  return result.rows[0];
+};
+
 module.exports = {
-    getUserByEmail,
-    createUser,
-    saveResetToken,
-    getUserByResetToken,
-    updateUserPassword,
-    clearResetToken,
-    getUserById,
-    updateUser,
-    uploadUserPhoto
+  createSupabaseUser,
+  createUserMetadata,
+  getUserById,
+  updateUser,
+  uploadUserPhoto,
+  getUserByEmail
 };

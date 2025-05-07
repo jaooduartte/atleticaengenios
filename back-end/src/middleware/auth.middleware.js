@@ -9,9 +9,9 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ error: 'Token não fornecido', type: 'session_expired' });
   }
 
-  jwt.verify(token, secret, (err, user) => {
+  jwt.verify(token, secret, (err, decoded) => {
     if (err) return res.status(403).json({ error: 'Token inválido', type: 'session_expired' });
-    req.user = user;
+    req.user = { userId: decoded.userId };
     next();
   });
 };

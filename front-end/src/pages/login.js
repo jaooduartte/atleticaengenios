@@ -8,16 +8,18 @@ import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import CustomDropdown from '../components/custom-dropdown';
 import { useTheme } from 'next-themes';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+const supabase = createClientComponentClient();
 
 export default function Login() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const [themeIcon, setThemeIcon] = useState('system');
-  
+
   useEffect(() => {
     setThemeIcon(theme);
   }, [theme]);
-  
+
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -40,10 +42,21 @@ export default function Login() {
   const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
   const [isCourseInvalid, setIsCourseInvalid] = useState(false);
   const [isBirthdayInvalid, setIsBirthdayInvalid] = useState(false);
+  const showBannerMessage = (message, type, description = '') => {
+    setBannerMessage(message);
+    setBannerDescription(description);
+    setBannerType(type);
+    setShowBanner(true);
+    setTimeout(() => setShowBanner(false), 4500);
+  };
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (router.query.confirmed === 'true') {
+      showBannerMessage('E-mail confirmado!', 'success', 'Você já pode fazer login normalmente.');
+      router.replace('/login', undefined, { shallow: true });
+    }
+  }, [router]);
 
   const toggleTheme = () => {
     if (theme === 'system') {
@@ -60,93 +73,63 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    let hasError = false;
-    if (!email) {
-      setIsEmailInvalid(true);
-      hasError = true;
-    } else {
-      setIsEmailInvalid(false);
-    }
-
-    if (!password) {
-      setIsPasswordInvalid(true);
-      hasError = true;
-    } else {
-      setIsPasswordInvalid(false);
-    }
-
-    if (hasError) {
-      setIsLoading(false);
-      return;
-    }
-
-    const res = await fetch('http://localhost:3001/api/auth/login', {
+  
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    const data = await res.json();
-    localStorage.setItem('token', data.token);
-
-    if (res.ok) {
-      router.push('/home');
-    } else {
-      showBannerMessage("Usuário ou senha incorretos!", "error", "Verifique suas credenciais e tente novamente");
+  
+    const data = await response.json();
+  
+    if (!response.ok) {
+      showBannerMessage(data.error || 'Erro ao fazer login', 'error', data.description || '');
+      setIsLoading(false);
+      return;
     }
+  
+    localStorage.setItem('token', data.token);
+    const payload = JSON.parse(atob(data.token.split('.')[1]));
+    localStorage.setItem('token_exp', payload.exp);
+  
+    router.push('/home');
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    let hasError = false;
-    if (!course) {
-      setIsCourseInvalid(true);
-      hasError = true;
-    } else {
-      setIsCourseInvalid(false);
-    }
-
-    if (!birthday) {
-      setIsBirthdayInvalid(true);
-      hasError = true;
-    } else {
-      setIsBirthdayInvalid(false);
-    }
-
-    if (!name) {
-      setIsNameInvalid(true);
-      hasError = true;
-    } else {
-      setIsNameInvalid(false);
-    }
-
-    if (hasError) return;
-
-    const response = await fetch('http://localhost:3001/api/auth/register', {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, course, sex, birthday }),
+      body: JSON.stringify({
+        email,
+        password,
+        name,
+        course,
+        sex,
+        birthday,
+      }),
     });
 
     const data = await response.json();
 
+    if (data.error?.message?.includes('you can only request this after')) {
+      showBannerMessage(
+        'Aguarde 30 segundos antes de tentar novamente',
+        'error',
+        'Por segurança, o banco de dados limita a criação de contas seguidas.'
+      );
+    }
+
     if (!response.ok) {
-      showBannerMessage(data.message, 'error', data.description || '');
+      showBannerMessage(data.error || 'Erro ao cadastrar usuário.', 'error', '');
     } else {
-      showBannerMessage(data.message, 'success', data.description || '');
+      showBannerMessage('Cadastro realizado com sucesso!', 'success', 'Verifique seu e-mail para confirmar.');
       setIsRegistering(false);
     }
 
     setIsLoading(false);
-  };
-
-  const showBannerMessage = (message, type, description = '') => {
-    setBannerMessage(message);
-    setBannerDescription(description);
-    setBannerType(type);
-    setShowBanner(true);
-    setTimeout(() => setShowBanner(false), 4500);
   };
 
   return (

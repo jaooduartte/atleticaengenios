@@ -8,5 +8,5 @@ export default function Home() {
     router.push('/login');
   }, [router]);
 
-  return null;  // Não renderiza nada na tela inicial
+  return null;
 }

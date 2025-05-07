@@ -43,7 +43,7 @@ export default function MyAccount() {
             if (!token) return;
 
             try {
-                const res = await fetch('http://localhost:3001/api/auth/me', {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const data = await res.json();
@@ -79,31 +79,31 @@ export default function MyAccount() {
     const handleSubmit = async () => {
         const token = localStorage.getItem('token');
         try {
-          const res = await fetch('http://localhost:3001/api/auth/me', {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify(formData)
-          });
-      
-          if (res.ok) {
-            const updatedUser = await res.json();
-            localStorage.setItem('user', JSON.stringify({ ...formData }));
-      
-            showBannerMessage('Perfil atualizado com sucesso!', 'success', 'As alterações foram salvas corretamente.');
-            setTimeout(() => {
-              window.location.href = '/home';
-            }, 1000);
-          } else {
-            showBannerMessage('Erro ao atualizar perfil.', 'error');
-          }
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (res.ok) {
+                const updatedUser = await res.json();
+                localStorage.setItem('user', JSON.stringify({ ...formData }));
+
+                showBannerMessage('Perfil atualizado com sucesso!', 'success', 'As alterações foram salvas corretamente.');
+                setTimeout(() => {
+                    window.location.href = '/home';
+                }, 1000);
+            } else {
+                showBannerMessage('Erro ao atualizar perfil.', 'error');
+            }
         } catch (err) {
-          console.error(err);
-          showBannerMessage('Erro de conexão com o servidor', 'error');
+            console.error(err);
+            showBannerMessage('Erro de conexão com o servidor', 'error');
         }
-      };
+    };
 
     const handleImageSelect = (e) => {
         const file = e.target.files[0];
@@ -141,11 +141,14 @@ export default function MyAccount() {
 
                 <div className="flex justify-center mb-8">
                     <div className="relative group w-20 h-20">
-                        <img
-                            src={formData.photo}
-                            alt="Foto de perfil"
-                            className="w-20 h-20 rounded-full object-cover shadow-md"
-                        />
+                        {formData.photo && (
+                            <img
+                                src={formData.photo}
+                                alt="Foto de perfil"
+                                className="w-20 h-20 rounded-full object-cover shadow-md"
+                            />)
+                        }
+
                         <label
                             htmlFor="profilePhoto"
                             className="absolute inset-0 backdrop-blur-sm bg-white/40 dark:bg-gray-800/40 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"

@@ -14,32 +14,26 @@ export default function App({ Component, pageProps }) {
   const router = useRouter();
 
   useEffect(() => {
-    const checkToken = async () => {
+    if (['/login', '/confirm'].includes(router.pathname)) return;
+  
+    const checkToken = () => {
       const token = localStorage.getItem('token');
-      if (!token) {
-        setShowModal(true);
-        return;
-      }
-
-      try {
-        const res = await fetch('http://localhost:3001/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        const data = await res.json();
-
-        if (!res.ok && data?.type === 'session_expired') {
-          setShowModal(true);
-        }
-      } catch (err) {
+      const tokenExp = localStorage.getItem('token_exp');
+    
+      if (!token || !tokenExp) return;
+    
+      const now = Date.now(); // em milissegundos
+      const expTime = Number(tokenExp) * 1000; // converter para ms
+    
+      if (now > expTime) {
         setShowModal(true);
       }
     };
-
+  
     checkToken();
-    const interval = setInterval(checkToken, 60000);
+    const interval = setInterval(checkToken, 60000); // verifica a cada 1 minuto
     return () => clearInterval(interval);
-  }, []);
+  }, [router.pathname]);
 
   return (
     <ThemeProvider attribute="class" enableSystem={true} defaultTheme="system">

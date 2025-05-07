@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Envelope } from 'phosphor-react'
 import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -14,20 +15,22 @@ export default function ForgotPassword() {
   const [bannerType, setBannerType] = useState('');
   const [bannerDescription, setBannerDescription] = useState('');
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const response = await fetch('http://localhost:3001/api/auth/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
-    const data = await response.json();
-
-    if (response.ok) {
-      setBannerMessage(data.message);
+    if (error) {
+      setBannerMessage(error.message || 'Erro ao enviar e-mail.');
+      setBannerDescription('Tente novamente mais tarde ou entre em contato com o suporte.');
+      setBannerType('error');
+      setShowBanner(true);
+    } else {
+      setBannerMessage('Link enviado!');
       setBannerDescription('Verifique seu e-mail para redefinir a senha.');
       setBannerType('success');
       setShowBanner(true);
@@ -35,11 +38,6 @@ export default function ForgotPassword() {
       setTimeout(() => {
         router.push('/login');
       }, 4500);
-    } else {
-      setBannerMessage(data.error || 'Erro ao enviar e-mail.');
-      setBannerDescription('Tente novamente mais tarde ou entre em contato com o suporte.');
-      setBannerType('error');
-      setShowBanner(true);
     }
   };
 
