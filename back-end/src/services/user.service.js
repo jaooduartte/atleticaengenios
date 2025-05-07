@@ -39,7 +39,7 @@ const createUserMetadata = async (uid, metadata, email) => {
 
 const getUserById = async (id) => {
   const result = await db.query(
-    'SELECT id, name, course, sex, photo, is_admin FROM users WHERE id = $1',
+    'SELECT id, name, course, sex, photo, is_admin FROM users WHERE auth_id = $1',
     [id]
   );
   return result.rows[0];
@@ -86,10 +86,19 @@ const uploadUserPhoto = async (base64Image, userId) => {
   return data.publicUrl;
 };
 
+const getUserByEmail = async (email) => {
+  const result = await db.query(
+    'SELECT * FROM users WHERE email = $1',
+    [email]
+  );
+  return result.rows[0];
+};
+
 module.exports = {
   createSupabaseUser,
   createUserMetadata,
   getUserById,
   updateUser,
-  uploadUserPhoto
+  uploadUserPhoto,
+  getUserByEmail
 };

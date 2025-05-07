@@ -15,11 +15,11 @@ export default function Login() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const [themeIcon, setThemeIcon] = useState('system');
-  
+
   useEffect(() => {
     setThemeIcon(theme);
   }, [theme]);
-  
+
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -42,6 +42,13 @@ export default function Login() {
   const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
   const [isCourseInvalid, setIsCourseInvalid] = useState(false);
   const [isBirthdayInvalid, setIsBirthdayInvalid] = useState(false);
+  const showBannerMessage = (message, type, description = '') => {
+    setBannerMessage(message);
+    setBannerDescription(description);
+    setBannerType(type);
+    setShowBanner(true);
+    setTimeout(() => setShowBanner(false), 4500);
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -66,35 +73,32 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+  
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     });
-
-    if (error?.message === 'Email not confirmed') {
-      showBannerMessage(
-        "E-mail não confirmado!",
-        "error",
-        "Verifique sua caixa de entrada para confirmar seu e-mail antes de entrar."
-      );
+  
+    const data = await response.json();
+  
+    if (!response.ok) {
+      showBannerMessage(data.error || 'Erro ao fazer login', 'error', data.description || '');
       setIsLoading(false);
       return;
     }
-
-    if (error) {
-      showBannerMessage("Usuário ou senha incorretos!", "error", "Verifique suas credenciais de acesso e tente novamente");
-      setIsLoading(false);
-      return;
-    }
-
+  
+    localStorage.setItem('token', data.token);
+    const payload = JSON.parse(atob(data.token.split('.')[1]));
+    localStorage.setItem('token_exp', payload.exp);
+  
     router.push('/home');
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-  
+
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -107,25 +111,25 @@ export default function Login() {
         birthday,
       }),
     });
-  
+
     const data = await response.json();
-  
+
+    if (data.error?.message?.includes('you can only request this after')) {
+      showBannerMessage(
+        'Aguarde 30 segundos antes de tentar novamente',
+        'error',
+        'Por segurança, o banco de dados limita a criação de contas seguidas.'
+      );
+    }
+
     if (!response.ok) {
       showBannerMessage(data.error || 'Erro ao cadastrar usuário.', 'error', '');
     } else {
       showBannerMessage('Cadastro realizado com sucesso!', 'success', 'Verifique seu e-mail para confirmar.');
       setIsRegistering(false);
     }
-  
-    setIsLoading(false);
-  };
 
-  const showBannerMessage = (message, type, description = '') => {
-    setBannerMessage(message);
-    setBannerDescription(description);
-    setBannerType(type);
-    setShowBanner(true);
-    setTimeout(() => setShowBanner(false), 4500);
+    setIsLoading(false);
   };
 
   return (
