@@ -30,6 +30,25 @@ const loginUser = async (req, res) => {
   return res.json({ token: jwtToken, user: userMetadata });
 };
 
+const resetPassword = async (req, res) => {
+  const { accessToken, newPassword } = req.body;
+
+  const { data, error } = await supabase.auth.updateUser(
+    { password: newPassword },
+    { accessToken }
+  );
+
+  if (error) {
+    console.error(error);
+    return res.status(400).json({
+      error: 'Erro ao redefinir senha',
+      description: error.message
+    });
+  }
+
+  res.json({ message: 'Senha redefinida com sucesso!' });
+};
+
 const getProfile = async (req, res) => {
   try {
     const user = await userService.getUserById(req.user.userId);
@@ -80,4 +99,4 @@ const registerUser = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, updateProfile, registerUser, loginUser };
+module.exports = { getProfile, updateProfile, registerUser, loginUser, resetPassword };

@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Banner from '../components/banner';
 import Link from 'next/link';
-import { Eye, EyeSlash, UserCircle, Lock, Envelope, GenderIntersex, Cake, Student, Gear, Moon, Sun } from 'phosphor-react';
+import { Eye, EyeSlash, UserCircle, Lock, Envelope, GenderIntersex, Cake, Student, Desktop, Moon, Sun } from 'phosphor-react';
 import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import CustomDropdown from '../components/custom-dropdown';
@@ -136,10 +136,10 @@ export default function Login() {
     <div className="flex justify-center items-center h-screen relative">
       <button
         onClick={toggleTheme}
-        className="absolute top-4 right-4 z-50 bg-white dark:bg-gray-800 p-2 rounded-full shadow hover:scale-105 transition-transform"
+        className="absolute top-4 right-4 z-50 backdrop-blur-3xl bg-white/20 dark:bg-[#0e1117]/70 p-2 rounded-full shadow hover:scale-105 transition-transform"
         title="Alternar tema"
       >
-        {theme === 'system' && <Gear size={20} className="text-gray-700 dark:text-gray-300" />}
+        {theme === 'system' && <Desktop size={20} className="text-gray-700 dark:text-gray-300" />}
         {theme === 'light' && <Sun size={20} className="text-yellow-500" />}
         {theme === 'dark' && <Moon size={20} className="text-blue-300" />}
       </button>
@@ -154,7 +154,7 @@ export default function Login() {
         />
       </div>
       <div
-        className="w-full max-w-2xl p-6 bg-white dark:bg-gray-800 rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out"
+        className="w-full max-w-2xl p-6 bg-white dark:bg-[#0e1117] rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out"
       >
         <div className="flex justify-center mb-8">
           <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
