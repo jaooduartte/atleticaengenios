@@ -48,7 +48,7 @@ export default function CustomField({
           {Icon && (
             <Icon
               size={30}
-              className="absolute z-20 top-1/2 left-3 transform -translate-y-1/2 text-[#B3090F] dark:text-red-300"
+              className="absolute z-20 top-1/2 left-3 transform -translate-y-1/2 text-[#B3090F] dark:text-red-400"
             />
           )}
           <input
@@ -59,7 +59,7 @@ export default function CustomField({
             onChange={onChange}
             placeholder={placeholder}
             className={twMerge(
-              "w-full border rounded-xl p-3 transition-colors focus:outline-none",
+              "w-full border rounded-xl text-sm p-3 transition-colors focus:outline-none",
               isInvalid ? "border-2 border-red-500" : "border border-transparent",
               "bg-gray-100 dark:bg-white/5 backdrop-blur-md",
               type === 'date' && !value ? "text-gray-400 dark:text-gray-400" : "text-black dark:text-white",

@@ -23,7 +23,6 @@ const createSupabaseUser = async ({ email, password, name, course, sex, birthday
   return data.user;
 };
 
-// Criação dos metadados do usuário com vínculo no campo auth_id
 const createUserMetadata = async (uid, metadata, email) => {
   const { course, sex, name, birthday } = metadata;
   const createdAt = DateTime.now().setZone('America/Sao_Paulo').toISO();
