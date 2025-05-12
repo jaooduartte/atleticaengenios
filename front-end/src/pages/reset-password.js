@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Banner from '../components/banner';
 import Link from 'next/link';
-import { Lock, Eye, EyeSlash, Desktop, Moon, Sun } from 'phosphor-react';
+import { Lock, Eye, EyeSlash, Desktop, Moon, Sun, WarningCircle } from 'phosphor-react';
 import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import { useTheme } from 'next-themes';
@@ -14,6 +14,7 @@ export default function ResetPassword() {
   const { theme, setTheme } = useTheme();
   const [themeIcon, setThemeIcon] = useState('system');
   const router = useRouter();
+  const [linkInvalido, setLinkInvalido] = useState(false);
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,6 +33,14 @@ export default function ResetPassword() {
     const supabase = createClientComponentClient();
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
+    const error = urlParams.get('error');
+    const errorCode = urlParams.get('error_code');
+
+    if (error === 'access_denied' && errorCode === 'otp_expired') {
+      console.warn('Link de redefinição expirado ou já utilizado.');
+      setLinkInvalido(true);
+      return;
+    }
 
     if (code) {
       console.log('Iniciando troca do código por sessão...');
@@ -142,66 +151,81 @@ export default function ResetPassword() {
           <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
         </div>
         <h2 className="text-center text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Redefinir sua senha</h2>
-
-        {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
-
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="w-full flex justify-center">
-            <div className="relative w-full max-w-sm">
-              <CustomField
-                icon={Lock}
-                type={showNewPassword ? 'text' : 'password'}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Digite a nova senha"
-                name="newPassword"
-                className="pr-10"
-                isInvalid={isNewPasswordInvalid}
-              />
-              <button
-                type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-              >
-                {showNewPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
-              </button>
+        {linkInvalido ? (
+          <div className="flex flex-col items-center justify-center text-red-600 dark:text-red-400 font-medium text-center space-y-4">
+            <div className="text-5xl">
+            <WarningCircle size={64} />
             </div>
-          </div>
-
-          <div className="w-full flex justify-center">
-            <div className="relative w-full max-w-sm">
-              <CustomField
-                icon={Lock}
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirme a nova senha"
-                name="confirmPassword"
-                className="pr-10"
-                isInvalid={isConfirmPasswordInvalid}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-              >
-                {showConfirmPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
-              </button>
+            <div className="text-lg max-w-sm">
+              Este link de redefinição de senha é inválido ou já foi utilizado. Solicite uma nova redefinição de senha para continuar.
             </div>
-          </div>
-
-          <div className="flex justify-center">
-            <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
-              Redefinir senha
-            </CustomButton>
-          </div>
-
-          <div className="text-center">
             <Link href="/login" legacyBehavior>
-              <a className="text-sm text-[#B3090F] dark:text-red-400 hover:underline">Voltar ao login</a>
+              <a className="underline text-sm text-red-700 dark:text-red-300">Voltar ao login</a>
             </Link>
           </div>
-        </form>
+        ) : (
+          <>
+            {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
+
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div className="w-full flex justify-center">
+                <div className="relative w-full max-w-sm">
+                  <CustomField
+                    icon={Lock}
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Digite a nova senha"
+                    name="newPassword"
+                    className="pr-10"
+                    isInvalid={isNewPasswordInvalid}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+                  >
+                    {showNewPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="w-full flex justify-center">
+                <div className="relative w-full max-w-sm">
+                  <CustomField
+                    icon={Lock}
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirme a nova senha"
+                    name="confirmPassword"
+                    className="pr-10"
+                    isInvalid={isConfirmPasswordInvalid}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+                  >
+                    {showConfirmPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
+                  Redefinir senha
+                </CustomButton>
+              </div>
+
+              <div className="text-center">
+                <Link href="/login" legacyBehavior>
+                  <a className="text-sm text-[#B3090F] dark:text-red-400 hover:underline">Voltar ao login</a>
+                </Link>
+              </div>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );

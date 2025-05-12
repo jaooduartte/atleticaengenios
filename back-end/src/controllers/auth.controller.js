@@ -18,7 +18,7 @@ const loginUser = async (req, res) => {
   if (error) {
     return res.status(401).json({
       error: 'Usuário ou senha incorretos!',
-      description: error.message
+      description: 'Verifique suas credenciais e tente novamente'
     });
   }
 
