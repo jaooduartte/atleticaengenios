@@ -13,7 +13,7 @@ A **Atlética Engênios** é uma plataforma para **gerenciar membros da diretori
 - 📖 **Gerenciamento de Cursos** (cada membro pode vincular-se a um curso existente).
 - 🔑 **Autenticação Segura** via **JWT** (JSON Web Token).
 - 📅 **Criação e Controle de Estoque de Produtos** da Atlética.
-- 🎉 (Possível expansão) **Controle de Treinos**.
+- 🎉 **Controle Financeiro**.
 
 ---
 
