@@ -1,7 +1,6 @@
 const userService = require('../services/user.service');
 const jwt = require('jsonwebtoken');
 const { secret } = require('../config/jwt.config');
-const bcrypt = require('bcrypt');
 
 const supabase = require('@supabase/supabase-js').createClient(
   process.env.SUPABASE_URL,
@@ -30,23 +29,27 @@ const loginUser = async (req, res) => {
   return res.json({ token: jwtToken, user: userMetadata });
 };
 
+const axios = require('axios');
+
 const resetPassword = async (req, res) => {
   const { accessToken, newPassword } = req.body;
 
-  const { data, error } = await supabase.auth.updateUser(
-    { password: newPassword },
-    { accessToken }
-  );
-
-  if (error) {
-    console.error(error);
-    return res.status(400).json({
-      error: 'Erro ao redefinir senha',
-      description: error.message
+  try {
+    const response = await fetch('https://pkfjmobhbnvlyvfxcptd.supabase.co/auth/v1/user', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+        'apikey': process.env.SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({ password: newPassword }),
     });
-  }
 
-  res.json({ message: 'Senha redefinida com sucesso!' });
+    return res.status(200).json({ message: 'Senha redefinida com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao redefinir a senha:', error.response?.data || error.message);
+    return res.status(400).json({ error: 'Erro ao redefinir a senha.' });
+  }
 };
 
 const getProfile = async (req, res) => {

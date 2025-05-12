@@ -7,6 +7,7 @@ import { Lock, Eye, EyeSlash, Desktop, Moon, Sun } from 'phosphor-react';
 import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import { useTheme } from 'next-themes';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export default function ResetPassword() {
   const [mounted, setMounted] = useState(false);
@@ -16,7 +17,6 @@ export default function ResetPassword() {
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [token, setToken] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isNewPasswordInvalid, setIsNewPasswordInvalid] = useState(false);
@@ -29,11 +29,25 @@ export default function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    if (router.query.token) {
-      setToken(router.query.token);
+    const supabase = createClientComponentClient();
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    if (code) {
+      console.log('Iniciando troca do código por sessão...');
+      supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+        if (error) {
+          console.error('Erro ao trocar o código por sessão:', error.message);
+        } else {
+          console.log('Sessão iniciada com sucesso:', data);
+        }
+      });
     }
-  }, [router]);
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     setThemeIcon(theme);
@@ -85,22 +99,18 @@ export default function ResetPassword() {
     }
 
     setIsLoading(true);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accessToken: token, newPassword }),
-    });
+    const supabase = createClientComponentClient();
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
 
-    const data = await response.json();
     setIsLoading(false);
 
-    if (response.ok) {
-      showBannerMessage(data.message, 'success', 'Você será redirecionado ao login em instantes.');
+    if (error) {
+      showBannerMessage(error.message || 'Erro ao redefinir senha.', 'error');
+    } else {
+      showBannerMessage('Senha redefinida com sucesso!', 'success', 'Você será redirecionado ao login em instantes.');
       setTimeout(() => {
         router.push('/login');
       }, 4500);
-    } else {
-      showBannerMessage(data.error || 'Erro ao redefinir senha.', 'error', '');
     }
   };
 
