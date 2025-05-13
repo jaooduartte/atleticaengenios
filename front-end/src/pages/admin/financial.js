@@ -588,7 +588,7 @@ function FinancialPage() {
           <div className="m-4 bg-red-900 p-4 rounded-xl shadow-md text-center">
             <h3 className="text-md font-semibold mb-1">Total de Despesas</h3>
             <p className="text-xl font-bold">{totalExpenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
-            <div className="bg-white bg-[#0e1117]  mt-3 rounded-lg p-2">
+            <div className="bg-white dark:bg-[#0e1117] mt-3 rounded-lg p-2">
               <Bar
                 data={{
                   labels: chartData.labels,
@@ -900,7 +900,7 @@ function FinancialPage() {
               )
               .slice(0, 100)
               .map((transaction, index) => (
-                <div key={index} className="relative bg-white dark:bg-white/10 dark:backdrop-blur-md dark:border dark:border-white/10 flex justify-between rounded-xl shadow-md pr-6 py-8">
+                <div key={index} className="relative bg-white dark:bg-white/10 dark:border dark:border-white/10 flex justify-between rounded-xl shadow-md pr-6 py-8">
                   <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
                     <div>
                       <span className={`text-xs font-medium px-4 py-0.5 rounded-full ${transaction.type === 'receita' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'}`}
