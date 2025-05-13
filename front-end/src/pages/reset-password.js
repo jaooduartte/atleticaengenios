@@ -150,11 +150,12 @@ export default function ResetPassword() {
         <div className="flex justify-center mb-8">
           <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
         </div>
+        {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
         <h2 className="text-center text-2xl font-semibold mb-4 text-gray-900 dark:text-white">Redefinir sua senha</h2>
         {linkInvalido ? (
           <div className="flex flex-col items-center justify-center text-red-600 dark:text-red-400 font-medium text-center space-y-4">
             <div className="text-5xl">
-            <WarningCircle size={64} />
+              <WarningCircle size={64} />
             </div>
             <div className="text-lg max-w-sm">
               Este link de redefinição de senha é inválido ou já foi utilizado. Solicite uma nova redefinição de senha para continuar.
@@ -165,8 +166,6 @@ export default function ResetPassword() {
           </div>
         ) : (
           <>
-            {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
-
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="w-full flex justify-center">
                 <div className="relative w-full max-w-sm">

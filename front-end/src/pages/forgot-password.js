@@ -78,6 +78,7 @@ export default function ForgotPassword() {
           priority
         />
       </div>
+      {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
 
       <div className="w-full max-w-md p-6 rounded-xl shadow-xl relative z-10 bg-white dark:bg-[#0e1117] transition-all backdrop-blur-xl">
         <div className="flex justify-center mb-8">
@@ -88,7 +89,6 @@ export default function ForgotPassword() {
           Redefinir senha
         </h2>
 
-        {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="w-full flex justify-center">
