@@ -81,7 +81,7 @@ function FinancialPage() {
     const fetchTransactions = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:3001/api/financial/transactions', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/financial/transactions`, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
@@ -346,8 +346,8 @@ function FinancialPage() {
 
     try {
       const url = editingTransactionId
-        ? `http://localhost:3001/api/financial/transaction/${editingTransactionId}`
-        : 'http://localhost:3001/api/financial/transaction';
+        ? `${process.env.NEXT_PUBLIC_API_URL}/api/financial/transaction/${editingTransactionId}`
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/financial/transaction`;
       const method = editingTransactionId ? 'PUT' : 'POST';
 
       const token = localStorage.getItem('token'); // PEGAR O TOKEN DO LOCALSTORAGE
@@ -413,7 +413,7 @@ function FinancialPage() {
 
   const handleConfirmDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/api/financial/transaction/${transactionToDelete.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/financial/transaction/${transactionToDelete.id}`, {
         method: 'DELETE',
       });
 
