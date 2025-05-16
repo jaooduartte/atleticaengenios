@@ -79,6 +79,7 @@ export default function Login() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
+    console.log('API URL em uso:', process.env.NEXT_PUBLIC_API_URL);
   
     const data = await response.json();
   
@@ -111,6 +112,7 @@ export default function Login() {
         birthday,
       }),
     });
+    console.log('API URL em uso:', process.env.NEXT_PUBLIC_API_URL);
 
     const data = await response.json();
 

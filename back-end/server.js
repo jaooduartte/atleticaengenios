@@ -7,13 +7,20 @@ const financialRoutes = require('./src/routes/financial.routes');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://atleticaengenios.vercel.app'
+  ],
+  credentials: true
+}));app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // Garante que a rota /api/auth/login exista
 const authController = require('./src/controllers/auth.controller');
 app.post('/api/auth/login', authController.loginUser);
+app.get('/api/health', (req, res) => res.send('ok'));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/financial', financialRoutes);

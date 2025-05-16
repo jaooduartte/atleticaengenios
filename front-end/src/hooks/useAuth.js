@@ -9,9 +9,6 @@ export default function useAuth() {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      // Adiciona log para verificar se o token está presente
-      console.log('Token enviado:', token);
-
       try {
         const decoded = jwtDecode(token);
         if (decoded.exp * 1000 < Date.now()) {
@@ -22,6 +19,7 @@ export default function useAuth() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log('API URL em uso:', process.env.NEXT_PUBLIC_API_URL);
 
         if (res.ok) {
             const text = await res.text();
