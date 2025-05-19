@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { HandArrowDown, HandArrowUp, MagnifyingGlass, DotsThreeVertical, WarningCircle, Funnel, FunnelX } from '@phosphor-icons/react';
+import { HandArrowDown, HandArrowUp, MagnifyingGlass, DotsThreeVertical, WarningCircle, Funnel } from '@phosphor-icons/react';
 import useAuth from '../../hooks/useAuth';
 import Header from '../../components/header-admin';
 import Footer from '../../components/footer-admin';

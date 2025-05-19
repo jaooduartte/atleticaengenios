@@ -15,23 +15,32 @@ export default function App({ Component, pageProps }) {
 
   useEffect(() => {
     if (['/login', '/confirm'].includes(router.pathname)) return;
-  
-    const checkToken = () => {
+
+    const checkToken = async () => {
       const token = localStorage.getItem('token');
       const tokenExp = localStorage.getItem('token_exp');
-    
+
       if (!token || !tokenExp) return;
-    
-      const now = Date.now(); // em milissegundos
-      const expTime = Number(tokenExp) * 1000; // converter para ms
-    
+
+      const now = Date.now();
+      const expTime = Number(tokenExp) * 1000;
+
       if (now > expTime) {
         setShowModal(true);
       }
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data?.is_active === false) {
+        setShowModal(true);
+      }
     };
-  
+
     checkToken();
-    const interval = setInterval(checkToken, 60000); // verifica a cada 1 minuto
+    const interval = setInterval(checkToken, 60000);
     return () => clearInterval(interval);
   }, [router.pathname]);
 

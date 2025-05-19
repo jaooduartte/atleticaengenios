@@ -73,26 +73,30 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-  
+
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    console.log('API URL em uso:', process.env.NEXT_PUBLIC_API_URL);
-  
+    
+
     const data = await response.json();
-  
+
     if (!response.ok) {
-      showBannerMessage(data.error || 'Erro ao fazer login', 'error', data.description || '');
+      if (data?.type === 'inactive_user') {
+        showBannerMessage('Acesso negado', 'error', 'Sua conta está inativa. Entre em contato com a diretoria.');
+      } else {
+        showBannerMessage(data.error || 'Erro ao fazer login', 'error', data.description || '');
+      }
       setIsLoading(false);
       return;
     }
-  
+
     localStorage.setItem('token', data.token);
     const payload = JSON.parse(atob(data.token.split('.')[1]));
     localStorage.setItem('token_exp', payload.exp);
-  
+
     router.push('/home');
   };
 
@@ -112,7 +116,6 @@ export default function Login() {
         birthday,
       }),
     });
-    console.log('API URL em uso:', process.env.NEXT_PUBLIC_API_URL);
 
     const data = await response.json();
 

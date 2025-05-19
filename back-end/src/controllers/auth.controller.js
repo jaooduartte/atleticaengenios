@@ -22,6 +22,20 @@ const loginUser = async (req, res) => {
     });
   }
 
+  const { data: userRecord, error: fetchError } = await supabase
+    .from('users')
+    .select('is_active')
+    .eq('auth_id', data.user.id)
+    .single();
+
+  if (fetchError || userRecord?.is_active === false) {
+    return res.status(403).json({
+      error: 'Usuário inativo',
+      description: 'Sua conta está inativa. Entre em contato com a diretoria.',
+      type: 'inactive_user'
+    });
+  }
+
   const userMetadata = await userService.getUserById(data.user.id);
 
   const jwtToken = jwt.sign({ userId: data.user.id }, secret, { expiresIn: '7d' });
@@ -89,10 +103,8 @@ const registerUser = async (req, res) => {
   const { email, password, name, course, sex, birthday } = req.body;
 
   try {
-    // Cria usuário no Supabase Auth
     const user = await userService.createSupabaseUser({ email, password, name, course, sex, birthday });
 
-    // Cria usuário também na tabela public.users
     await userService.createUserMetadata(user.id, { name, course, sex, birthday }, email);
 
     res.status(201).json({ message: 'Usuário registrado com sucesso.', user_id: user.id });
