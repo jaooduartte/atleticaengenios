@@ -1,14 +1,22 @@
-
-
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { remove as removeAccents } from 'diacritics';
 import Header from '../../components/header-admin';
 import Footer from '../../components/footer-admin';
 import Banner from '../../components/banner';
 import CustomField from '../../components/custom-field';
-import { MagnifyingGlass, DotsThreeVertical } from '@phosphor-icons/react';
+import Modal from 'react-modal';
+import CustomButton from '../../components/custom-buttom';
+import { MagnifyingGlass, DotsThreeVertical, Trash } from '@phosphor-icons/react';
+import CustomDropdown from '../../components/custom-dropdown';
 
 function UsersPage() {
+  const anoAtual = new Date().getFullYear();
+  const [abaSelecionada, setAbaSelecionada] = useState('usuarios');
+  const [gestoes, setGestoes] = useState(
+    Array.from({ length: new Date().getFullYear() - 2015 + 1 }, (_, i) => 2015 + i)
+  );
+  const [gestaoSelecionada, setGestaoSelecionada] = useState(null);
+  const [isGestaoModalOpen, setIsGestaoModalOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +24,68 @@ function UsersPage() {
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerType, setBannerType] = useState('');
   const [bannerDescription, setBannerDescription] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [cargo, setCargo] = useState('');
+  const [userSession, setUserSession] = useState(null);
+  const [isGestor, setIsGestor] = useState(false);
+  const [usuariosSugestoes, setUsuariosSugestoes] = useState({});
+  const isUsuarioJaAdicionado = (userId) => {
+    if (estruturaGestao.Presidente?.id === userId) return true;
+    if (estruturaGestao['Vice-Presidente']?.id === userId) return true;
+    if (estruturaGestao.Conselheiro?.id === userId) return true;
+
+    const diretorJaExiste = Object.values(estruturaGestao.Diretores).some(lista =>
+      lista.some(user => user.id === userId)
+    );
+    if (diretorJaExiste) return true;
+
+    const traineeJaExiste = Object.values(estruturaGestao.Trainees).some(lista =>
+      lista.some(user => user.id === userId)
+    );
+    return traineeJaExiste;
+  };
+  const buscarUsuarios = async (termo, cargo) => {
+    if (termo.length < 2) {
+      setUsuariosSugestoes(prev => ({ ...prev, [cargo]: [] }));
+      return;
+    }
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const todos = await res.json();
+    const termoNormalizado = removeAccents(termo.toLowerCase());
+    const filtrados = todos.filter(u =>
+      u.name && removeAccents(u.name.toLowerCase()).includes(termoNormalizado)
+    );
+    setUsuariosSugestoes(prev => ({ ...prev, [cargo]: filtrados }));
+  };
+
+  const [modalCargoAberto, setModalCargoAberto] = useState(false);
+  const [cargoSelecionado, setCargoSelecionado] = useState(null);
+  const tiposDiretores = [
+    'Tesoureiro',
+    'Secretário',
+    'Diretor de Esportes',
+    'Diretor de Marketing',
+    'Diretor de Produto',
+    'Diretor de Eventos'
+  ];
+  const tiposTrainees = [
+    'Trainee de Esportes',
+    'Trainee de Marketing',
+    'Trainee de Produto',
+    'Trainee de Eventos'
+  ];
+  const [estruturaGestao, setEstruturaGestao] = useState({
+    Presidente: null,
+    'Vice-Presidente': null,
+    Diretores: {},
+    Trainees: {},
+    Conselheiros: [],
+  });
+
 
   const showBannerMessage = (message, type, description = '') => {
     setBannerMessage(message);
@@ -25,8 +95,7 @@ function UsersPage() {
     setTimeout(() => setShowBanner(false), 4500);
   };
 
-  // Função reutilizável para buscar usuários
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users`, {
@@ -45,11 +114,23 @@ function UsersPage() {
       console.error(error);
       showBannerMessage('Erro de conexão', 'error', 'Falha ao se comunicar com o servidor.');
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+    const token = localStorage.getItem('token');
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        const usuario = data?.user || data;
+        setUserSession(usuario);
+        if (['Presidente', 'Vice-Presidente'].includes(usuario.role)) {
+          setIsGestor(true);
+        }
+      });
+  }, [fetchUsers]);
 
   useEffect(() => {
     const filtered = users.filter(user => {
@@ -66,6 +147,14 @@ function UsersPage() {
     });
     setFilteredUsers(filtered);
   }, [searchTerm, users]);
+
+  if (!userSession) {
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-500 dark:text-white">
+        Carregando informações do usuário...
+      </div>
+    );
+  }
 
   const toggleAdmin = async (userId, currentValue) => {
     try {
@@ -90,7 +179,6 @@ function UsersPage() {
     fetchUsers();
   };
 
-  // Função para alternar o status de ativo/inativo do usuário
   const toggleActive = async (userId, currentStatus) => {
     try {
       const token = localStorage.getItem('token');
@@ -118,6 +206,12 @@ function UsersPage() {
     fetchUsers();
   };
 
+  const abrirModalEdicao = (user) => {
+    setSelectedUser(user);
+    setCargo(user.role || '');
+    setIsEditModalOpen(true);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">
       <Header />
@@ -134,80 +228,603 @@ function UsersPage() {
       <div className="container mx-auto px-6 py-10 flex-grow">
         <h1 className="text-5xl font-bold mb-10 mt-4 text-center text-gray-800 dark:text-white">Gestão de Usuários</h1>
 
-        <div className="mb-6 max-w-md mx-auto">
-          <CustomField
-            icon={MagnifyingGlass}
-            name="search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por nome, email ou curso..."
-            clearable={searchTerm ? 'true' : ''}
-            onClear={() => setSearchTerm('')}
-          />
+        {/* Abas Usuários / Diretoria */}
+        <div className="flex justify-center gap-4 mb-8">
+          <button
+            className={`px-6 py-2 rounded-full font-medium text-sm transition ${abaSelecionada === 'usuarios' ? 'bg-red-800 text-white' : 'bg-gray-200 dark:bg-white/10 dark:text-white'}`}
+            onClick={() => setAbaSelecionada('usuarios')}
+          >
+            Usuários
+          </button>
+          <button
+            className={`px-6 py-2 rounded-full font-medium text-sm transition ${abaSelecionada === 'gestoes' ? 'bg-red-800 text-white' : 'bg-gray-200 dark:bg-white/10 dark:text-white'}`}
+            onClick={() => setAbaSelecionada('gestoes')}
+          >
+            Diretoria
+          </button>
         </div>
 
-        <div className="overflow-x-auto rounded-xl shadow-sm border dark:border-white/10">
-          <table className="min-w-full bg-white dark:bg-white/10">
-            <thead className="text-left bg-gray-200 dark:bg-white/10">
-              <tr>
-                <th className="px-6 py-4">Ativo</th>
-                <th className="px-6 py-4">Nome</th>
-                <th className="px-6 py-4">Email</th>
-                <th className="px-6 py-4">Curso</th>
-                <th className="px-6 py-4">Admin</th>
-                <th className="px-6 py-4">Cargo</th>
-                <th className="px-6 py-4 text-center">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
+        {/* Render condicional: usuários ou gestões com animação de transição */}
+        <div className="relative">
+          <div
+            className={`transition-opacity duration-300 ease-in-out ${
+              abaSelecionada === 'usuarios'
+                ? 'opacity-100'
+                : 'opacity-0 absolute inset-0 pointer-events-none'
+            }`}
+          >
+            <div className="mb-6 max-w-md mx-auto">
+              <CustomField
+                icon={MagnifyingGlass}
+                name="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por nome, email ou curso..."
+                clearable={searchTerm ? 'true' : ''}
+                onClear={() => setSearchTerm('')}
+              />
+            </div>
+            <div className="mt-8 space-y-4 max-w-9xl mx-auto">
+              {/* Novo cabeçalho visual flex */}
+              <div className="relative flex justify-between pr-6 pl-6 font-bold max-w-9xl mx-auto">
+                <div className="w-[80px] text-center text-sm dark:text-white">Ativo</div>
+                <div className="grid grid-cols-4 items-center gap-2 text-center flex-grow">
+                  <div className="text-sm dark:text-white">Nome</div>
+                  <div className="text-sm dark:text-white">Email</div>
+                  <div className="text-sm dark:text-white">Cargo</div>
+                  <div className="text-sm dark:text-white">Admin</div>
+                </div>
+                <div className="w-[80px] text-center text-sm dark:text-white">Ações</div>
+              </div>
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="border-t dark:border-white/10">
-                  {/* Ativo */}
-                  <td className="px-6 py-4 text-center">
-                    <span className={`inline-block w-3 h-3 rounded-full ${user.is_active ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                  </td>
-                  <td className="px-6 py-4">{user.name}</td>
-                  <td className="px-6 py-4">{user.email}</td>
-                  <td className="px-6 py-4">{user.course || '-'}</td>
-                  <td className="px-6 py-4">
-                    <label className="inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={user.is_admin}
-                        onChange={() => toggleAdmin(user.auth_id, user.is_admin)}
-                        className="sr-only"
-                      />
-                      <div className={`w-12 h-6 flex items-center bg-gray-300 rounded-full p-1 transition-colors duration-300 ${user.is_admin ? 'bg-green-600' : 'bg-gray-400'}`}>
-                        <div
-                          className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${user.is_admin ? 'translate-x-6' : 'translate-x-0'}`}
-                        ></div>
-                      </div>
-                    </label>
-                  </td>
-                  <td className="px-6 py-4">{user.role || 'Membro'}</td>
-                  {/* Ações */}
-                  <td className="px-6 py-4 text-center relative group">
-                    <DotsThreeVertical size={22} className="mx-auto cursor-pointer" />
-                    <div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
-                      <button className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">
-                        Editar usuário
-                      </button>
-                      <button
-                        onClick={() => toggleActive(user.auth_id, user.is_active)}
-                        className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm"
-                      >
-                        {user.is_active ? 'Inativar usuário' : 'Ativar usuário'}
-                      </button>
+                <div
+                  key={user.id}
+                  className="relative flex items-center justify-between bg-white dark:bg-white/10 dark:border dark:border-white/10 rounded-xl shadow-md px-6 py-4"
+                >
+                  <div className="w-[80px] text-center">
+                    <span className={`inline-block w-4 h-4 rounded-full ${user.is_active ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-2 text-center flex-grow">
+                    <div>
+                      <h4 className="font-medium">{user.name}</h4>
                     </div>
-                  </td>
-                </tr>
+                    <div className="text-sm">{user.email}</div>
+                    <div className="text-sm">{user.role || 'Membro'}</div>
+                    <div>
+                      <label className="inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={user.is_admin}
+                          onChange={() => toggleAdmin(user.auth_id, user.is_admin)}
+                          className="sr-only"
+                        />
+                        <div className={`w-12 h-6 flex items-center bg-gray-300 rounded-full p-1 transition-colors duration-300 ${user.is_admin ? 'bg-green-600' : 'bg-gray-400'}`}>
+                          <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${user.is_admin ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                  <div className="w-[80px] flex justify-center items-center">
+                    <div className="relative group w-fit h-fit">
+                      <DotsThreeVertical size={24} className="text-gray-700 dark:text-white cursor-pointer" />
+                      <div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
+                        <button
+                          onClick={() => abrirModalEdicao(user)}
+                          className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm"
+                        >
+                          Informações
+                        </button>
+                        <button
+                          onClick={() => toggleActive(user.auth_id, user.is_active)}
+                          className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm"
+                        >
+                          {user.is_active ? 'Inativar usuário' : 'Ativar usuário'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
+          <div
+            className={`transition-opacity duration-300 ease-in-out ${
+              abaSelecionada === 'gestoes'
+                ? 'opacity-100'
+                : 'opacity-0 absolute inset-0 pointer-events-none'
+            }`}
+          >
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto mt-6">
+              {gestoes.map((ano) => (
+                <div key={ano} className="relative bg-white dark:bg-white/10 rounded-xl p-6 shadow flex flex-col justify-between">
+                  <h3 className="text-xl font-bold text-red-800 dark:text-white">{ano}</h3>
+                  <button
+                    onClick={() => {
+                      setGestaoSelecionada(ano);
+                      setIsGestaoModalOpen(true);
+                    }}
+                    className="mt-4 text-sm bg-red-800 hover:bg-red-700 text-white rounded-lg px-4 py-2"
+                  >
+                    Ver diretoria
+                  </button>
+                  {/* Botão de remover gestão: só aparece se ano > anoAtual e usuário pode */}
+                  {ano > anoAtual && isGestor && (
+                    <button
+                      onClick={() => {
+                        setGestoes(gestoes.filter(a => a !== ano));
+                      }}
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                    >
+                      <Trash size={20} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {/* Botão para adicionar nova gestão: só aparece se usuário pode */}
+              {isGestor && (
+                <button
+                  onClick={() => {
+                    const novoAno = Math.max(...gestoes) + 1;
+                    setGestoes([...gestoes, novoAno]);
+                  }}
+                  className="border-2 border-dashed border-red-800 dark:border-white/20 rounded-xl text-red-800 dark:text-white p-6 hover:bg-red-800/5"
+                >
+                  + Nova gestão
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       <Footer />
+
+      {/* Modal de edição do usuário */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onRequestClose={() => setIsEditModalOpen(false)}
+        shouldCloseOnOverlayClick={true}
+        overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
+        className="relative bg-white dark:bg-[#0e1117] dark:backdrop-blur-xl text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto border-t-[6px] border-red-800 dark:border-red-500 transform transition-all duration-300 ease-in-out"
+      >
+        <button
+          onClick={() => setIsEditModalOpen(false)}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 hover:text-black text-xl"
+        >
+          ×
+        </button>
+
+        <h2 className="text-2xl mb-6 text-center font-bold text-red-800 dark:text-red-500">
+          Editar Usuário
+        </h2>
+
+        {selectedUser && (
+          <div className="space-y-4 text-sm dark:text-white">
+            <div><strong>Email:</strong> {selectedUser.email}</div>
+            <div><strong>Nome:</strong> {selectedUser.name}</div>
+            <div><strong>Curso:</strong> {selectedUser.course || '-'}</div>
+            <div><strong>Telefone:</strong> {selectedUser.phone || '-'}</div>
+            <div><strong>Data de adesão:</strong> {new Date(selectedUser.created_at).toLocaleDateString('pt-BR')}</div>
+            <div>
+              <strong>Idade:</strong> {selectedUser.birthday ? (() => {
+                const birth = new Date(selectedUser.birthday);
+                const today = new Date();
+                let age = today.getFullYear() - birth.getFullYear();
+                const m = today.getMonth() - birth.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+                  age--;
+                }
+                return age + ' anos';
+              })() : '-'}
+            </div>
+          </div>
+        )}
+
+      </Modal>
+
+      {/* -------- NOVA MODAL DE DIRETORIA EM ORGANOGRAMA -------- */}
+      <Modal
+        isOpen={isGestaoModalOpen}
+        onRequestClose={() => setIsGestaoModalOpen(false)}
+        overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50"
+        className="relative bg-white dark:bg-[#0e1117] p-4 rounded-xl shadow-lg w-full max-w-3xl max-h-[85vh] overflow-y-auto"
+      >
+        {/* Botão X minimalista no topo direito */}
+        <button
+          onClick={() => setIsGestaoModalOpen(false)}
+          className="absolute top-3 right-3 text-gray-400 hover:text-white text-xl"
+        >
+          ×
+        </button>
+        <h2 className="text-xl font-bold mb-2 text-red-800 dark:text-white text-center">Gestão {gestaoSelecionada}</h2>
+        <div className="flex flex-col items-center gap-3 mt-3">
+          {/* Nível 1: Presidente */}
+          <div className="flex flex-col items-center pb-2">
+            <span className="font-bold text-red-600 mb-1">Presidente</span>
+            {estruturaGestao['Presidente'] ? (
+              <div className="flex flex-col items-center">
+                <img src={estruturaGestao['Presidente'].photo || '/placeholder.png'} className="w-16 h-16 rounded-full" />
+                <p className="text-xs mt-1 text-white">{estruturaGestao['Presidente'].name}</p>
+                <button
+                  onClick={() => setEstruturaGestao(prev => ({ ...prev, Presidente: null }))}
+                  className="text-red-500 text-xs mt-1"
+                >
+                  Remover
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setCargoSelecionado('Presidente');
+                  setModalCargoAberto(true);
+                }}
+                className="rounded-full border-2 border-dashed border-white/30 w-12 h-12 flex items-center justify-center text-white text-2xl"
+                title="Adicionar Presidente"
+              >
+                +
+              </button>
+            )}
+          </div>
+          {/* Conector */}
+          <div className="w-1 h-5 bg-white/20" />
+          {/* Nível 2: Vice-Presidente */}
+          <div className="flex flex-row gap-6 justify-center pb-2">
+            {/* Vice-Presidente */}
+            <div className="flex flex-col items-center">
+              <span className="font-semibold text-red-400 mb-1">Vice-Presidente</span>
+              {estruturaGestao['Vice-Presidente'] ? (
+                <div className="flex flex-col items-center">
+                  <img src={estruturaGestao['Vice-Presidente'].photo || '/placeholder.png'} className="w-14 h-14 rounded-full" />
+                  <p className="text-xs mt-1 text-white">{estruturaGestao['Vice-Presidente'].name}</p>
+                  <button
+                    onClick={() => setEstruturaGestao(prev => ({ ...prev, ['Vice-Presidente']: null }))}
+                    className="text-red-500 text-xs mt-1"
+                  >
+                    Remover
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setCargoSelecionado('Vice-Presidente');
+                    setModalCargoAberto(true);
+                  }}
+                  className="rounded-full border-2 border-dashed border-white/30 w-10 h-10 flex items-center justify-center text-white text-xl"
+                  title="Adicionar Vice-Presidente"
+                >
+                  +
+                </button>
+              )}
+            </div>
+          </div>
+          {/* Conector */}
+          <div className="w-1 h-5 bg-white/20" />
+          {/* Diretores */}
+          <div className="flex flex-col items-center w-full pb-2">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <span className="font-semibold text-white">Diretores</span>
+            </div>
+            <div className="flex flex-wrap gap-3 w-full justify-center">
+              {Object.entries(estruturaGestao.Diretores)
+                .filter(([tipo, lista]) => (lista && lista.length > 0))
+                .map(([tipo, lista]) => (
+                  <div
+                    key={tipo}
+                    className={`bg-white/5 rounded-lg p-3 flex flex-col items-center min-w-[140px] ${lista.length === 1 ? 'justify-center' : ''
+                      }`}
+                  >
+                    <span className="font-semibold text-white text-xs mb-2">{tipo}</span>
+                    {lista.map((diretor, idx) => (
+                      <div key={idx} className="flex flex-col items-center mb-3">
+                        <img src={diretor.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
+                        <p className="text-xs mt-1 text-white">{diretor.name}</p>
+                        <button
+                          onClick={() =>
+                            setEstruturaGestao(prev => ({
+                              ...prev,
+                              Diretores: {
+                                ...prev.Diretores,
+                                [tipo]: prev.Diretores[tipo].filter((_, i) => i !== idx)
+                              }
+                            }))
+                          }
+                          className="text-red-400 text-xs mt-1"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              <button
+                onClick={() => {
+                  setCargoSelecionado({ tipo: 'Diretores', tipoDiretor: '' });
+                  setModalCargoAberto(true);
+                }}
+                className="rounded-lg border-2 border-dashed border-white/30 w-24 h-24 flex flex-col items-center justify-center text-white text-2xl bg-white/5 hover:bg-white/10 transition"
+                title="Adicionar Diretor"
+              >
+                <span className="text-xl">+</span>
+                <span className="text-xs mt-1">Diretor</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center w-full pb-2 mt-4">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <span className="font-semibold text-white">Trainees</span>
+            </div>
+            <div className="flex flex-wrap gap-3 w-full justify-center">
+              {Object.entries(estruturaGestao.Trainees)
+                .filter(([tipo, lista]) => (lista && lista.length > 0))
+                .map(([tipo, lista]) => (
+                  <div
+                    key={tipo}
+                    className={`bg-white/5 rounded-lg p-3 flex flex-col items-center min-w-[140px] ${lista.length === 1 ? 'justify-center' : ''
+                      }`}
+                  >
+                    <span className="font-semibold text-white text-xs mb-2">{tipo}</span>
+                    {lista.map((trainee, idx) => (
+                      <div key={idx} className="flex flex-col items-center mb-3">
+                        <img src={trainee.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
+                        <p className="text-xs mt-1 text-white">{trainee.name}</p>
+                        <button
+                          onClick={() =>
+                            setEstruturaGestao(prev => ({
+                              ...prev,
+                              Trainees: {
+                                ...prev.Trainees,
+                                [tipo]: prev.Trainees[tipo].filter((_, i) => i !== idx)
+                              }
+                            }))
+                          }
+                          className="text-red-400 text-xs mt-1"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              <button
+                onClick={() => {
+                  setCargoSelecionado({ tipo: 'Trainees', tipoTrainee: '' });
+                  setModalCargoAberto(true);
+                }}
+                className="rounded-lg border-2 border-dashed border-white/30 w-24 h-24 flex flex-col items-center justify-center text-white text-2xl bg-white/5 hover:bg-white/10 transition"
+                title="Adicionar Trainee"
+              >
+                <span className="text-xl">+</span>
+                <span className="text-xs mt-1">Trainee</span>
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col items-center w-full pb-2 mt-4">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <span className="font-semibold text-white">Conselheiros</span>
+            </div>
+            <div className="flex flex-wrap gap-3 w-full justify-center">
+              {(estruturaGestao.Conselheiros || []).map((conselheiro, idx) => (
+                <div key={idx} className="bg-white/5 rounded-lg p-3 flex flex-col items-center min-w-[140px]">
+                  <img src={conselheiro.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
+                  <p className="text-xs mt-1 text-white">{conselheiro.name}</p>
+                  <button
+                    onClick={async () => {
+                      const token = localStorage.getItem('token');
+                      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/gestao/${gestaoSelecionada}/membro/Conselheiro?user_id=${conselheiro.id}`, {
+                        method: 'DELETE',
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                        },
+                      });
+
+                      setEstruturaGestao(prev => ({
+                        ...prev,
+                        Conselheiros: (prev.Conselheiros || []).filter((_, i) => i !== idx)
+                      }));
+                    }}
+                    className="text-red-400 text-xs mt-1"
+                  >
+                    Remover
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => {
+                  setCargoSelecionado('Conselheiro');
+                  setModalCargoAberto(true);
+                }}
+                className="rounded-lg border-2 border-dashed border-white/30 w-24 h-24 flex flex-col items-center justify-center text-white text-2xl bg-white/5 hover:bg-white/10 transition"
+                title="Adicionar Conselheiro"
+              >
+                <span className="text-xl">+</span>
+                <span className="text-xs mt-1">Conselheiro</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-center pt-4">
+          <CustomButton
+            onClick={async () => {
+              const token = localStorage.getItem('token');
+              const cargos = [];
+              if (estruturaGestao.Presidente)
+                cargos.push({ role: 'Presidente', user_id: estruturaGestao.Presidente.id });
+              if (estruturaGestao['Vice-Presidente'])
+                cargos.push({ role: 'Vice-Presidente', user_id: estruturaGestao['Vice-Presidente'].id });
+              if (estruturaGestao.Conselheiro)
+                cargos.push({ role: 'Conselheiro', user_id: estruturaGestao.Conselheiro.id });
+              Object.entries(estruturaGestao.Diretores).forEach(([tipo, lista]) => {
+                (lista || []).forEach((d) => {
+                  if (d) cargos.push({ role: tipo, user_id: d.id });
+                });
+              });
+              Object.entries(estruturaGestao.Trainees).forEach(([tipo, lista]) => {
+                (lista || []).forEach((t) => {
+                  if (t) cargos.push({ role: tipo, user_id: t.id });
+                });
+              });
+              await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/gestao/${gestaoSelecionada}/membros`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+              for (const c of cargos) {
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/gestao/${gestaoSelecionada}/membro`, {
+                  method: 'PUT',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(c)
+                });
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${c.user_id}`, {
+                  method: 'PUT',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ role: c.role })
+                });
+              }
+              setIsGestaoModalOpen(false);
+              showBannerMessage('Estrutura da diretoria salva!', 'success');
+            }}
+            className="!bg-green-700 hover:!bg-green-600"
+          >
+            Salvar gestão
+          </CustomButton>
+        </div>
+      </Modal>
+
+      {/* MODAL DE SELEÇÃO DE USUÁRIO PARA CARGO */}
+      <Modal
+        isOpen={modalCargoAberto}
+        onRequestClose={() => {
+          setCargoSelecionado(null);
+          setModalCargoAberto(false);
+        }}
+        overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-[60]"
+        className="bg-white dark:bg-[#0e1117] p-4 rounded-lg shadow-lg max-w-lg w-full"
+      >
+        <h3 className="text-xl mb-2 text-center dark:text-white">
+          Selecionar membro para:{' '}
+          {typeof cargoSelecionado === 'string'
+            ? cargoSelecionado
+            : cargoSelecionado?.tipo === 'Diretores'
+              ? 'Diretor'
+              : cargoSelecionado?.tipo === 'Trainees'
+                ? 'Trainee'
+                : ''}
+        </h3>
+        {/* Dropdown para tipo de cargo se for Diretores/Trainees */}
+        {cargoSelecionado?.tipo === 'Diretores' && (
+          <div className="mb-2">
+            <CustomDropdown
+              options={tiposDiretores.map(tipo => ({ value: tipo, label: tipo }))}
+              value={cargoSelecionado.tipoDiretor || ''}
+              onChange={opt =>
+                setCargoSelecionado(cs => ({ ...cs, tipoDiretor: opt.value }))
+              }
+              placeholder="Selecione o tipo de Diretor"
+            />
+          </div>
+        )}
+        {cargoSelecionado?.tipo === 'Trainees' && (
+          <div className="mb-2">
+            <CustomDropdown
+              options={tiposTrainees.map(tipo => ({ value: tipo, label: tipo }))}
+              value={cargoSelecionado.tipoTrainee || ''}
+              onChange={opt =>
+                setCargoSelecionado(cs => ({ ...cs, tipoTrainee: opt.value }))
+              }
+              placeholder="Selecione o tipo de Trainee"
+            />
+          </div>
+        )}
+        <CustomField
+          placeholder="Buscar por nome..."
+          onChange={(e) => {
+            if (typeof cargoSelecionado === 'string') {
+              buscarUsuarios(e.target.value, cargoSelecionado);
+            } else if (cargoSelecionado?.tipo === 'Diretores') {
+              buscarUsuarios(e.target.value, cargoSelecionado.tipoDiretor || '');
+            } else if (cargoSelecionado?.tipo === 'Trainees') {
+              buscarUsuarios(e.target.value, cargoSelecionado.tipoTrainee || '');
+            }
+          }}
+          name="busca"
+        />
+        <div className="mt-3 max-h-60 overflow-y-auto">
+          {(usuariosSugestoes[
+            typeof cargoSelecionado === 'string'
+              ? cargoSelecionado
+              : cargoSelecionado?.tipo === 'Diretores'
+                ? cargoSelecionado.tipoDiretor || ''
+                : cargoSelecionado?.tipo === 'Trainees'
+                  ? cargoSelecionado.tipoTrainee || ''
+                  : ''
+          ] || []).map(user => (
+            <div
+              key={user.id}
+              onClick={() => {
+                if (isUsuarioJaAdicionado(user.auth_id)) {
+                  showBannerMessage('Usuário já foi adicionado em outro cargo', 'error');
+                  return;
+                }
+                if (typeof cargoSelecionado === 'string') {
+                  if (cargoSelecionado === 'Conselheiro') {
+                    setEstruturaGestao(prev => ({
+                      ...prev,
+                      Conselheiros: [...(prev.Conselheiros || []), {
+                        name: user.name,
+                        photo: user.photo,
+                        id: user.auth_id
+                      }]
+                    }));
+                  } else {
+                    setEstruturaGestao(prev => ({
+                      ...prev,
+                      [cargoSelecionado]: {
+                        name: user.name,
+                        photo: user.photo,
+                        id: user.auth_id
+                      }
+                    }));
+                  }
+                } else if (cargoSelecionado?.tipo === 'Diretores') {
+                  const tipo = cargoSelecionado.tipoDiretor;
+                  if (!tipo) return;
+                  setEstruturaGestao(prev => ({
+                    ...prev,
+                    Diretores: {
+                      ...prev.Diretores,
+                      [tipo]: [...(prev.Diretores[tipo] || []), { name: user.name, photo: user.photo, id: user.auth_id }]
+                    }
+                  }));
+                } else if (cargoSelecionado?.tipo === 'Trainees') {
+                  const tipo = cargoSelecionado.tipoTrainee;
+                  if (!tipo) return;
+                  setEstruturaGestao(prev => ({
+                    ...prev,
+                    Trainees: {
+                      ...prev.Trainees,
+                      [tipo]: [...(prev.Trainees[tipo] || []), { name: user.name, photo: user.photo, id: user.auth_id }]
+                    }
+                  }));
+                }
+                setModalCargoAberto(false);
+              }}
+              className="flex items-center gap-3 cursor-pointer p-2 hover:bg-white/10 rounded-md"
+            >
+              <img src={user.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
+              <p className="text-xs mt-1 text-white">{user.name}</p>
+            </div>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 }

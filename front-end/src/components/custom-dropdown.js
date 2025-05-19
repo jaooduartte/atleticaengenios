@@ -39,14 +39,14 @@ export default function CustomDropdown({ icon: Icon, options, value, onChange, p
         {iconChanged ? <CaretDown className="absolute dark:text-white right-3 top-1/2 transform -translate-y-1/2" size={16} /> : <CaretDown className="absolute dark:text-white right-3 top-1/2 transform -translate-y-1/2" size={16} />}
       </button>
       {isOpen && (
-        <ul className="absolute z-50 mt-1 w-full bg-white/30 dark:bg-white/5 backdrop-blur-3xl border border-white/20 dark:border-white/5 rounded-xl shadow-md max-h-60 overflow-auto text-sm text-black dark:text-white">
-          {options.map((option) => (
+        <ul className="absolute z-50 mt-1 w-full bg-white/30 dark:bg-white/5 backdrop-blur-lg border border-white/20 dark:border-white/5 rounded-xl shadow-md max-h-60 overflow-auto text-sm text-black dark:text-white">
+          {(options || []).map((option) => (
             <li
-              key={option}
+              key={option.value}
               onClick={() => handleSelect(option)}
-              className="px-4 py-2 hover:bg-red-800 hover:text-white dark:hover:bg-[#0e1117] cursor-pointer whitespace-nowrap"
+              className="px-4 py-2 hover:bg-red-800 hover:text-white dark:hover:bg-gray-700 cursor-pointer whitespace-nowrap"
             >
-              {option}
+              {option.label}
             </li>
           ))}
         </ul>
