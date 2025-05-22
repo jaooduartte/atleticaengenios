@@ -693,7 +693,12 @@ function FinancialPage() {
             <CustomDropdown
               value={relates_to}
               onChange={setrelates_to}
-              options={['Eventos', 'Produtos', 'Jogos', 'Outros']}
+              options={[
+                { label: 'Eventos', value: 'Eventos' },
+                { label: 'Produtos', value: 'Produtos' },
+                { label: 'Jogos', value: 'Jogos' },
+                { label: 'Outros', value: 'Outros' },
+              ]}
               placeholder="Relacionado com"
               required
               isInvalid={isRelatesToInvalid}
