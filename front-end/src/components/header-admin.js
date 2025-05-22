@@ -90,17 +90,17 @@ export default function Header() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-8 w-48 bg-white dark:bg-gray-700 text-black dark:text-white rounded-lg shadow-lg z-50"
+                className="absolute right-0 mt-8 w-48 bg-white dark:bg-[#0e1117]/90 dark:backdrop-blur-lg dark:border dark:border-white/10 text-black dark:text-white rounded-lg shadow-lg z-50"
                 style={{ top: '50px' }}
               >
                 <Link href="/my-account">
-                  <div className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                  <div className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
                     <UserGear size={16} />
                     Minha conta
                   </div>
                 </Link>
                 <div className="relative group" onClick={() => setThemeDropdownOpen(prev => !prev)}>
-                  <div className="block px-4 py-2 flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                  <div className="block px-4 py-2 flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
                     <CaretLeft size={16} />
                     <span>Tema</span>
                   </div>
@@ -111,24 +111,24 @@ export default function Header() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-full top-0 mr-1 w-64 bg-white dark:bg-gray-700 text-black dark:text-white rounded-lg shadow-lg z-10"
+                        className="absolute right-full top-0 mr-1 w-64 bg-white/90 dark:bg-[#0e1117]/90 backdrop-blur-lg border dark:border-white/10 text-black dark:text-white rounded-lg shadow-xl dark:ring-white/10 z-10"
                       >
                         <div
-                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'dark' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
+                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg ${theme === 'dark' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('dark')}
                         >
                           <Image src="/theme/dark.png" alt="Tema escuro" width={50} height={38} className="mr-2 rounded border" />
                           Tema escuro
                         </div>
                         <div
-                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'light' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
+                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg ${theme === 'light' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('light')}
                         >
                           <Image src="/theme/light.png" alt="Tema claro" width={50} height={38} className="mr-2 rounded border" />
                           Tema claro
                         </div>
                         <div
-                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'system' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
+                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg ${theme === 'system' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('system')}
                         >
                           <Image src="/theme/system.png" alt="Corresponder ao sistema" width={50} height={38} className="mr-2 rounded border" />
@@ -140,7 +140,7 @@ export default function Header() {
                 </div>
                 <Link href="/login">
                   <div
-                    className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                    className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg"
                     onClick={() => {
                       localStorage.removeItem('token');
                       localStorage.removeItem('user');

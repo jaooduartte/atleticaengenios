@@ -90,7 +90,7 @@ export default function Header() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-8 w-48 bg-white dark:bg-gray-700 text-black dark:text-white rounded-lg shadow-lg z-50"
+                className="absolute right-0 mt-8 w-48 bg-white dark:bg-[#0e1117]/90 dark:backdrop-blur-lg dark:border dark:border-white/10 text-black dark:text-white rounded-lg shadow-lg z-50"
                 style={{ top: '50px' }}
               >
                 <Link href="/my-account">
@@ -111,7 +111,7 @@ export default function Header() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-full top-0 mr-1 w-64 bg-white dark:bg-gray-700 text-black dark:text-white rounded-lg shadow-lg z-10"
+                        className="absolute right-full top-0 mr-1 w-64 bg-white/90 dark:bg-[#0e1117]/90 backdrop-blur-lg border dark:border-white/10 text-black dark:text-white rounded-lg shadow-xl dark:ring-white/10 z-10"
                       >
                         <div
                           className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'dark' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}

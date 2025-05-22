@@ -30,6 +30,7 @@ function UsersPage() {
   const [userSession, setUserSession] = useState(null);
   const [isGestor, setIsGestor] = useState(false);
   const [usuariosSugestoes, setUsuariosSugestoes] = useState({});
+  const [estruturaInicialCarregada, setEstruturaInicialCarregada] = useState(false);
   const isUsuarioJaAdicionado = (userId) => {
     if (estruturaGestao.Presidente?.id === userId) return true;
     if (estruturaGestao['Vice-Presidente']?.id === userId) return true;
@@ -131,6 +132,47 @@ function UsersPage() {
         }
       });
   }, [fetchUsers]);
+  useEffect(() => {
+    if (abaSelecionada === 'gestoes' && !estruturaInicialCarregada && users.length > 0) {
+      const anoMaisRecente = Math.max(...gestoes);
+      if (gestaoSelecionada === anoMaisRecente) {
+        const novaEstrutura = {
+          Presidente: null,
+          'Vice-Presidente': null,
+          Diretores: {},
+          Trainees: {},
+          Conselheiros: [],
+        };
+
+        users.forEach(user => {
+          const { role, auth_id, name, photo } = user;
+          const membro = { id: auth_id, name, photo };
+
+          if (role === 'Presidente') novaEstrutura.Presidente = membro;
+          else if (role === 'Vice-Presidente') novaEstrutura['Vice-Presidente'] = membro;
+          else if (role === 'Conselheiro') novaEstrutura.Conselheiros.push(membro);
+          else if (role?.startsWith('Diretor') || role === 'Tesoureiro' || role === 'Secretário') {
+            if (!novaEstrutura.Diretores[role]) novaEstrutura.Diretores[role] = [];
+            novaEstrutura.Diretores[role].push(membro);
+          } else if (role?.startsWith('Trainee')) {
+            if (!novaEstrutura.Trainees[role]) novaEstrutura.Trainees[role] = [];
+            novaEstrutura.Trainees[role].push(membro);
+          }
+        });
+
+        setEstruturaGestao(novaEstrutura);
+        setEstruturaInicialCarregada(true);
+      }
+    }
+  }, [abaSelecionada, estruturaInicialCarregada, gestaoSelecionada, gestoes, users]);
+  useEffect(() => {
+    const isAnyModalOpen = isEditModalOpen || isGestaoModalOpen || modalCargoAberto;
+    document.body.style.overflow = isAnyModalOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isEditModalOpen, isGestaoModalOpen, modalCargoAberto]);
+
 
   useEffect(() => {
     const filtered = users.filter(user => {
@@ -336,21 +378,31 @@ function UsersPage() {
           >
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto mt-6">
               {gestoes.map((ano) => (
-                <div key={ano} className="relative bg-white dark:bg-white/10 rounded-xl p-6 shadow flex flex-col justify-between">
-                  <h3 className="text-xl font-bold text-red-800 dark:text-white">{ano}</h3>
-                  <button
-                    onClick={() => {
+                <div
+                  key={ano}
+                  onClick={() => {
+                    if (ano >= anoAtual) {
                       setGestaoSelecionada(ano);
                       setIsGestaoModalOpen(true);
-                    }}
-                    className="mt-4 text-sm bg-red-800 hover:bg-red-700 text-white rounded-lg px-4 py-2"
-                  >
-                    Ver diretoria
-                  </button>
-                  {/* Botão de remover gestão: só aparece se ano > anoAtual e usuário pode */}
+                    }
+                  }}
+                  className={`relative rounded-xl p-6 flex items-center justify-center text-center transition-all duration-200 ease-in-out transform ${
+                    ano >= anoAtual
+                      ? 'cursor-pointer bg-white dark:bg-white/10 shadow-md hover:scale-[1.03] hover:shadow-xl hover:bg-white/80 dark:hover:bg-white/20'
+                      : 'cursor-default bg-gray-200 dark:bg-white/5 opacity-50'
+                  }`}
+                  title={ano >= anoAtual ? 'Visualizar diretoria' : 'Dados históricos sem vínculo com usuários'}
+                >
+                  <h3 className="text-2xl font-bold text-red-800 dark:text-white">{ano}</h3>
+                  {ano < anoAtual && (
+                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-gray-500 dark:text-gray-300 pointer-events-none select-none">
+                      Sem informações
+                    </span>
+                  )}
                   {ano > anoAtual && isGestor && (
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setGestoes(gestoes.filter(a => a !== ano));
                       }}
                       className="absolute top-2 right-2 text-red-500 hover:text-red-700"
@@ -363,9 +415,40 @@ function UsersPage() {
               {/* Botão para adicionar nova gestão: só aparece se usuário pode */}
               {isGestor && (
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     const novoAno = Math.max(...gestoes) + 1;
                     setGestoes([...gestoes, novoAno]);
+
+                    const token = localStorage.getItem('token');
+                    const cargos = [];
+                    if (estruturaGestao.Presidente)
+                      cargos.push({ role: 'Presidente', user_id: estruturaGestao.Presidente.id });
+                    if (estruturaGestao['Vice-Presidente'])
+                      cargos.push({ role: 'Vice-Presidente', user_id: estruturaGestao['Vice-Presidente'].id });
+                    (estruturaGestao.Conselheiros || []).forEach(c =>
+                      cargos.push({ role: 'Conselheiro', user_id: c.id })
+                    );
+                    Object.entries(estruturaGestao.Diretores).forEach(([tipo, lista]) => {
+                      (lista || []).forEach(d => {
+                        if (d) cargos.push({ role: tipo, user_id: d.id });
+                      });
+                    });
+                    Object.entries(estruturaGestao.Trainees).forEach(([tipo, lista]) => {
+                      (lista || []).forEach(t => {
+                        if (t) cargos.push({ role: tipo, user_id: t.id });
+                      });
+                    });
+
+                    for (const c of cargos) {
+                      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/gestao/${novoAno}/membro`, {
+                        method: 'PUT',
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(c)
+                      });
+                    }
                   }}
                   className="border-2 border-dashed border-red-800 dark:border-white/20 rounded-xl text-red-800 dark:text-white p-6 hover:bg-red-800/5"
                 >
@@ -378,8 +461,6 @@ function UsersPage() {
       </div>
 
       <Footer />
-
-      {/* Modal de edição do usuário */}
       <Modal
         isOpen={isEditModalOpen}
         onRequestClose={() => setIsEditModalOpen(false)}
@@ -427,12 +508,11 @@ function UsersPage() {
         isOpen={isGestaoModalOpen}
         onRequestClose={() => setIsGestaoModalOpen(false)}
         overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50"
-        className="relative bg-white dark:bg-[#0e1117] p-4 rounded-xl shadow-lg w-full max-w-3xl max-h-[85vh] overflow-y-auto"
+        className="relative bg-white dark:bg-[#0e1117] text-gray-900 dark:text-white p-4 rounded-xl shadow-lg w-full max-w-3xl max-h-[85vh] overflow-y-auto"
       >
-        {/* Botão X minimalista no topo direito */}
         <button
           onClick={() => setIsGestaoModalOpen(false)}
-          className="absolute top-3 right-3 text-gray-400 hover:text-white text-xl"
+          className="absolute top-3 right-3 text-gray-400 hover:text-[#B3090F] dark:hover:text-gray-200 text-xl"
         >
           ×
         </button>
@@ -440,14 +520,14 @@ function UsersPage() {
         <div className="flex flex-col items-center gap-3 mt-3">
           {/* Nível 1: Presidente */}
           <div className="flex flex-col items-center pb-2">
-            <span className="font-bold text-red-600 mb-1">Presidente</span>
+            <span className="font-bold text-red-800 dark:text-white mb-1">Presidente</span>
             {estruturaGestao['Presidente'] ? (
               <div className="flex flex-col items-center">
                 <img src={estruturaGestao['Presidente'].photo || '/placeholder.png'} className="w-16 h-16 rounded-full" />
-                <p className="text-xs mt-1 text-white">{estruturaGestao['Presidente'].name}</p>
+                <p className="text-xs mt-1 text-gray-900 dark:text-white">{estruturaGestao['Presidente'].name}</p>
                 <button
                   onClick={() => setEstruturaGestao(prev => ({ ...prev, Presidente: null }))}
-                  className="text-red-500 text-xs mt-1"
+                  className="text-red-700 dark:text-red-400 text-xs mt-1"
                 >
                   Remover
                 </button>
@@ -458,27 +538,26 @@ function UsersPage() {
                   setCargoSelecionado('Presidente');
                   setModalCargoAberto(true);
                 }}
-                className="rounded-full border-2 border-dashed border-white/30 w-12 h-12 flex items-center justify-center text-white text-2xl"
+                className="rounded-full border-2 border-dashed dark:border-white/30 border-black/30 w-12 h-12 flex items-center justify-center dark:text-white text-black/30 text-2xl"
                 title="Adicionar Presidente"
               >
                 +
               </button>
             )}
           </div>
-          {/* Conector */}
-          <div className="w-1 h-5 bg-white/20" />
+          <div className="w-1 h-5 bg-gray-300 dark:bg-white/20" />
           {/* Nível 2: Vice-Presidente */}
           <div className="flex flex-row gap-6 justify-center pb-2">
             {/* Vice-Presidente */}
             <div className="flex flex-col items-center">
-              <span className="font-semibold text-red-400 mb-1">Vice-Presidente</span>
+              <span className="font-bold text-red-800 dark:text-white mb-1">Vice-Presidente</span>
               {estruturaGestao['Vice-Presidente'] ? (
                 <div className="flex flex-col items-center">
                   <img src={estruturaGestao['Vice-Presidente'].photo || '/placeholder.png'} className="w-14 h-14 rounded-full" />
-                  <p className="text-xs mt-1 text-white">{estruturaGestao['Vice-Presidente'].name}</p>
+                  <p className="text-xs mt-1 text-gray-900 dark:text-white">{estruturaGestao['Vice-Presidente'].name}</p>
                   <button
                     onClick={() => setEstruturaGestao(prev => ({ ...prev, ['Vice-Presidente']: null }))}
-                    className="text-red-500 text-xs mt-1"
+                    className="text-red-700 dark:text-red-400 text-xs mt-1"
                   >
                     Remover
                   </button>
@@ -489,7 +568,7 @@ function UsersPage() {
                     setCargoSelecionado('Vice-Presidente');
                     setModalCargoAberto(true);
                   }}
-                  className="rounded-full border-2 border-dashed border-white/30 w-10 h-10 flex items-center justify-center text-white text-xl"
+                  className="rounded-full border-2 border-dashed dark:border-white/30 border-black/30 w-10 h-10 flex items-center justify-center dark:text-white text-black/30 text-xl"
                   title="Adicionar Vice-Presidente"
                 >
                   +
@@ -498,11 +577,11 @@ function UsersPage() {
             </div>
           </div>
           {/* Conector */}
-          <div className="w-1 h-5 bg-white/20" />
+          <div className="w-1 h-5 bg-gray-300 dark:bg-white/20" />
           {/* Diretores */}
           <div className="flex flex-col items-center w-full pb-2">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <span className="font-semibold text-white">Diretores</span>
+              <span className="font-semibold text-gray-900 dark:text-white">Diretores</span>
             </div>
             <div className="flex flex-wrap gap-3 w-full justify-center">
               {Object.entries(estruturaGestao.Diretores)
@@ -510,14 +589,14 @@ function UsersPage() {
                 .map(([tipo, lista]) => (
                   <div
                     key={tipo}
-                    className={`bg-white/5 rounded-lg p-3 flex flex-col items-center min-w-[140px] ${lista.length === 1 ? 'justify-center' : ''
+                    className={`dark:bg-white/5 bg-gray-100 rounded-lg p-3 flex flex-col items-center min-w-[140px] ${lista.length === 1 ? 'justify-center' : ''
                       }`}
                   >
-                    <span className="font-semibold text-white text-xs mb-2">{tipo}</span>
+                    <span className="font-bold text-red-800 dark:text-white text-xs mb-2">{tipo}</span>
                     {lista.map((diretor, idx) => (
                       <div key={idx} className="flex flex-col items-center mb-3">
                         <img src={diretor.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
-                        <p className="text-xs mt-1 text-white">{diretor.name}</p>
+                        <p className="text-xs mt-1 text-gray-900 dark:text-white">{diretor.name}</p>
                         <button
                           onClick={() =>
                             setEstruturaGestao(prev => ({
@@ -528,7 +607,7 @@ function UsersPage() {
                               }
                             }))
                           }
-                          className="text-red-400 text-xs mt-1"
+                          className="text-red-700 dark:text-red-400 text-xs mt-1"
                         >
                           Remover
                         </button>
@@ -541,7 +620,7 @@ function UsersPage() {
                   setCargoSelecionado({ tipo: 'Diretores', tipoDiretor: '' });
                   setModalCargoAberto(true);
                 }}
-                className="rounded-lg border-2 border-dashed border-white/30 w-24 h-24 flex flex-col items-center justify-center text-white text-2xl bg-white/5 hover:bg-white/10 transition"
+                className="rounded-lg border-2 border-dashed dark:border-white/30 border-black/30 w-24 h-24 flex flex-col items-center justify-center dark:text-white text-black/30 text-2xl dark:bg-white/5 bg-gray-100 hover:bg-black/10 dark:hover:bg-white/10 transition"
                 title="Adicionar Diretor"
               >
                 <span className="text-xl">+</span>
@@ -552,7 +631,7 @@ function UsersPage() {
 
           <div className="flex flex-col items-center w-full pb-2 mt-4">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <span className="font-semibold text-white">Trainees</span>
+              <span className="font-semibold text-gray-900 dark:text-white">Trainees</span>
             </div>
             <div className="flex flex-wrap gap-3 w-full justify-center">
               {Object.entries(estruturaGestao.Trainees)
@@ -560,14 +639,14 @@ function UsersPage() {
                 .map(([tipo, lista]) => (
                   <div
                     key={tipo}
-                    className={`bg-white/5 rounded-lg p-3 flex flex-col items-center min-w-[140px] ${lista.length === 1 ? 'justify-center' : ''
+                    className={`dark:bg-white/5 bg-gray-100 rounded-lg p-3 flex flex-col items-center min-w-[140px] ${lista.length === 1 ? 'justify-center' : ''
                       }`}
                   >
-                    <span className="font-semibold text-white text-xs mb-2">{tipo}</span>
+                    <span className="font-bold text-red-800 dark:text-white text-xs mb-2">{tipo}</span>
                     {lista.map((trainee, idx) => (
                       <div key={idx} className="flex flex-col items-center mb-3">
                         <img src={trainee.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
-                        <p className="text-xs mt-1 text-white">{trainee.name}</p>
+                        <p className="text-xs mt-1 text-gray-900 dark:text-white">{trainee.name}</p>
                         <button
                           onClick={() =>
                             setEstruturaGestao(prev => ({
@@ -578,7 +657,7 @@ function UsersPage() {
                               }
                             }))
                           }
-                          className="text-red-400 text-xs mt-1"
+                          className="text-red-700 dark:text-red-400 text-xs mt-1"
                         >
                           Remover
                         </button>
@@ -591,7 +670,7 @@ function UsersPage() {
                   setCargoSelecionado({ tipo: 'Trainees', tipoTrainee: '' });
                   setModalCargoAberto(true);
                 }}
-                className="rounded-lg border-2 border-dashed border-white/30 w-24 h-24 flex flex-col items-center justify-center text-white text-2xl bg-white/5 hover:bg-white/10 transition"
+                className="rounded-lg border-2 border-dashed dark:border-white/30 border-black/30 w-24 h-24 flex flex-col items-center justify-center dark:text-white text-black/30 text-2xl dark:bg-white/5 bg-gray-100 hover:bg-black/10 dark:hover:bg-white/10 transition"
                 title="Adicionar Trainee"
               >
                 <span className="text-xl">+</span>
@@ -601,13 +680,14 @@ function UsersPage() {
           </div>
           <div className="flex flex-col items-center w-full pb-2 mt-4">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <span className="font-semibold text-white">Conselheiros</span>
+
+              <span className="font-semibold text-gray-900 dark:text-white">Conselheiros</span>
             </div>
             <div className="flex flex-wrap gap-3 w-full justify-center">
               {(estruturaGestao.Conselheiros || []).map((conselheiro, idx) => (
-                <div key={idx} className="bg-white/5 rounded-lg p-3 flex flex-col items-center min-w-[140px]">
+                <div key={idx} className="dark:bg-white/5 bg-gray-100 rounded-lg p-3 flex flex-col items-center min-w-[140px]">
                   <img src={conselheiro.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
-                  <p className="text-xs mt-1 text-white">{conselheiro.name}</p>
+                  <p className="text-xs mt-1 text-gray-900 dark:text-white">{conselheiro.name}</p>
                   <button
                     onClick={async () => {
                       const token = localStorage.getItem('token');
@@ -623,7 +703,7 @@ function UsersPage() {
                         Conselheiros: (prev.Conselheiros || []).filter((_, i) => i !== idx)
                       }));
                     }}
-                    className="text-red-400 text-xs mt-1"
+                    className="text-red-700 dark:text-red-400 text-xs mt-1"
                   >
                     Remover
                   </button>
@@ -634,7 +714,7 @@ function UsersPage() {
                   setCargoSelecionado('Conselheiro');
                   setModalCargoAberto(true);
                 }}
-                className="rounded-lg border-2 border-dashed border-white/30 w-24 h-24 flex flex-col items-center justify-center text-white text-2xl bg-white/5 hover:bg-white/10 transition"
+                className="rounded-lg border-2 border-dashed dark:border-white/30 border-black/30 w-24 h-24 flex flex-col items-center justify-center dark:text-white text-black/30 text-2xl dark:bg-white/5 bg-gray-100 hover:bg-black/10 dark:hover:bg-white/10 transition"
                 title="Adicionar Conselheiro"
               >
                 <span className="text-xl">+</span>
@@ -692,7 +772,7 @@ function UsersPage() {
               setIsGestaoModalOpen(false);
               showBannerMessage('Estrutura da diretoria salva!', 'success');
             }}
-            className="!bg-green-700 hover:!bg-green-600"
+            className="bg-[#B3090F] hover:bg-red-600 text-white font-semibold"
           >
             Salvar gestão
           </CustomButton>
@@ -771,7 +851,7 @@ function UsersPage() {
               key={user.id}
               onClick={() => {
                 if (isUsuarioJaAdicionado(user.auth_id)) {
-                  showBannerMessage('Usuário já foi adicionado em outro cargo', 'error');
+                  showBannerMessage('Erro ao adicionar usuário', 'error', 'Usuário já foi adicionado em outro cargo');
                   return;
                 }
                 if (typeof cargoSelecionado === 'string') {
@@ -817,10 +897,10 @@ function UsersPage() {
                 }
                 setModalCargoAberto(false);
               }}
-              className="flex items-center gap-3 cursor-pointer p-2 hover:bg-white/10 rounded-md"
+              className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-200 dark:hover:bg-white/10 rounded-2xl transition-colors"
             >
               <img src={user.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
-              <p className="text-xs mt-1 text-white">{user.name}</p>
+              <p className="text-xs mt-1 text-gray-800 dark:text-white">{user.name}</p>
             </div>
           ))}
         </div>
