@@ -1,7 +1,10 @@
 import Modal from 'react-modal';
+import React from 'react';
 import CustomButton from '../custom-buttom';
 
-Modal.setAppElement('#__next');
+if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+  Modal.setAppElement('#__next');
+}
 
 export default function ModalDesconected({ isOpen, onConfirm }) {
   return (
