@@ -32,8 +32,5 @@ jobs:
 
       - name: Upload coverage to SonarCloud
         uses: SonarSource/sonarcloud-github-action@master
-        with:
-          organization: jaooduartte
-          projectKey: atletica-engenios-frontend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

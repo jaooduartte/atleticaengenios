@@ -1,10 +1,10 @@
 import '../styles/globals.css';
 import { ThemeProvider } from 'next-themes';
 import Modal from 'react-modal';
-import React from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import ModalDesconected from '../components/modals/modal-desconected';
+import PropTypes from 'prop-types';
 
 if (typeof window !== 'undefined') {
   Modal.setAppElement('#__next');
@@ -38,12 +38,20 @@ export default function App({ Component, pageProps }) {
 
   useEffect(() => {
     (function (h, o, t, j, a, r) {
-      h.hj = h.hj || function () { (h.hj.q = h.hj.q || []).push(arguments) };
+      if (!h.hj) {
+        const queue = h.hj?.q || [];
+        h.hj = function () {
+          queue.push(arguments);
+        };
+        h.hj.q = queue;
+      }
       h._hjSettings = { hjid: 6412924, hjsv: 6 };
-      a = o.getElementsByTagName('head')[0];
-      r = o.createElement('script'); r.async = 1;
-      r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
-      a.appendChild(r);
+
+      const head = o.getElementsByTagName('head')[0];
+      const script = o.createElement('script');
+      script.async = true;
+      script.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
+      head.appendChild(script);
     })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
   }, []);
 
@@ -64,3 +72,8 @@ export default function App({ Component, pageProps }) {
     </ThemeProvider>
   );
 }
+
+App.propTypes = {
+  Component: PropTypes.elementType.isRequired,
+  pageProps: PropTypes.object.isRequired,
+};

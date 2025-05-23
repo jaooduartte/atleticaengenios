@@ -1,6 +1,7 @@
 import Modal from 'react-modal';
 import React from 'react';
 import CustomButton from '../custom-buttom';
+import PropTypes from 'prop-types';
 
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
   Modal.setAppElement('#__next');
@@ -31,3 +32,8 @@ export default function ModalDesconected({ isOpen, onConfirm }) {
     </Modal>
   );
 }
+
+ModalDesconected.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+};
