@@ -26,3 +26,11 @@ jobs:
 
       - name: Rodar testes
         run: npm run test -- --watchAll=false
+
+      - name: Rodar testes com coverage
+        run: npm test -- --coverage
+
+      - name: Upload coverage to SonarCloud
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

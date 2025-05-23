@@ -32,10 +32,8 @@ const createDirectoryStructure = () => {
           fs.mkdirSync(fullPath);
         }
         createFiles(fullPath, value);
-      } else {
-        if (!fs.existsSync(fullPath)) {
-          fs.writeFileSync(fullPath, value, 'utf8');
-        }
+      } else if (!fs.existsSync(fullPath)) {
+        fs.writeFileSync(fullPath, value, 'utf8');
       }
     }
   };

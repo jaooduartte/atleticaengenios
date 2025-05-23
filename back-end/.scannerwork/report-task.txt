@@ -1,0 +1,7 @@
+organization=jaooduartte
+projectKey=atletica-engenios-backend
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.63733
+dashboardUrl=https://sonarcloud.io/dashboard?id=atletica-engenios-backend
+ceTaskId=AZb9r95sz5Ufnr8Nx8Vp
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZb9r95sz5Ufnr8Nx8Vp

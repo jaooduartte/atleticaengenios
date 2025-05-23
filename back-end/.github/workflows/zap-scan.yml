@@ -1,0 +1,17 @@
+name: ZAP Scan
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.9.0
+        with:
+          target: 'https://atleticaengenios.vercel.app'
+          fail_action: false
+          allow_issue_writing: false
