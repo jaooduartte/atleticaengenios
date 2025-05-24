@@ -12,7 +12,6 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 export default function ResetPassword() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
-  const [themeIcon, setThemeIcon] = useState('system');
   const router = useRouter();
   const [linkInvalido, setLinkInvalido] = useState(false);
 
@@ -27,7 +26,6 @@ export default function ResetPassword() {
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerDescription, setBannerDescription] = useState('');
   const [bannerType, setBannerType] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const supabase = createClientComponentClient();
@@ -57,10 +55,6 @@ export default function ResetPassword() {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    setThemeIcon(theme);
-  }, [theme]);
 
   const toggleTheme = () => {
     if (theme === 'system') {
@@ -107,11 +101,8 @@ export default function ResetPassword() {
       return;
     }
 
-    setIsLoading(true);
     const supabase = createClientComponentClient();
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-
-    setIsLoading(false);
 
     if (error) {
       showBannerMessage(error.message || 'Erro ao redefinir senha.', 'error');
@@ -160,70 +151,68 @@ export default function ResetPassword() {
             <div className="text-lg max-w-sm">
               Este link de redefinição de senha é inválido ou já foi utilizado. Solicite uma nova redefinição de senha para continuar.
             </div>
-            <Link href="/login" legacyBehavior>
-              <a className="underline text-sm text-red-700 dark:text-red-300">Voltar ao login</a>
+            <Link href="/login" className="underline text-sm text-red-700 dark:text-red-300">
+              Voltar ao login
             </Link>
           </div>
         ) : (
-          <>
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="w-full flex justify-center">
-                <div className="relative w-full max-w-sm">
-                  <CustomField
-                    icon={Lock}
-                    type={showNewPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Digite a nova senha"
-                    name="newPassword"
-                    className="pr-10"
-                    isInvalid={isNewPasswordInvalid}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-                  >
-                    {showNewPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
-                  </button>
-                </div>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="w-full flex justify-center">
+              <div className="relative w-full max-w-sm">
+                <CustomField
+                  icon={Lock}
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Digite a nova senha"
+                  name="newPassword"
+                  className="pr-10"
+                  isInvalid={isNewPasswordInvalid}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+                >
+                  {showNewPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
+                </button>
               </div>
+            </div>
 
-              <div className="w-full flex justify-center">
-                <div className="relative w-full max-w-sm">
-                  <CustomField
-                    icon={Lock}
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirme a nova senha"
-                    name="confirmPassword"
-                    className="pr-10"
-                    isInvalid={isConfirmPasswordInvalid}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-                  >
-                    {showConfirmPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
-                  </button>
-                </div>
+            <div className="w-full flex justify-center">
+              <div className="relative w-full max-w-sm">
+                <CustomField
+                  icon={Lock}
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirme a nova senha"
+                  name="confirmPassword"
+                  className="pr-10"
+                  isInvalid={isConfirmPasswordInvalid}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+                >
+                  {showConfirmPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
+                </button>
               </div>
+            </div>
 
-              <div className="flex justify-center">
-                <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
-                  Redefinir senha
-                </CustomButton>
-              </div>
+            <div className="flex justify-center">
+              <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
+                Redefinir senha
+              </CustomButton>
+            </div>
 
-              <div className="text-center">
-                <Link href="/login" legacyBehavior>
-                  <a className="text-sm text-[#B3090F] dark:text-red-400 hover:underline">Voltar ao login</a>
-                </Link>
-              </div>
-            </form>
-          </>
+            <div className="text-center">
+              <Link href="/login" className="text-sm text-[#B3090F] dark:text-red-400 hover:underline">
+                Voltar ao login
+              </Link>
+            </div>
+          </form>
         )}
       </div>
     </div>

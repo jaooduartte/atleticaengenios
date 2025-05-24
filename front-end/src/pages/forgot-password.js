@@ -18,7 +18,7 @@ export default function ForgotPassword() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const supabase = createClientComponentClient();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => setMounted(true), []);
 
@@ -110,10 +110,11 @@ export default function ForgotPassword() {
           </div>
 
           <div className="text-center">
-            <Link href="/login" legacyBehavior>
-              <a className="text-sm text-[#B3090F] dark:text-red-400 hover:underline">
-                Voltar ao login
-              </a>
+            <Link
+              href="/login"
+              className="text-sm text-[#B3090F] dark:text-red-400 hover:underline"
+            >
+              Voltar ao login
             </Link>
           </div>
         </form>
