@@ -1,20 +1,15 @@
-/* eslint-disable @next/next/no-img-element */
-
-
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import CustomField from '../components/custom-field';
-import CustomButton from '../components/custom-buttom';
-import useAuth from '../hooks/useAuth';
-import Cropper from 'react-easy-crop';
+import CustomButton from '../components/custom-buttom';import Cropper from 'react-easy-crop';
 import Modal from 'react-modal';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import CustomDropdown from '../components/custom-dropdown';
 import Banner from '../components/banner';
-import { Camera, Eye, EyeSlash, UserCircle, Lock, Envelope, GenderIntersex, Cake, Student } from '@phosphor-icons/react'
+import { Camera, Eye, EyeSlash, UserCircle, Lock, GenderIntersex, Student } from '@phosphor-icons/react'
 
 export default function MyAccount() {
-    const user = useAuth();
     const [formData, setFormData] = useState({
         name: '',
         course: '',
@@ -27,7 +22,6 @@ export default function MyAccount() {
     const [selectedImage, setSelectedImage] = useState(null);
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
-    const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -89,7 +83,6 @@ export default function MyAccount() {
             });
 
             if (res.ok) {
-                const updatedUser = await res.json();
                 localStorage.setItem('user', JSON.stringify({ ...formData }));
 
                 showBannerMessage('Perfil atualizado com sucesso!', 'success', 'As alterações foram salvas corretamente.');
@@ -117,8 +110,7 @@ export default function MyAccount() {
         }
     };
 
-    const cropComplete = (_, croppedAreaPixels) => {
-        setCroppedAreaPixels(croppedAreaPixels);
+    const cropComplete = () => {
     };
 
     const applyCrop = () => {
@@ -142,9 +134,11 @@ export default function MyAccount() {
                 <div className="flex justify-center mb-8">
                     <div className="relative group w-20 h-20">
                         {formData.photo && (
-                            <img
+                            <Image
                                 src={formData.photo}
                                 alt="Foto de perfil"
+                                width={80}
+                                height={80}
                                 className="w-20 h-20 rounded-full object-cover shadow-md"
                             />)
                         }

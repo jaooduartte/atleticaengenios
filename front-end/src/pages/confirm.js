@@ -5,7 +5,7 @@ import { CheckCircle } from 'phosphor-react';
 
 export default function Confirm() {
   const router = useRouter();
-  const [redirecting, setRedirecting] = useState(false);
+  const [, setRedirecting] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
