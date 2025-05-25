@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { useEffect, useState, useCallback } from 'react';
 import { remove as removeAccents } from 'diacritics';
 import Header from '../../components/header-admin';
@@ -26,25 +27,23 @@ function UsersPage() {
   const [bannerDescription, setBannerDescription] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [cargo, setCargo] = useState('');
   const [userSession, setUserSession] = useState(null);
   const [isGestor, setIsGestor] = useState(false);
   const [usuariosSugestoes, setUsuariosSugestoes] = useState({});
   const [estruturaInicialCarregada, setEstruturaInicialCarregada] = useState(false);
+  // Funções auxiliares para verificar cargos
+  const verificaCargo = (cargo, userId) => cargo?.id === userId;
+  const verificaListaCargo = (cargo, userId) =>
+    Object.values(cargo).some(lista => lista.some(user => user.id === userId));
+  // Refatorada para menor complexidade
   const isUsuarioJaAdicionado = (userId) => {
-    if (estruturaGestao.Presidente?.id === userId) return true;
-    if (estruturaGestao['Vice-Presidente']?.id === userId) return true;
-    if (estruturaGestao.Conselheiro?.id === userId) return true;
-
-    const diretorJaExiste = Object.values(estruturaGestao.Diretores).some(lista =>
-      lista.some(user => user.id === userId)
+    return (
+      verificaCargo(estruturaGestao.Presidente, userId) ||
+      verificaCargo(estruturaGestao['Vice-Presidente'], userId) ||
+      (estruturaGestao.Conselheiros || []).some(user => user.id === userId) ||
+      verificaListaCargo(estruturaGestao.Diretores, userId) ||
+      verificaListaCargo(estruturaGestao.Trainees, userId)
     );
-    if (diretorJaExiste) return true;
-
-    const traineeJaExiste = Object.values(estruturaGestao.Trainees).some(lista =>
-      lista.some(user => user.id === userId)
-    );
-    return traineeJaExiste;
   };
   const buscarUsuarios = async (termo, cargo) => {
     if (termo.length < 2) {
@@ -86,8 +85,6 @@ function UsersPage() {
     Trainees: {},
     Conselheiros: [],
   });
-
-
   const showBannerMessage = (message, type, description = '') => {
     setBannerMessage(message);
     setBannerDescription(description);
@@ -95,7 +92,6 @@ function UsersPage() {
     setShowBanner(true);
     setTimeout(() => setShowBanner(false), 4500);
   };
-
   const fetchUsers = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
@@ -106,8 +102,13 @@ function UsersPage() {
       });
       const data = await response.json();
       if (response.ok) {
-        setUsers(data);
-        setFilteredUsers(data);
+        const dataOrdenada = data.sort((a, b) => {
+          const nomeA = (a.name || '').toLowerCase();
+          const nomeB = (b.name || '').toLowerCase();
+          return nomeA.localeCompare(nomeB, 'pt', { sensitivity: 'base' });
+        });
+        setUsers(dataOrdenada);
+        setFilteredUsers(dataOrdenada);
       } else {
         showBannerMessage('Erro ao carregar', 'error', 'Não foi possível carregar a lista de usuários.');
       }
@@ -172,8 +173,6 @@ function UsersPage() {
       document.body.style.overflow = '';
     };
   }, [isEditModalOpen, isGestaoModalOpen, modalCargoAberto]);
-
-
   useEffect(() => {
     const filtered = users.filter(user => {
       const normalizedSearch = removeAccents(searchTerm.toLowerCase());
@@ -250,7 +249,6 @@ function UsersPage() {
 
   const abrirModalEdicao = (user) => {
     setSelectedUser(user);
-    setCargo(user.role || '');
     setIsEditModalOpen(true);
   };
 
@@ -289,11 +287,10 @@ function UsersPage() {
         {/* Render condicional: usuários ou gestões com animação de transição */}
         <div className="relative">
           <div
-            className={`transition-opacity duration-300 ease-in-out ${
-              abaSelecionada === 'usuarios'
-                ? 'opacity-100'
-                : 'opacity-0 absolute inset-0 pointer-events-none'
-            }`}
+            className={`transition-opacity duration-300 ease-in-out ${abaSelecionada === 'usuarios'
+              ? 'opacity-100'
+              : 'opacity-0 absolute inset-0 pointer-events-none'
+              }`}
           >
             <div className="mb-6 max-w-md mx-auto">
               <CustomField
@@ -333,7 +330,7 @@ function UsersPage() {
                     <div className="text-sm">{user.email}</div>
                     <div className="text-sm">{user.role || 'Membro'}</div>
                     <div>
-                      <label className="inline-flex items-center cursor-pointer">
+                      <label aria-label="Admin Toggle" className="inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
                           checked={user.is_admin}
@@ -370,11 +367,10 @@ function UsersPage() {
             </div>
           </div>
           <div
-            className={`transition-opacity duration-300 ease-in-out ${
-              abaSelecionada === 'gestoes'
-                ? 'opacity-100'
-                : 'opacity-0 absolute inset-0 pointer-events-none'
-            }`}
+            className={`transition-opacity duration-300 ease-in-out ${abaSelecionada === 'gestoes'
+              ? 'opacity-100'
+              : 'opacity-0 absolute inset-0 pointer-events-none'
+              }`}
           >
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto mt-6">
               {gestoes.map((ano) => (
@@ -386,11 +382,10 @@ function UsersPage() {
                       setIsGestaoModalOpen(true);
                     }
                   }}
-                  className={`relative rounded-xl p-6 flex items-center justify-center text-center transition-all duration-200 ease-in-out transform ${
-                    ano >= anoAtual
-                      ? 'cursor-pointer bg-white dark:bg-white/10 shadow-md hover:scale-[1.03] hover:shadow-xl hover:bg-white/80 dark:hover:bg-white/20'
-                      : 'cursor-default bg-gray-200 dark:bg-white/5 opacity-50'
-                  }`}
+                  className={`relative rounded-xl p-6 flex items-center justify-center text-center transition-all duration-200 ease-in-out transform ${ano >= anoAtual
+                    ? 'cursor-pointer bg-white dark:bg-white/10 shadow-md hover:scale-[1.03] hover:shadow-xl hover:bg-white/80 dark:hover:bg-white/20'
+                    : 'cursor-default bg-gray-200 dark:bg-white/5 opacity-50'
+                    }`}
                   title={ano >= anoAtual ? 'Visualizar diretoria' : 'Dados históricos sem vínculo com usuários'}
                 >
                   <h3 className="text-2xl font-bold text-red-800 dark:text-white">{ano}</h3>
@@ -470,7 +465,7 @@ function UsersPage() {
       >
         <button
           onClick={() => setIsEditModalOpen(false)}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 hover:text-black text-xl"
+          className="absolute top-4 right-4 text-gray-500 hover:text-black text-xl"
         >
           ×
         </button>
@@ -487,16 +482,7 @@ function UsersPage() {
             <div><strong>Telefone:</strong> {selectedUser.phone || '-'}</div>
             <div><strong>Data de adesão:</strong> {new Date(selectedUser.created_at).toLocaleDateString('pt-BR')}</div>
             <div>
-              <strong>Idade:</strong> {selectedUser.birthday ? (() => {
-                const birth = new Date(selectedUser.birthday);
-                const today = new Date();
-                let age = today.getFullYear() - birth.getFullYear();
-                const m = today.getMonth() - birth.getMonth();
-                if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-                  age--;
-                }
-                return age + ' anos';
-              })() : '-'}
+              <strong>Idade:</strong> {selectedUser.birthday ? calcularIdade(selectedUser.birthday) : '-'}
             </div>
           </div>
         )}
@@ -523,7 +509,7 @@ function UsersPage() {
             <span className="font-bold text-red-800 dark:text-white mb-1">Presidente</span>
             {estruturaGestao['Presidente'] ? (
               <div className="flex flex-col items-center">
-                <img src={estruturaGestao['Presidente'].photo || '/placeholder.png'} className="w-16 h-16 rounded-full" />
+                <Image src={estruturaGestao['Presidente'].photo || '/placeholder.png'} alt='' width={40} height={40} className="w-16 h-16 rounded-full" />
                 <p className="text-xs mt-1 text-gray-900 dark:text-white">{estruturaGestao['Presidente'].name}</p>
                 <button
                   onClick={() => setEstruturaGestao(prev => ({ ...prev, Presidente: null }))}
@@ -553,7 +539,7 @@ function UsersPage() {
               <span className="font-bold text-red-800 dark:text-white mb-1">Vice-Presidente</span>
               {estruturaGestao['Vice-Presidente'] ? (
                 <div className="flex flex-col items-center">
-                  <img src={estruturaGestao['Vice-Presidente'].photo || '/placeholder.png'} className="w-14 h-14 rounded-full" />
+                  <Image src={estruturaGestao['Vice-Presidente'].photo || '/placeholder.png'} alt="" width={40} height={40} className="w-14 h-14 rounded-full" />
                   <p className="text-xs mt-1 text-gray-900 dark:text-white">{estruturaGestao['Vice-Presidente'].name}</p>
                   <button
                     onClick={() => setEstruturaGestao(prev => ({ ...prev, ['Vice-Presidente']: null }))}
@@ -584,37 +570,7 @@ function UsersPage() {
               <span className="font-semibold text-gray-900 dark:text-white">Diretores</span>
             </div>
             <div className="flex flex-wrap gap-3 w-full justify-center">
-              {Object.entries(estruturaGestao.Diretores)
-                .filter(([tipo, lista]) => (lista && lista.length > 0))
-                .map(([tipo, lista]) => (
-                  <div
-                    key={tipo}
-                    className={`dark:bg-white/5 bg-gray-100 rounded-lg p-3 flex flex-col items-center min-w-[140px] ${lista.length === 1 ? 'justify-center' : ''
-                      }`}
-                  >
-                    <span className="font-bold text-red-800 dark:text-white text-xs mb-2">{tipo}</span>
-                    {lista.map((diretor, idx) => (
-                      <div key={idx} className="flex flex-col items-center mb-3">
-                        <img src={diretor.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
-                        <p className="text-xs mt-1 text-gray-900 dark:text-white">{diretor.name}</p>
-                        <button
-                          onClick={() =>
-                            setEstruturaGestao(prev => ({
-                              ...prev,
-                              Diretores: {
-                                ...prev.Diretores,
-                                [tipo]: prev.Diretores[tipo].filter((_, i) => i !== idx)
-                              }
-                            }))
-                          }
-                          className="text-red-700 dark:text-red-400 text-xs mt-1"
-                        >
-                          Remover
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+              {renderDiretores(estruturaGestao, setEstruturaGestao)}
               <button
                 onClick={() => {
                   setCargoSelecionado({ tipo: 'Diretores', tipoDiretor: '' });
@@ -634,37 +590,7 @@ function UsersPage() {
               <span className="font-semibold text-gray-900 dark:text-white">Trainees</span>
             </div>
             <div className="flex flex-wrap gap-3 w-full justify-center">
-              {Object.entries(estruturaGestao.Trainees)
-                .filter(([tipo, lista]) => (lista && lista.length > 0))
-                .map(([tipo, lista]) => (
-                  <div
-                    key={tipo}
-                    className={`dark:bg-white/5 bg-gray-100 rounded-lg p-3 flex flex-col items-center min-w-[140px] ${lista.length === 1 ? 'justify-center' : ''
-                      }`}
-                  >
-                    <span className="font-bold text-red-800 dark:text-white text-xs mb-2">{tipo}</span>
-                    {lista.map((trainee, idx) => (
-                      <div key={idx} className="flex flex-col items-center mb-3">
-                        <img src={trainee.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
-                        <p className="text-xs mt-1 text-gray-900 dark:text-white">{trainee.name}</p>
-                        <button
-                          onClick={() =>
-                            setEstruturaGestao(prev => ({
-                              ...prev,
-                              Trainees: {
-                                ...prev.Trainees,
-                                [tipo]: prev.Trainees[tipo].filter((_, i) => i !== idx)
-                              }
-                            }))
-                          }
-                          className="text-red-700 dark:text-red-400 text-xs mt-1"
-                        >
-                          Remover
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ))}
+              {renderTrainees(estruturaGestao)}
               <button
                 onClick={() => {
                   setCargoSelecionado({ tipo: 'Trainees', tipoTrainee: '' });
@@ -684,31 +610,7 @@ function UsersPage() {
               <span className="font-semibold text-gray-900 dark:text-white">Conselheiros</span>
             </div>
             <div className="flex flex-wrap gap-3 w-full justify-center">
-              {(estruturaGestao.Conselheiros || []).map((conselheiro, idx) => (
-                <div key={idx} className="dark:bg-white/5 bg-gray-100 rounded-lg p-3 flex flex-col items-center min-w-[140px]">
-                  <img src={conselheiro.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
-                  <p className="text-xs mt-1 text-gray-900 dark:text-white">{conselheiro.name}</p>
-                  <button
-                    onClick={async () => {
-                      const token = localStorage.getItem('token');
-                      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/gestao/${gestaoSelecionada}/membro/Conselheiro?user_id=${conselheiro.id}`, {
-                        method: 'DELETE',
-                        headers: {
-                          Authorization: `Bearer ${token}`,
-                        },
-                      });
-
-                      setEstruturaGestao(prev => ({
-                        ...prev,
-                        Conselheiros: (prev.Conselheiros || []).filter((_, i) => i !== idx)
-                      }));
-                    }}
-                    className="text-red-700 dark:text-red-400 text-xs mt-1"
-                  >
-                    Remover
-                  </button>
-                </div>
-              ))}
+              {renderConselheiros(estruturaGestao, gestaoSelecionada, setEstruturaGestao)}
               <button
                 onClick={() => {
                   setCargoSelecionado('Conselheiro');
@@ -732,8 +634,9 @@ function UsersPage() {
                 cargos.push({ role: 'Presidente', user_id: estruturaGestao.Presidente.id });
               if (estruturaGestao['Vice-Presidente'])
                 cargos.push({ role: 'Vice-Presidente', user_id: estruturaGestao['Vice-Presidente'].id });
-              if (estruturaGestao.Conselheiro)
-                cargos.push({ role: 'Conselheiro', user_id: estruturaGestao.Conselheiro.id });
+              (estruturaGestao.Conselheiros || []).forEach(c =>
+                cargos.push({ role: 'Conselheiro', user_id: c.id })
+              );
               Object.entries(estruturaGestao.Diretores).forEach(([tipo, lista]) => {
                 (lista || []).forEach((d) => {
                   if (d) cargos.push({ role: tipo, user_id: d.id });
@@ -771,6 +674,7 @@ function UsersPage() {
               }
               setIsGestaoModalOpen(false);
               showBannerMessage('Estrutura da diretoria salva!', 'success');
+              fetchUsers();
             }}
             className="bg-[#B3090F] hover:bg-red-600 text-white font-semibold"
           >
@@ -790,14 +694,7 @@ function UsersPage() {
         className="bg-white dark:bg-[#0e1117] p-4 rounded-lg shadow-lg max-w-lg w-full"
       >
         <h3 className="text-xl mb-2 text-center dark:text-white">
-          Selecionar membro para:{' '}
-          {typeof cargoSelecionado === 'string'
-            ? cargoSelecionado
-            : cargoSelecionado?.tipo === 'Diretores'
-              ? 'Diretor'
-              : cargoSelecionado?.tipo === 'Trainees'
-                ? 'Trainee'
-                : ''}
+          Selecionar membro para: {getCargoLabel(cargoSelecionado)}
         </h3>
         {/* Dropdown para tipo de cargo se for Diretores/Trainees */}
         {cargoSelecionado?.tipo === 'Diretores' && (
@@ -838,75 +735,242 @@ function UsersPage() {
           name="busca"
         />
         <div className="mt-3 max-h-60 overflow-y-auto">
-          {(usuariosSugestoes[
-            typeof cargoSelecionado === 'string'
-              ? cargoSelecionado
-              : cargoSelecionado?.tipo === 'Diretores'
-                ? cargoSelecionado.tipoDiretor || ''
-                : cargoSelecionado?.tipo === 'Trainees'
-                  ? cargoSelecionado.tipoTrainee || ''
-                  : ''
-          ] || []).map(user => (
-            <div
-              key={user.id}
-              onClick={() => {
-                if (isUsuarioJaAdicionado(user.auth_id)) {
-                  showBannerMessage('Erro ao adicionar usuário', 'error', 'Usuário já foi adicionado em outro cargo');
-                  return;
-                }
-                if (typeof cargoSelecionado === 'string') {
-                  if (cargoSelecionado === 'Conselheiro') {
+          {(usuariosSugestoesKey => usuariosSugestoes[usuariosSugestoesKey] || [])(getUsuariosSugestoesKey(cargoSelecionado))
+            .map(user => (
+              <div
+                key={user.id}
+                onClick={() => {
+                  if (isUsuarioJaAdicionado(user.auth_id)) {
+                    showBannerMessage('Erro ao adicionar usuário', 'error', 'Usuário já foi adicionado em outro cargo');
+                    return;
+                  }
+                  if (typeof cargoSelecionado === 'string') {
+                    if (cargoSelecionado === 'Conselheiro') {
+                      setEstruturaGestao(prev => ({
+                        ...prev,
+                        Conselheiros: [...(prev.Conselheiros || []), {
+                          name: user.name,
+                          photo: user.photo,
+                          id: user.auth_id
+                        }]
+                      }));
+                    } else {
+                      setEstruturaGestao(prev => ({
+                        ...prev,
+                        [cargoSelecionado]: {
+                          name: user.name,
+                          photo: user.photo,
+                          id: user.auth_id
+                        }
+                      }));
+                    }
+                  } else if (cargoSelecionado?.tipo === 'Diretores') {
+                    const tipo = cargoSelecionado.tipoDiretor;
+                    if (!tipo) return;
                     setEstruturaGestao(prev => ({
                       ...prev,
-                      Conselheiros: [...(prev.Conselheiros || []), {
-                        name: user.name,
-                        photo: user.photo,
-                        id: user.auth_id
-                      }]
+                      Diretores: {
+                        ...prev.Diretores,
+                        [tipo]: [...(prev.Diretores[tipo] || []), { name: user.name, photo: user.photo, id: user.auth_id }]
+                      }
                     }));
-                  } else {
+                  } else if (cargoSelecionado?.tipo === 'Trainees') {
+                    const tipo = cargoSelecionado.tipoTrainee;
+                    if (!tipo) return;
                     setEstruturaGestao(prev => ({
                       ...prev,
-                      [cargoSelecionado]: {
-                        name: user.name,
-                        photo: user.photo,
-                        id: user.auth_id
+                      Trainees: {
+                        ...prev.Trainees,
+                        [tipo]: [...(prev.Trainees[tipo] || []), { name: user.name, photo: user.photo, id: user.auth_id }]
                       }
                     }));
                   }
-                } else if (cargoSelecionado?.tipo === 'Diretores') {
-                  const tipo = cargoSelecionado.tipoDiretor;
-                  if (!tipo) return;
-                  setEstruturaGestao(prev => ({
-                    ...prev,
-                    Diretores: {
-                      ...prev.Diretores,
-                      [tipo]: [...(prev.Diretores[tipo] || []), { name: user.name, photo: user.photo, id: user.auth_id }]
-                    }
-                  }));
-                } else if (cargoSelecionado?.tipo === 'Trainees') {
-                  const tipo = cargoSelecionado.tipoTrainee;
-                  if (!tipo) return;
-                  setEstruturaGestao(prev => ({
-                    ...prev,
-                    Trainees: {
-                      ...prev.Trainees,
-                      [tipo]: [...(prev.Trainees[tipo] || []), { name: user.name, photo: user.photo, id: user.auth_id }]
-                    }
-                  }));
-                }
-                setModalCargoAberto(false);
-              }}
-              className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-200 dark:hover:bg-white/10 rounded-2xl transition-colors"
-            >
-              <img src={user.photo || '/placeholder.png'} className="w-10 h-10 rounded-full" />
-              <p className="text-xs mt-1 text-gray-800 dark:text-white">{user.name}</p>
-            </div>
-          ))}
+                  setModalCargoAberto(false);
+                }}
+                className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-200 dark:hover:bg-white/10 rounded-2xl transition-colors"
+              >
+                <Image src={user.photo || '/placeholder.png'} alt={user.name || ''} width={40} height={40} className="w-10 h-10 rounded-full" />
+                <p className="text-xs mt-1 text-gray-800 dark:text-white">{user.name}</p>
+              </div>
+            ))}
         </div>
       </Modal>
     </div>
   );
+}
+
+// Função extraída para calcular idade
+function calcularIdade(birthday) {
+  const birth = new Date(birthday);
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age + ' anos';
+}
+
+// Função auxiliar para remover diretor
+async function handleRemoveDiretor(estruturaGestao, setEstruturaGestao, tipo, diretorId) {
+  setEstruturaGestao(prev => ({
+    ...prev,
+    Diretores: {
+      ...prev.Diretores,
+      [tipo]: prev.Diretores[tipo].filter((d) => d.id !== diretorId)
+    }
+  }));
+
+  // Atualiza no banco de dados
+  const token = localStorage.getItem('token');
+  await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${diretorId}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ role: null })
+  });
+}
+
+// Função extraída para renderizar diretores
+function renderDiretores(estruturaGestao, setEstruturaGestao) {
+  return Object.entries(estruturaGestao.Diretores)
+    .filter(([tipo, lista]) => (lista && lista.length > 0))
+    .map(([tipo, lista]) => (
+      <div
+        key={tipo}
+        className={`dark:bg-white/5 bg-gray-100 rounded-lg p-3 flex flex-col items-center min-w-[140px] ${lista.length === 1 ? 'justify-center' : ''
+          }`}
+      >
+        <span className="font-bold text-red-800 dark:text-white text-xs mb-2">{tipo}</span>
+        {lista.map((diretor) => (
+          <div key={diretor.id} className="flex flex-col items-center mb-3">
+            <Image src={diretor.photo || '/placeholder.png'} alt="" width={40} height={40} className="w-10 h-10 rounded-full" />
+            <p className="text-xs mt-1 text-gray-900 dark:text-white">{diretor.name}</p>
+            <button
+              onClick={() => handleRemoveDiretor(struturaGestao, setEstruturaGestao, tipo, diretor.id)}
+              className="text-red-700 dark:text-red-400 text-xs mt-1"
+            >
+              Remover
+            </button>
+          </div>
+        ))}
+      </div>
+    ));
+}
+
+async function handleRemoveTrainee(tipo, traineeId, setEstruturaGestao) {
+  setEstruturaGestao(prev => ({
+    ...prev,
+    Trainees: {
+      ...prev.Trainees,
+      [tipo]: prev.Trainees[tipo].filter((t) => t.id !== traineeId)
+    }
+  }));
+
+  const token = localStorage.getItem('token');
+  await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${traineeId}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ role: null })
+  });
+}
+
+// Função extraída para renderizar trainees
+function renderTrainees(estruturaGestao) {
+  return Object.entries(estruturaGestao.Trainees)
+    .filter(([tipo, lista]) => (lista && lista.length > 0))
+    .map(([tipo, lista]) => (
+      <div
+        key={tipo}
+        className={`dark:bg-white/5 bg-gray-100 rounded-lg p-3 flex flex-col items-center min-w-[140px] ${lista.length === 1 ? 'justify-center' : ''
+          }`}
+      >
+        <span className="font-bold text-red-800 dark:text-white text-xs mb-2">{tipo}</span>
+        {lista.map((trainee) => (
+          <div key={trainee.id} className="flex flex-col items-center mb-3">
+            <Image src={trainee.photo || '/placeholder.png'} alt="" width={40} height={40} className="w-10 h-10 rounded-full" />
+            <p className="text-xs mt-1 text-gray-900 dark:text-white">{trainee.name}</p>
+            <button
+              onClick={() => handleRemoveTrainee(tipo, trainee.id)}
+              className="text-red-700 dark:text-red-400 text-xs mt-1"
+            >
+              Remover
+            </button>
+          </div>
+        ))}
+      </div>
+    ));
+}
+
+async function handleRemoveConselheiro(conselheiroId, gestaoSelecionada, setEstruturaGestao) {
+  const token = localStorage.getItem('token');
+
+  // Remove do banco de dados
+  await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/gestao/${gestaoSelecionada}/membro/Conselheiro?user_id=${conselheiroId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${conselheiroId}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ role: null })
+  });
+
+  setEstruturaGestao(prev => ({
+    ...prev,
+    Conselheiros: (prev.Conselheiros || []).filter((c) => c.id !== conselheiroId)
+  }));
+}
+
+function renderConselheiros(estruturaGestao, gestaoSelecionada, setEstruturaGestao) {
+  return (estruturaGestao.Conselheiros || []).map((conselheiro) => (
+    <div key={conselheiro.id} className="dark:bg-white/5 bg-gray-100 rounded-lg p-3 flex flex-col items-center min-w-[140px]">
+      <Image src={conselheiro.photo || '/placeholder.png'} alt='' width={40} height={40} className="w-10 h-10 rounded-full" />
+      <p className="text-xs mt-1 text-gray-900 dark:text-white">{conselheiro.name}</p>
+      <button
+        onClick={() => handleRemoveConselheiro(conselheiro.id, gestaoSelecionada, setEstruturaGestao)}
+        className="text-red-700 dark:text-red-400 text-xs mt-1"
+      >
+        Remover
+      </button>
+    </div>
+  ));
+}
+
+// Função extraída para obter label do cargo selecionado
+function getCargoLabel(cargoSelecionado) {
+  let label = '';
+  if (typeof cargoSelecionado === 'string') {
+    label = cargoSelecionado;
+  } else if (cargoSelecionado?.tipo === 'Diretores') {
+    label = 'Diretor';
+  } else if (cargoSelecionado?.tipo === 'Trainees') {
+    label = 'Trainee';
+  }
+  return label;
+}
+
+// Função extraída para obter a chave de sugestões de usuários
+function getUsuariosSugestoesKey(cargoSelecionado) {
+  if (typeof cargoSelecionado === 'string') {
+    return cargoSelecionado;
+  } else if (cargoSelecionado?.tipo === 'Diretores') {
+    return cargoSelecionado.tipoDiretor || '';
+  } else if (cargoSelecionado?.tipo === 'Trainees') {
+    return cargoSelecionado.tipoTrainee || '';
+  }
+  return '';
 }
 
 import withAdminProtection from '../../utils/withAdminProtection';
