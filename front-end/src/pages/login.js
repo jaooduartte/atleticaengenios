@@ -8,13 +8,13 @@ import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import CustomDropdown from '../components/custom-dropdown';
 import { useTheme } from 'next-themes';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-const supabase = createClientComponentClient();
 
 export default function Login() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
-  const [themeIcon, setThemeIcon] = useState('system');
+  const [, setThemeIcon] = useState('system');
+
+  const [isSexInvalid, setIsSexInvalid] = useState(false);
 
   useEffect(() => {
     setThemeIcon(theme);
@@ -33,7 +33,7 @@ export default function Login() {
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerType, setBannerType] = useState('');
   const [bannerDescription, setBannerDescription] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
@@ -100,8 +100,41 @@ export default function Login() {
     router.push('/home');
   };
 
+  const validateRegisterFields = () => {
+    let isValid = true;
+
+    if (!name) {
+      setIsNameInvalid(true);
+      isValid = false;
+    }
+    if (!email) {
+      setIsEmailInvalid(true);
+      isValid = false;
+    }
+    if (!password) {
+      setIsPasswordInvalid(true);
+      isValid = false;
+    }
+    if (!course) {
+      setIsCourseInvalid(true);
+      isValid = false;
+    }
+    if (!sex) {
+      setIsSexInvalid(true);
+      isValid = false;
+    }
+    if (!birthday) {
+      setIsBirthdayInvalid(true);
+      isValid = false;
+    }
+    return isValid;
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
+    if (!validateRegisterFields()) {
+      return;
+    }
     setIsLoading(true);
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
@@ -177,7 +210,10 @@ export default function Login() {
                     icon={UserCircle}
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setIsEmailInvalid(false);
+                    }}
                     placeholder="Digite seu e-mail"
                     name="emailLogin"
                     isInvalid={isEmailInvalid}
@@ -190,7 +226,10 @@ export default function Login() {
                     icon={Lock}
                     type={showPassword ? 'text' : 'password'}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setIsPasswordInvalid(false);
+                    }}
                     placeholder="Digite sua senha"
                     name="passwordLogin"
                     className="pr-10"
@@ -206,10 +245,8 @@ export default function Login() {
                 </div>
               </div>
               <div className="text-center mt-2">
-                <Link href="/forgot-password" legacyBehavior>
-                  <a className="text-sm text-[#B3090F] dark:text-red-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B3090F] rounded">
-                    Esqueceu sua senha?
-                  </a>
+                <Link href="/forgot-password" className="text-sm text-[#B3090F] dark:text-red-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B3090F] rounded">
+                  Esqueceu sua senha?
                 </Link>
               </div>
               <div className="flex justify-center">
@@ -220,7 +257,9 @@ export default function Login() {
               <div className="text-center">
                 <p className="text-sm text-gray-700 dark:text-gray-400">
                   Não é um usuário?{' '}
-                  <a href="#" onClick={(e) => { e.preventDefault(); setIsRegistering(true); }} className="text-[#B3090F] dark:text-red-400 hover:underline">Cadastre-se!</a>
+                  <button type="button" onClick={() => setIsRegistering(true)} className="text-[#B3090F] dark:text-red-400 hover:underline">
+                    Cadastre-se!
+                  </button>
                 </p>
               </div>
             </form>
@@ -233,7 +272,10 @@ export default function Login() {
                 <CustomField
                   icon={UserCircle}
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setIsNameInvalid(false);
+                  }}
                   placeholder="Digite seu nome"
                   name="name"
                   isInvalid={isNameInvalid}
@@ -243,15 +285,22 @@ export default function Login() {
                 icon={Envelope}
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setIsEmailInvalid(false);
+                }}
                 placeholder="Digite seu e-mail"
                 name="email"
+                isInvalid={isEmailInvalid}
               />
               <div className="col-span-2 sm:col-span-1">
                 <CustomDropdown
                   icon={Student}
                   value={course}
-                  onChange={setCourse}
+                  onChange={(value) => {
+                    setCourse(value);
+                    setIsCourseInvalid(false);
+                  }}
                   options={[
                     'Engenharia de Software',
                     'Engenharia Civil',
@@ -268,9 +317,13 @@ export default function Login() {
                 <CustomDropdown
                   icon={GenderIntersex}
                   value={sex}
-                  onChange={setSex}
+                  onChange={(value) => {
+                    setSex(value);
+                    setIsSexInvalid(false);
+                  }}
                   options={['Masculino', 'Feminino', 'Outro']}
                   placeholder="Selecione o sexo"
+                  isInvalid={isSexInvalid}
                 />
               </div>
               <div className="col-span-2 sm:col-span-1">
@@ -278,7 +331,10 @@ export default function Login() {
                   icon={Cake}
                   type="date"
                   value={birthday}
-                  onChange={(e) => setBirthday(e.target.value)}
+                  onChange={(e) => {
+                    setBirthday(e.target.value);
+                    setIsBirthdayInvalid(false);
+                  }}
                   name="birthday"
                   isInvalid={isBirthdayInvalid}
                   className={!birthday ? 'text-gray-400' : 'text-black'}
@@ -290,10 +346,14 @@ export default function Login() {
                     icon={Lock}
                     type={showRegisterPassword ? 'text' : 'password'}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setIsPasswordInvalid(false);
+                    }}
                     placeholder="Digite sua senha"
                     name="password"
                     className="pr-10"
+                    isInvalid={isPasswordInvalid}
                   />
                   <button
                     type="button"
@@ -311,7 +371,9 @@ export default function Login() {
               </div>
               <p className="col-span-2 text-center text-sm text-gray-700 dark:text-gray-400">
                 Já tem um cadastro?{' '}
-                <a href="#" onClick={(e) => { e.preventDefault(); setIsRegistering(false); }} className="col-span-2 text-center text-sm text-[#B3090F] dark:text-red-400 hover:underline">Faça login!</a>
+                <button type="button" onClick={() => setIsRegistering(false)} className="col-span-2 text-center text-sm text-[#B3090F] dark:text-red-400 hover:underline">
+                  Faça login!
+                </button>
               </p>
             </form>
           </div>

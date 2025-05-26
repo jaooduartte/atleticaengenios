@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { twMerge } from 'tailwind-merge';
 
 export default function CustomField({
@@ -82,3 +83,17 @@ export default function CustomField({
     </div>
   );
 }
+
+CustomField.propTypes = {
+  icon: PropTypes.elementType,
+  type: PropTypes.string,
+  placeholder: PropTypes.string,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onChange: PropTypes.func,
+  name: PropTypes.string,
+  className: PropTypes.string,
+  isInvalid: PropTypes.bool,
+  children: PropTypes.node,
+  clearable: PropTypes.bool,
+  onClear: PropTypes.func,
+};

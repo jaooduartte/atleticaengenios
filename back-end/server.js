@@ -19,7 +19,6 @@ app.use(cors({
 }));app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
-
 app.post('/api/auth/login', authController.loginUser);
 app.get('/api/health', (req, res) => res.send('ok'));
 app.use('/api/auth', authRoutes);

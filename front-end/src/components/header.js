@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
-import { CaretDown, CaretLeft, Moon, SunDim, Gear, UserGear, SignOut } from 'phosphor-react';
+import { CaretDown, CaretLeft, UserGear, SignOut } from 'phosphor-react';
 import { useTheme } from 'next-themes';
 import useAuth from '../hooks/useAuth';
 import { AnimatePresence, motion } from 'framer-motion';

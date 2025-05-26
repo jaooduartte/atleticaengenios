@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 export default function Banner({ message, description, type }) {
   const [visible, setVisible] = useState(true);
@@ -29,12 +30,12 @@ export default function Banner({ message, description, type }) {
 
   if (!visible) return null;
 
-  const bannerClass =
-    type === 'error'
-      ? 'border-red-900 bg-red-900 text-white'
-      : type === 'success'
-        ? 'border-green-900 bg-green-900 text-white'
-        : 'border bg-background text-foreground';
+  let bannerClass = 'border bg-background text-foreground';
+  if (type === 'error') {
+    bannerClass = 'border-red-900 bg-red-900 text-white';
+  } else if (type === 'success') {
+    bannerClass = 'border-green-900 bg-green-900 text-white';
+  }
 
   return (
     <div
@@ -50,3 +51,9 @@ export default function Banner({ message, description, type }) {
     </div>
   );
 }
+
+Banner.propTypes = {
+  message: PropTypes.string.isRequired,
+  description: PropTypes.string,
+  type: PropTypes.string
+};

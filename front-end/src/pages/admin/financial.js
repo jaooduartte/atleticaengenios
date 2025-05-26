@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { HandArrowDown, HandArrowUp, MagnifyingGlass, DotsThreeVertical, WarningCircle, Funnel } from '@phosphor-icons/react';
+import * as react from '@phosphor-icons/react';
 import useAuth from '../../hooks/useAuth';
 import Header from '../../components/header-admin';
 import Footer from '../../components/footer-admin';
@@ -18,7 +18,52 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
+
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+
+function validateTransactionFields({ title, value, date, relates_to }, setInvalidFlags, showBannerMessage) {
+  const flags = {
+    isTitleInvalid: !title,
+    isValueInvalid: !value,
+    isDateInvalid: !date,
+    isRelatesToInvalid: !relates_to,
+  };
+
+  setInvalidFlags(flags);
+
+  if (Object.values(flags).some(Boolean)) {
+    showBannerMessage('Preencha todos os campos obrigatórios!', 'error');
+    return false;
+  }
+
+  return true;
+}
+
+function createNewTransaction({ title, value, date, relates_to, note, transactionType, user }) {
+  return {
+    title,
+    value: parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')),
+    date,
+    relates_to,
+    note,
+    type: transactionType,
+    user_id: user?.id,
+  };
+}
+
+function updateTransactionTotals(transactions, setTotalAmount, setTotalIncomes, setTotalExpenses) {
+  const total = transactions.reduce((acc, t) => {
+    const val = parseFloat(t.value);
+    return t.type === 'receita' ? acc + val : acc - val;
+  }, 0);
+  setTotalAmount(total);
+
+  const incomes = transactions.filter(t => t.type === 'receita').reduce((acc, t) => acc + parseFloat(t.value), 0);
+  const expenses = transactions.filter(t => t.type === 'despesa').reduce((acc, t) => acc + parseFloat(t.value), 0);
+
+  setTotalIncomes(incomes);
+  setTotalExpenses(expenses);
+}
 
 function FinancialPage() {
   const [showBanner, setShowBanner] = useState(false);
@@ -40,33 +85,24 @@ function FinancialPage() {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [note, setNote] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null);
-  const [selectedPeriod, setSelectedPeriod] = useState('last6months');
+  const [selectedPeriod] = useState('last6months');
   const [chartData, setChartData] = useState({ incomes: [], expenses: [], labels: [] });
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [selectedFilterColumn, setSelectedFilterColumn] = useState(null);
-
   const [isTitleInvalid, setIsTitleInvalid] = useState(false);
   const [isValueInvalid, setIsValueInvalid] = useState(false);
   const [isDateInvalid, setIsDateInvalid] = useState(false);
   const [isRelatesToInvalid, setIsRelatesToInvalid] = useState(false);
-
-  const [filterActive, setFilterActive] = useState({ tipo: false, valor: false, data: false, relates_to: false, user: false });
   const [isFilterApplied, setIsFilterApplied] = useState({ tipo: false, valor: false, data: false, relates_to: false, user: false });
   const [filterValues, setFilterValues] = useState({});
   const [filteredTransactions, setFilteredTransactions] = useState([]);
-  const [selectedFilter, setSelectedFilter] = useState(null);
+  const [selectedFilter] = useState(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
-  const [filterPosition, setFilterPosition] = useState({ top: 0, left: 0 });
+  const [filterPosition] = useState({ top: 0, left: 0 });
   const [filterMenuOptions, setFilterMenuOptions] = useState([]);
-  const [currentFilterValue, setCurrentFilterValue] = useState("");
-  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState(null);
+  
   const [isLoading, setIsLoading] = useState(false);
-  const menuRef = useRef(null);
-
-  const dropdownRef = useRef(null);
-  const filterMenuRef = useRef(null);  // Referência para o menu de filtro
+  const filterMenuRef = useRef(null);
 
   const filterButtonRefs = useRef({
     tipo: null,
@@ -76,6 +112,53 @@ function FinancialPage() {
     user: null,
   });
 
+  // Utility: check if a date is in the given range
+  const isDateInRange = (date, range) => {
+    const d = new Date(date);
+    const now = new Date();
+
+    if (range === 'Últimos 6 meses') {
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(now.getMonth() - 6);
+      return d >= sixMonthsAgo && d <= now;
+    }
+    if (range === 'Últimos 3 anos') {
+      const threeYearsAgo = new Date();
+      threeYearsAgo.setFullYear(now.getFullYear() - 3);
+      return d >= threeYearsAgo && d <= now;
+    }
+    return true;
+  };
+
+  // Utility: apply all filter conditions for a single transaction
+  function filterByTipo(transaction, tipo) {
+    if (!tipo) return true;
+    return transaction.type === (tipo === 'Entrada' ? 'receita' : 'despesa');
+  }
+
+  function filterByRelatesTo(transaction, relates_to) {
+    if (!relates_to) return true;
+    return transaction.relates_to === relates_to;
+  }
+
+  function filterByData(transaction, data) {
+    if (!data) return true;
+    return isDateInRange(transaction.date, data);
+  }
+
+  function filterByUser(transaction, user) {
+    if (!user) return true;
+    return transaction.user_name === user;
+  }
+
+  const applySingleFilter = (transaction, filters) => {
+    return (
+      filterByTipo(transaction, filters.tipo) &&
+      filterByRelatesTo(transaction, filters.relates_to) &&
+      filterByData(transaction, filters.data) &&
+      filterByUser(transaction, filters.user)
+    );
+  };
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -115,12 +198,11 @@ function FinancialPage() {
     fetchTransactions();
     const handleClickOutside = (event) => {
       if (filterMenuRef.current && !filterMenuRef.current.contains(event.target)) {
-        setShowFilterMenu(false);  // Fecha o menu de filtro
+        setShowFilterMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
 
-    // Remove o event listener quando o componente for desmontado
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -130,7 +212,6 @@ function FinancialPage() {
     const groupByMonth = () => {
       const monthMap = {};
 
-      // Obtendo a data atual e o limite para os últimos 6 meses
       const currentDate = new Date();
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
@@ -138,7 +219,6 @@ function FinancialPage() {
       transactions.forEach(t => {
         const transactionDate = new Date(t.date);
 
-        // Verifique se a transação está dentro dos últimos 6 meses
         if (transactionDate >= sixMonthsAgo) {
           const month = `${(transactionDate.getMonth() + 1).toString().padStart(2, '0')}/${transactionDate.getFullYear()}`;
           if (!monthMap[month]) {
@@ -148,7 +228,6 @@ function FinancialPage() {
         }
       });
 
-      // Ordenar os meses em ordem cronológica (mais recentes à direita)
       const labels = Object.keys(monthMap)
         .sort((a, b) => new Date(a.split('/').reverse().join('/')) - new Date(b.split('/').reverse().join('/')))
         .slice(0, 6);
@@ -199,61 +278,19 @@ function FinancialPage() {
     setFilterValues(newFilterValues);
     setIsFilterApplied(prev => ({ ...prev, [selectedFilterColumn]: true }));
 
-    setFilteredTransactions(transactions.filter(t => {
-      const conditions = [];
-      if (newFilterValues.tipo) conditions.push(t.type === (newFilterValues.tipo === 'Entrada' ? 'receita' : 'despesa'));
-      if (newFilterValues.relates_to) conditions.push(t.relates_to === newFilterValues.relates_to);
-      if (newFilterValues.data) {
-        const d = new Date(t.date);
-        const now = new Date();
-        if (newFilterValues.data === 'Últimos 6 meses') {
-          const sixMonthsAgo = new Date();
-          sixMonthsAgo.setMonth(now.getMonth() - 6);
-          conditions.push(d >= sixMonthsAgo && d <= now);
-        }
-        if (newFilterValues.data === 'Últimos 3 anos') {
-          const threeYearsAgo = new Date();
-          threeYearsAgo.setFullYear(now.getFullYear() - 3);
-          conditions.push(d >= threeYearsAgo && d <= now);
-        }
-      }
-      if (newFilterValues.user) conditions.push(t.user_name === newFilterValues.user);
-      return conditions.every(Boolean);
-    }));
+    const filtered = transactions.filter(t => applySingleFilter(t, newFilterValues));
+
+    setFilteredTransactions(filtered);
   };
+
   const clearFilters = (column) => {
     const updatedFilterValues = { ...filterValues };
     delete updatedFilterValues[column];
     setFilterValues(updatedFilterValues);
     setIsFilterApplied(prev => ({ ...prev, [column]: false }));
 
-    const newFiltered = transactions.filter(t => {
-      let valid = true;
-      if (updatedFilterValues.tipo) {
-        valid = valid && (t.type === (updatedFilterValues.tipo === 'Entrada' ? 'receita' : 'despesa'));
-      }
-      if (updatedFilterValues.relates_to) {
-        valid = valid && (t.relates_to === updatedFilterValues.relates_to);
-      }
-      if (updatedFilterValues.data) {
-        const d = new Date(t.date);
-        const now = new Date();
-        if (updatedFilterValues.data === 'Últimos 6 meses') {
-          const sixMonthsAgo = new Date();
-          sixMonthsAgo.setMonth(now.getMonth() - 6);
-          valid = valid && (d >= sixMonthsAgo && d <= now);
-        }
-        if (updatedFilterValues.data === 'Últimos 3 anos') {
-          const threeYearsAgo = new Date();
-          threeYearsAgo.setFullYear(now.getFullYear() - 3);
-          valid = valid && (d >= threeYearsAgo && d <= now);
-        }
-      }
-      if (updatedFilterValues.user) {
-        valid = valid && (t.user_name === updatedFilterValues.user);
-      }
-      return valid;
-    });
+    const newFiltered = transactions.filter(t => applySingleFilter(t, updatedFilterValues));
+
     setFilteredTransactions(Object.keys(updatedFilterValues).length === 0 ? transactions : newFiltered);
   };
 
@@ -268,9 +305,7 @@ function FinancialPage() {
     setIsModalOpen(true);
   };
 
-  const handlePeriodChange = (newPeriod) => {
-    setSelectedPeriod(newPeriod);
-  };
+
 
   const handleDeleteTransaction = (transaction) => {
     setTransactionToDelete(transaction);
@@ -301,48 +336,22 @@ function FinancialPage() {
   };
 
   const handleRegisterTransaction = async () => {
-    // Validação de campos obrigatórios
-    if (!title) {
-      setIsTitleInvalid(true);
-    } else {
-      setIsTitleInvalid(false);
-    }
+    const isValid = validateTransactionFields(
+      { title, value, date, relates_to },
+      ({ isTitleInvalid, isValueInvalid, isDateInvalid, isRelatesToInvalid }) => {
+        setIsTitleInvalid(isTitleInvalid);
+        setIsValueInvalid(isValueInvalid);
+        setIsDateInvalid(isDateInvalid);
+        setIsRelatesToInvalid(isRelatesToInvalid);
+      },
+      showBannerMessage
+    );
 
-    if (!value) {
-      setIsValueInvalid(true);
-    } else {
-      setIsValueInvalid(false);
-    }
-
-    if (!date) {
-      setIsDateInvalid(true);
-    } else {
-      setIsDateInvalid(false);
-    }
-
-    if (!relates_to) {
-      setIsRelatesToInvalid(true);
-    } else {
-      setIsRelatesToInvalid(false);
-    }
-
-    if (isTitleInvalid || isValueInvalid || isDateInvalid || isRelatesToInvalid) {
-      showBannerMessage('Preencha todos os campos obrigatórios!', 'error');
-      return;
-    }
+    if (!isValid) return;
 
     setIsLoading(true);
-    const newTransaction = {
-      title,
-      value: parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')),
-      date,
-      relates_to,
-      note,
-      type: transactionType,
-      user_id: user?.id,
-    };
 
-
+    const newTransaction = createNewTransaction({ title, value, date, relates_to, note, transactionType, user });
 
     try {
       const url = editingTransactionId
@@ -350,7 +359,7 @@ function FinancialPage() {
         : `${process.env.NEXT_PUBLIC_API_URL}/api/financial/transaction`;
       const method = editingTransactionId ? 'PUT' : 'POST';
 
-      const token = localStorage.getItem('token'); // PEGAR O TOKEN DO LOCALSTORAGE
+      const token = localStorage.getItem('token');
 
       const response = await fetch(url, {
         method,
@@ -364,39 +373,16 @@ function FinancialPage() {
       const data = await response.json();
 
       if (response.ok) {
-        const updatedTransaction = {
-          ...data,
-          user_name: user.name,
-        };
+        const updatedTransaction = { ...data, user_name: user.name };
 
-        let updatedTransactions = [];
-        if (editingTransactionId) {
-          updatedTransactions = transactions.map((t) =>
-            t.id === editingTransactionId ? updatedTransaction : t
-          );
-        } else {
-          updatedTransactions = [...transactions, updatedTransaction];
-        }
+        const updatedTransactions = editingTransactionId
+          ? transactions.map((t) => t.id === editingTransactionId ? updatedTransaction : t)
+          : [...transactions, updatedTransaction];
 
         setTransactions(updatedTransactions);
         setFilteredTransactions(updatedTransactions);
 
-        // Recalcular totais
-        const total = updatedTransactions.reduce((acc, t) => {
-          const val = parseFloat(t.value);
-          return t.type === 'receita' ? acc + val : acc - val;
-        }, 0);
-        setTotalAmount(total);
-
-        const incomes = updatedTransactions
-          .filter((t) => t.type === 'receita')
-          .reduce((acc, t) => acc + parseFloat(t.value), 0);
-        const expenses = updatedTransactions
-          .filter((t) => t.type === 'despesa')
-          .reduce((acc, t) => acc + parseFloat(t.value), 0);
-
-        setTotalIncomes(incomes);
-        setTotalExpenses(expenses);
+        updateTransactionTotals(updatedTransactions, setTotalAmount, setTotalIncomes, setTotalExpenses);
 
         showBannerMessage('Transação registrada com sucesso!', 'success');
         closeModal();
@@ -431,72 +417,6 @@ function FinancialPage() {
     }
   };
 
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: { position: 'top' },
-      title: { display: true, text: 'Gráfico de Receitas e Despesas' }
-    }
-  };
-
-  const applyTypeFilter = (value) => {
-    if (value === 'Entrada') {
-      setFilteredTransactions(transactions.filter(t => t.type === 'receita'));
-    } else if (value === 'Saída') {
-      setFilteredTransactions(transactions.filter(t => t.type === 'despesa'));
-    } else {
-      setFilteredTransactions(transactions);
-    }
-  };
-
-  const applyValueFilter = (order) => {
-    const sortedTransactions = [...transactions].sort((a, b) => {
-      const valueA = parseFloat(a.value);
-      const valueB = parseFloat(b.value);
-      return order === 'Maior valor' ? valueB - valueA : valueA - valueB;
-    });
-    setFilteredTransactions(sortedTransactions);
-  };
-
-  const applyDateFilter = (startDate, endDate) => {
-    setFilteredTransactions(transactions.filter(t => {
-      const transactionDate = new Date(t.date);
-      return transactionDate >= startDate && transactionDate <= endDate;
-    }));
-  };
-
-  const applyRelatesToFilter = (value) => {
-    setFilteredTransactions(transactions.filter(t => t.relates_to === value));
-  };
-
-  const applyUserFilter = (value) => {
-    setFilteredTransactions(transactions.filter(t => t.user_name === value));
-  };
-
-  const handleFilterSelection = (value) => {
-    setShowFilterMenu(false);
-    setCurrentFilterValue(value);
-    setFilterActive((prev) => ({ ...prev, [selectedFilter]: false }));
-    setSelectedFilter(null);
-    setShowFilterMenu(false);
-    // Aqui, aplique a lógica de filtro
-  }
-
-  const data = {
-    labels: chartData.labels,
-    datasets: [
-      {
-        label: 'Receitas',
-        data: chartData.incomes,
-        backgroundColor: '#166534',
-      },
-      {
-        label: 'Despesas',
-        data: chartData.expenses,
-        backgroundColor: '#991b1b',
-      },
-    ],
-  };
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
     if (isFilterApplied.valor) {
       const valueA = parseFloat(a.value);
@@ -522,7 +442,6 @@ function FinancialPage() {
       <div className="container mx-auto p-6 flex-grow">
         <h1 className="text-5xl font-bold mb-10 mt-4 text-center text-gray-800 dark:text-white">Gestão Financeira</h1>
 
-        {/* Cards for total values */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 text-white">
           <div className="m-4 bg-green-900 p-4 rounded-xl shadow-md text-center">
             <h3 className="text-md font-semibold mb-1">Total de Receita</h3>
@@ -573,14 +492,14 @@ function FinancialPage() {
                 className="flex flex-col items-center justify-center gap-1 bg-green-900 hover:bg-green-700 transition-colors text-white py-3 px-6 rounded-lg shadow text-xs font-medium w-full"
                 onClick={() => openModal('receita')}
               >
-                <HandArrowDown size={20} />
+                <react.HandArrowDown size={20} />
                 Entrada
               </button>
               <button
                 className="flex flex-col items-center justify-center gap-1 bg-red-900 hover:bg-red-700 transition-colors text-white py-3 px-6 rounded-lg shadow text-xs font-medium w-full"
                 onClick={() => openModal('despesa')}
               >
-                <HandArrowUp size={20} />
+                <react.HandArrowUp size={20} />
                 Saída
               </button>
             </div>
@@ -625,9 +544,6 @@ function FinancialPage() {
             </div>
           </div>
         </div>
-
-        {/* Removed the overall chart block as charts are now integrated within the cards */}
-
 
         <Modal
           isOpen={isModalOpen}
@@ -763,11 +679,10 @@ function FinancialPage() {
           </div>
         </Modal>
 
-        {/* Transaction Records as Cards */}
         <div className="mt-8 space-y-4 max-w-9xl mx-auto">
           <div className="mb-4 max-w-sm mx-auto">
             <CustomField
-              icon={MagnifyingGlass}
+              icon={react.MagnifyingGlass}
               name="search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -814,7 +729,7 @@ function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.tipo = el)}
                   onClick={() => isFilterApplied.tipo ? clearFilters('tipo') : toggleFilter('tipo')}
                 >
-                  <Funnel size={16} className='dark:text-white' />
+                  <react.Funnel size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -826,7 +741,7 @@ function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.valor = el)}
                   onClick={() => isFilterApplied.valor ? clearFilters('valor') : toggleFilter('valor')}
                 >
-                  <Funnel size={16} className='dark:text-white' />
+                  <react.Funnel size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -835,7 +750,7 @@ function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.data = el)}
                   onClick={() => isFilterApplied.data ? clearFilters('data') : toggleFilter('data')}
                 >
-                  <Funnel size={16} className='dark:text-white' />
+                  <react.Funnel size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -844,7 +759,7 @@ function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.relates_to = el)}
                   onClick={() => isFilterApplied.relates_to ? clearFilters('relates_to') : toggleFilter('relates_to')}
                 >
-                  <Funnel size={16} className='dark:text-white' />
+                  <react.Funnel size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -853,7 +768,7 @@ function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.user = el)}
                   onClick={() => isFilterApplied.user ? clearFilters('user') : toggleFilter('user')}
                 >
-                  <Funnel size={16} className='dark:text-white' />
+                  <react.Funnel size={16} className='dark:text-white' />
                 </button>
               </div>
             </div>
@@ -872,7 +787,7 @@ function FinancialPage() {
               <div className="grid grid-cols-2">
                 {filterMenuOptions.map((option, idx) => (
                   <button
-                    key={idx}
+                    key={option}
                     onClick={() => applyFilter(option)}
                     className="rounded-full hover:shadow-xl text-sm font-semibold hover:bg-transparent"
                   >
@@ -894,7 +809,7 @@ function FinancialPage() {
             transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
           ).length === 0 ? (
             <div className="flex flex-col items-center justify-center text-red-900 dark:text-red-400 rounded-xl px-8 py-12 text-center text-base max-w-2xl mx-auto mt-12 animate-fade-in space-y-4">
-              <WarningCircle size={64} />
+              <react.WarningCircle size={64} />
               <h3 className="text-2xl font-semibold">Nenhum resultado encontrado</h3>
               <p className="text-sm">Verifique se digitou corretamente o título da transação ou experimente outros termos para a busca.</p>
             </div>
@@ -904,8 +819,8 @@ function FinancialPage() {
                 transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
               )
               .slice(0, 100)
-              .map((transaction, index) => (
-                <div key={index} className="relative bg-white dark:bg-white/10 dark:border dark:border-white/10 flex justify-between rounded-xl shadow-md pr-6 py-8">
+              .map((transaction) => (
+                <div key={transaction.id} className="relative bg-white dark:bg-white/10 dark:border dark:border-white/10 flex justify-between rounded-xl shadow-md pr-6 py-8">
                   <div className="grid grid-cols-6 items-center gap-2 text-center flex-grow">
                     <div>
                       <span className={`text-xs font-medium px-4 py-0.5 rounded-full ${transaction.type === 'receita' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'}`}
@@ -925,7 +840,7 @@ function FinancialPage() {
                   <div className="w-12 flex justify-center items-center">
                     <div className="relative flex justify-end">
                       <div className=" relative group w-fit h-fit">
-                        <DotsThreeVertical size={24} className="text-gray-700 dark:text-white cursor-pointer" />
+                        <react.DotsThreeVertical size={24} className="text-gray-700 dark:text-white cursor-pointer" />
                         <div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
                           <button onClick={() => handleEditTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Editar transação</button>
                           <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-white/5 text-sm text-red-600 dark:text-red-400">Excluir transação</button>
@@ -953,9 +868,9 @@ function FinancialPage() {
         </button>
         <h2 className="text-xl font-bold mb-4 text-center text-gray-800 dark:text-white">Filtrar por:</h2>
         <div className="grid grid-cols-1 gap-3">
-          {filterMenuOptions.map((option, idx) => (
+          {filterMenuOptions.map((option) => (
             <button
-              key={idx}
+              key={option}
               onClick={() => {
                 applyFilter(option);
                 setIsFilterModalOpen(false);
@@ -974,12 +889,12 @@ function FinancialPage() {
       </Modal>
 
       <Footer />
-      <style jsx global>{`
+      <style>{`
               @keyframes fade-in {
                 from { opacity: 0; transform: translateY(10px); }
                 to { opacity: 1; transform: translateY(0); }
               }
- 
+
               .animate-fade-in {
                 animation: fade-in 0.4s ease-out;
               }
