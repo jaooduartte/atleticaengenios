@@ -7,7 +7,7 @@ import Banner from '../../components/banner';
 import CustomField from '../../components/custom-field';
 import Modal from 'react-modal';
 import CustomButton from '../../components/custom-buttom';
-import { MagnifyingGlass, DotsThreeVertical, Trash } from '@phosphor-icons/react';
+import { MagnifyingGlassIcon, DotsThreeVerticalIcon, TrashIcon } from '@phosphor-icons/react';
 import CustomDropdown from '../../components/custom-dropdown';
 
 function UsersPage() {
@@ -83,6 +83,7 @@ function UsersPage() {
     Trainees: {},
     Conselheiros: [],
   });
+  const [isSavingGestao, setIsSavingGestao] = useState(false);
   const showBannerMessage = (message, type, description = '') => {
     setBannerMessage(message);
     setBannerDescription(description);
@@ -290,7 +291,7 @@ function UsersPage() {
           >
             <div className="mb-6 max-w-md mx-auto">
               <CustomField
-                icon={MagnifyingGlass}
+                icon={MagnifyingGlassIcon}
                 name="search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -340,7 +341,7 @@ function UsersPage() {
                   </div>
                   <div className="w-[80px] flex justify-center items-center">
                     <div className="relative group w-fit h-fit">
-                      <DotsThreeVertical size={24} className="text-gray-700 dark:text-white cursor-pointer" />
+                      <DotsThreeVerticalIcon size={24} className="text-gray-700 dark:text-white cursor-pointer" />
                       <div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
                         <button
                           onClick={() => abrirModalEdicao(user)}
@@ -398,7 +399,7 @@ function UsersPage() {
                       }}
                       className="absolute top-2 right-2 text-red-500 hover:text-red-700"
                     >
-                      <Trash size={20} />
+                      <TrashIcon size={20} />
                     </button>
                   )}
                 </button>
@@ -615,6 +616,7 @@ function UsersPage() {
         <div className="flex justify-center pt-4">
           <CustomButton
             onClick={async () => {
+              setIsSavingGestao(true);
               const token = localStorage.getItem('token');
               const cargos = [];
               if (estruturaGestao.Presidente)
@@ -662,10 +664,12 @@ function UsersPage() {
               setIsGestaoModalOpen(false);
               showBannerMessage('Estrutura da diretoria salva!', 'success');
               fetchUsers();
+              setIsSavingGestao(false);
             }}
-            className="bg-[#B3090F] hover:bg-red-600 text-white font-semibold"
+            className={`bg-[#B3090F] hover:bg-red-600 ${isSavingGestao ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-600'} text-white font-semibold`}
+            disabled={isSavingGestao}
           >
-            Salvar gestão
+            {isSavingGestao ? 'Salvando...' : 'Salvar gestão'}
           </CustomButton>
         </div>
       </Modal>

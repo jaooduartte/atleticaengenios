@@ -16,6 +16,7 @@ export default function ForgotPassword() {
   const [bannerType, setBannerType] = useState('');
   const [bannerDescription, setBannerDescription] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const router = useRouter();
   const supabase = createClientComponentClient();
   const { theme, setTheme } = useTheme();
@@ -24,21 +25,24 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSending(true);
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (error) {
-      setBannerMessage(error.message || 'Erro ao enviar e-mail.');
-      setBannerDescription('Tente novamente mais tarde ou entre em contato com o suporte.');
+      setBannerMessage('Erro ao enviar e-mail.');
+      setBannerDescription('Verifique se o email foi digitado corretamente');
       setBannerType('error');
+      setIsSending(false);
     } else {
       setBannerMessage('Link enviado!');
       setBannerDescription('Verifique seu e-mail para redefinir a senha.');
       setBannerType('success');
       setTimeout(() => {
         router.push('/login');
+        setIsSending(false);
       }, 4500);
     }
     setShowBanner(true);
@@ -104,8 +108,12 @@ export default function ForgotPassword() {
             </div>
           </div>
           <div className="flex justify-center">
-            <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
-              ENVIAR LINK
+            <CustomButton 
+              type="submit" 
+              className={`bg-red-800 ${isSending ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#B3090F]'}`}
+              disabled={isSending}
+            >
+              {isSending ? 'Enviando...' : 'ENVIAR LINK'}
             </CustomButton>
           </div>
 

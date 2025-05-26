@@ -26,6 +26,7 @@ export default function ResetPassword() {
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerDescription, setBannerDescription] = useState('');
   const [bannerType, setBannerType] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     const supabase = createClientComponentClient();
@@ -78,6 +79,7 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsResetting(true);
 
     let hasError = false;
     if (!newPassword) {
@@ -94,10 +96,14 @@ export default function ResetPassword() {
       setIsConfirmPasswordInvalid(false);
     }
 
-    if (hasError) return;
+    if (hasError) {
+      setIsResetting(false);
+      return;
+    }
 
     if (newPassword !== confirmPassword) {
       showBannerMessage('As senhas não coincidem!', 'error', 'Digite novamente os campos corretamente.');
+      setIsResetting(false);
       return;
     }
 
@@ -106,10 +112,12 @@ export default function ResetPassword() {
 
     if (error) {
       showBannerMessage(error.message || 'Erro ao redefinir senha.', 'error');
+      setIsResetting(false);
     } else {
       showBannerMessage('Senha redefinida com sucesso!', 'success', 'Você será redirecionado ao login em instantes.');
       setTimeout(() => {
         router.push('/login');
+        setIsResetting(false);
       }, 4500);
     }
   };
@@ -202,8 +210,12 @@ export default function ResetPassword() {
             </div>
 
             <div className="flex justify-center">
-              <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
-                Redefinir senha
+              <CustomButton 
+                type="submit" 
+                className={`bg-red-800 ${isResetting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#B3090F]'}`}
+                disabled={isResetting}
+              >
+                {isResetting ? 'Redefinindo...' : 'Redefinir senha'}
               </CustomButton>
             </div>
 
