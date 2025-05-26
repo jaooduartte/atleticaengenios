@@ -16,7 +16,7 @@ app.use(cors({
     'https://atleticaengenios.vercel.app'
   ],
   credentials: true
-}));app.use(cors());
+}));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 app.post('/api/auth/login', authController.loginUser);
@@ -25,7 +25,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/financial', financialRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/auth', authRoutes);
 
 app.listen(3001, () => {
   console.log('Servidor rodando na porta 3001');
