@@ -11,10 +11,17 @@ const authController = require('./src/controllers/auth.controller');
 const app = express();
 
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://atleticaengenios.vercel.app'
-  ],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      origin === 'http://localhost:3000' ||
+      origin === 'https://atleticaengenios.vercel.app' ||
+      origin.startsWith('https://atleticaengenios-git')
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 app.use(bodyParser.json({ limit: '10mb' }));
