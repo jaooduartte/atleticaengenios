@@ -21,28 +21,31 @@ import { Bar } from 'react-chartjs-2';
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
-function validateTransactionFields({ title, value, date, relates_to }, setInvalidFlags, showBannerMessage) {
-  const flags = {
-    isTitleInvalid: !title,
-    isValueInvalid: !value,
-    isDateInvalid: !date,
-    isRelatesToInvalid: !relates_to,
-  };
+function validateTransactionFields(fields, setInvalidFlags, showBannerMessage) {
+  const requiredFields = ['title', 'value', 'date', 'relates_to'];
+  const flags = requiredFields.reduce((acc, field) => {
+    acc[`is${field.charAt(0).toUpperCase() + field.slice(1)}Invalid`] = !fields[field];
+    return acc;
+  }, {});
 
   setInvalidFlags(flags);
 
-  if (Object.values(flags).some(Boolean)) {
+  const hasInvalid = Object.values(flags).some(Boolean);
+  if (hasInvalid) {
     showBannerMessage('Preencha todos os campos obrigatórios!', 'error');
     return false;
   }
-
   return true;
+}
+
+function formatTransactionValue(value) {
+  return parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.'));
 }
 
 function createNewTransaction({ title, value, date, relates_to, note, transactionType, user }) {
   return {
     title,
-    value: parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')),
+    value: formatTransactionValue(value),
     date,
     relates_to,
     note,
@@ -102,6 +105,7 @@ function FinancialPage() {
   const [filterMenuOptions, setFilterMenuOptions] = useState([]);
   
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const filterMenuRef = useRef(null);
 
   const filterButtonRefs = useRef({
@@ -112,7 +116,6 @@ function FinancialPage() {
     user: null,
   });
 
-  // Utility: check if a date is in the given range
   const isDateInRange = (date, range) => {
     const d = new Date(date);
     const now = new Date();
@@ -130,7 +133,6 @@ function FinancialPage() {
     return true;
   };
 
-  // Utility: apply all filter conditions for a single transaction
   function filterByTipo(transaction, tipo) {
     if (!tipo) return true;
     return transaction.type === (tipo === 'Entrada' ? 'receita' : 'despesa');
@@ -398,6 +400,7 @@ function FinancialPage() {
   };
 
   const handleConfirmDelete = async () => {
+    setIsDeleting(true);
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/financial/transaction/${transactionToDelete.id}`, {
         method: 'DELETE',
@@ -414,6 +417,7 @@ function FinancialPage() {
       showBannerMessage("Erro de conexão", "error", "Não foi possível excluir a transação.");
     } finally {
       setTransactionToDelete(null);
+      setIsDeleting(false);
     }
   };
 
@@ -492,14 +496,14 @@ function FinancialPage() {
                 className="flex flex-col items-center justify-center gap-1 bg-green-900 hover:bg-green-700 transition-colors text-white py-3 px-6 rounded-lg shadow text-xs font-medium w-full"
                 onClick={() => openModal('receita')}
               >
-                <react.HandArrowDown size={20} />
+                <react.HandArrowDownIcon size={20} />
                 Entrada
               </button>
               <button
                 className="flex flex-col items-center justify-center gap-1 bg-red-900 hover:bg-red-700 transition-colors text-white py-3 px-6 rounded-lg shadow text-xs font-medium w-full"
                 onClick={() => openModal('despesa')}
               >
-                <react.HandArrowUp size={20} />
+                <react.HandArrowUpIcon size={20} />
                 Saída
               </button>
             </div>
@@ -545,102 +549,107 @@ function FinancialPage() {
           </div>
         </div>
 
-        <Modal
-          isOpen={isModalOpen}
-          onRequestClose={closeModal}
-          shouldCloseOnOverlayClick={true}
-          overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
-          className={`relative bg-white dark:bg-[#0e1117] dark:backdrop-blur-xl text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out ${transactionType === 'receita'
+        {(() => {
+          const borderClass = transactionType === 'receita'
             ? 'border-green-800 dark:border-green-600'
-            : 'border-red-800 dark:border-red-600'
-            } ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
-        >
-          <button
-            onClick={closeModal}
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 hover:text-black text-xl"
-          >
-            ×
-          </button>
-
-          <h2
-            className={`text-2xl mb-6 text-center font-bold 
-              ${transactionType === 'receita'
-                ? 'text-green-800 dark:text-green-600'
-                : 'text-red-800 dark:text-red-600'
-              }`}
-          >
-            {transactionType === 'receita' ? 'Adicionar Entrada' : 'Adicionar Saída'}
-          </h2>
-
-          <form className="space-y-4">
-            <CustomField
-              name="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Título da transação"
-              required
-              isInvalid={isTitleInvalid}
-            />
-            <CustomField
-              name="value"
-              value={value}
-              onChange={(e) => {
-                let input = e.target.value.replace(/[^\d]/g, '');
-                const number = (parseFloat(input) / 100).toFixed(2);
-                const formatted = Number(number).toLocaleString('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                });
-                setValue(formatted);
-              }}
-              placeholder="Valor"
-              required
-              isInvalid={isValueInvalid}
-            />
-            <CustomField
-              name="date"
-              type="date"
-              value={date}
-              className={!date ? 'text-gray-400' : 'text-black'}
-              onChange={(e) => setDate(e.target.value)}
-              required
-              isInvalid={isDateInvalid}
-            />
-            <CustomDropdown
-              value={relates_to}
-              onChange={setrelates_to}
-              options={[
-                { label: 'Eventos', value: 'Eventos' },
-                { label: 'Produtos', value: 'Produtos' },
-                { label: 'Jogos', value: 'Jogos' },
-                { label: 'Outros', value: 'Outros' },
-              ]}
-              placeholder="Relacionado com"
-              required
-              isInvalid={isRelatesToInvalid}
-            />
-
-            <CustomField
-              name="note"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Observações (opcional)"
-            />
-
-            <div className="flex justify-end gap-4 pt-4">
-              <CustomButton
-                type="button"
-                onClick={handleRegisterTransaction}
-                disabled={isLoading}
-                className={transactionType === 'receita'
-                  ? '!bg-green-800 hover:!bg-green-700 dark:!bg-green-600 dark:hover:!bg-green-700'
-                  : '!bg-red-800 hover:!bg-red-700 dark:!bg-red-600 dark:hover:!bg-red-700'}
+            : 'border-red-800 dark:border-red-600';
+          const textClass = transactionType === 'receita'
+            ? 'text-green-800 dark:text-green-600'
+            : 'text-red-800 dark:text-red-600';
+          const buttonClass = transactionType === 'receita'
+            ? `!bg-green-800 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:!bg-green-700 dark:hover:!bg-green-700'}`
+            : `!bg-red-800 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:!bg-red-700 dark:hover:!bg-red-700'}`;
+          const buttonText = isLoading ? 'Registrando...' : 'Registrar';
+          return (
+            <Modal
+              isOpen={isModalOpen}
+              onRequestClose={closeModal}
+              shouldCloseOnOverlayClick={true}
+              overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
+              className={`relative bg-white dark:bg-[#0e1117] dark:backdrop-blur-xl text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out ${borderClass} ${isModalOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+            >
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 text-gray-500 hover:text-black text-xl"
               >
-                {isLoading ? 'Registrando...' : 'Registrar'}
-              </CustomButton>
-            </div>
-          </form>
-        </Modal>
+                ×
+              </button>
+
+              <h2
+                className={`text-2xl mb-6 text-center font-bold ${textClass}`}
+              >
+                {transactionType === 'receita' ? 'Adicionar Entrada' : 'Adicionar Saída'}
+              </h2>
+
+              <form className="space-y-4">
+                <CustomField
+                  name="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Título da transação"
+                  required
+                  isInvalid={isTitleInvalid}
+                />
+                <CustomField
+                  name="value"
+                  value={value}
+                  onChange={(e) => {
+                    let input = e.target.value.replace(/[^\d]/g, '');
+                    const number = (parseFloat(input) / 100).toFixed(2);
+                    const formatted = Number(number).toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                    });
+                    setValue(formatted);
+                  }}
+                  placeholder="Valor"
+                  required
+                  isInvalid={isValueInvalid}
+                />
+                <CustomField
+                  name="date"
+                  type="date"
+                  value={date}
+                  className={!date ? 'text-gray-400' : 'text-black'}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                  isInvalid={isDateInvalid}
+                />
+                <CustomDropdown
+                  value={relates_to}
+                  onChange={setrelates_to}
+                  options={[
+                    { label: 'Eventos', value: 'Eventos' },
+                    { label: 'Produtos', value: 'Produtos' },
+                    { label: 'Jogos', value: 'Jogos' },
+                    { label: 'Outros', value: 'Outros' },
+                  ]}
+                  placeholder="Relacionado com"
+                  required
+                  isInvalid={isRelatesToInvalid}
+                />
+
+                <CustomField
+                  name="note"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Observações (opcional)"
+                />
+
+                <div className="flex justify-end gap-4 pt-4">
+                  <CustomButton
+                    type="button"
+                    onClick={handleRegisterTransaction}
+                    disabled={isLoading}
+                    className={buttonClass}
+                  >
+                    {buttonText}
+                  </CustomButton>
+                </div>
+              </form>
+            </Modal>
+          );
+        })()}
 
         <Modal
           isOpen={Boolean(transactionToDelete)}
@@ -672,9 +681,10 @@ function FinancialPage() {
             <CustomButton
               type="button"
               onClick={() => handleConfirmDelete()}
-              className="!bg-red-800 hover:!bg-red-700"
+              className={`!bg-red-800 ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:!bg-red-700'}`}
+              disabled={isDeleting}
             >
-              Excluir
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
             </CustomButton>
           </div>
         </Modal>
@@ -682,7 +692,7 @@ function FinancialPage() {
         <div className="mt-8 space-y-4 max-w-9xl mx-auto">
           <div className="mb-4 max-w-sm mx-auto">
             <CustomField
-              icon={react.MagnifyingGlass}
+              icon={react.MagnifyingGlassIcon}
               name="search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -729,7 +739,7 @@ function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.tipo = el)}
                   onClick={() => isFilterApplied.tipo ? clearFilters('tipo') : toggleFilter('tipo')}
                 >
-                  <react.Funnel size={16} className='dark:text-white' />
+                  <react.FunnelIcon size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -741,7 +751,7 @@ function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.valor = el)}
                   onClick={() => isFilterApplied.valor ? clearFilters('valor') : toggleFilter('valor')}
                 >
-                  <react.Funnel size={16} className='dark:text-white' />
+                  <react.FunnelIcon size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -750,7 +760,7 @@ function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.data = el)}
                   onClick={() => isFilterApplied.data ? clearFilters('data') : toggleFilter('data')}
                 >
-                  <react.Funnel size={16} className='dark:text-white' />
+                  <react.FunnelIcon size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -759,7 +769,7 @@ function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.relates_to = el)}
                   onClick={() => isFilterApplied.relates_to ? clearFilters('relates_to') : toggleFilter('relates_to')}
                 >
-                  <react.Funnel size={16} className='dark:text-white' />
+                  <react.FunnelIcon size={16} className='dark:text-white' />
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -768,7 +778,7 @@ function FinancialPage() {
                   ref={(el) => (filterButtonRefs.current.user = el)}
                   onClick={() => isFilterApplied.user ? clearFilters('user') : toggleFilter('user')}
                 >
-                  <react.Funnel size={16} className='dark:text-white' />
+                  <react.FunnelIcon size={16} className='dark:text-white' />
                 </button>
               </div>
             </div>
@@ -809,7 +819,7 @@ function FinancialPage() {
             transaction.title.toLowerCase().includes(searchTerm.toLowerCase())
           ).length === 0 ? (
             <div className="flex flex-col items-center justify-center text-red-900 dark:text-red-400 rounded-xl px-8 py-12 text-center text-base max-w-2xl mx-auto mt-12 animate-fade-in space-y-4">
-              <react.WarningCircle size={64} />
+              <react.WarningCircleIcon size={64} />
               <h3 className="text-2xl font-semibold">Nenhum resultado encontrado</h3>
               <p className="text-sm">Verifique se digitou corretamente o título da transação ou experimente outros termos para a busca.</p>
             </div>
@@ -840,7 +850,7 @@ function FinancialPage() {
                   <div className="w-12 flex justify-center items-center">
                     <div className="relative flex justify-end">
                       <div className=" relative group w-fit h-fit">
-                        <react.DotsThreeVertical size={24} className="text-gray-700 dark:text-white cursor-pointer" />
+                        <react.DotsThreeVerticalIcon size={24} className="text-gray-700 dark:text-white cursor-pointer" />
                         <div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
                           <button onClick={() => handleEditTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Editar transação</button>
                           <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-white/5 text-sm text-red-600 dark:text-red-400">Excluir transação</button>

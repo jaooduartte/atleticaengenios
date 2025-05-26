@@ -27,13 +27,14 @@ export default function Login() {
   const [sex, setSex] = useState('');
   const [birthday, setBirthday] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isRegisteringLoading, setIsRegisteringLoading] = useState(false);
   const router = useRouter();
 
   const [showBanner, setShowBanner] = useState(false);
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerType, setBannerType] = useState('');
   const [bannerDescription, setBannerDescription] = useState('');
-  const [, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
@@ -72,7 +73,7 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsLoggingIn(true);
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
       method: 'POST',
@@ -89,7 +90,7 @@ export default function Login() {
       } else {
         showBannerMessage(data.error || 'Erro ao fazer login', 'error', data.description || '');
       }
-      setIsLoading(false);
+      setIsLoggingIn(false);
       return;
     }
 
@@ -98,6 +99,7 @@ export default function Login() {
     localStorage.setItem('token_exp', payload.exp);
 
     router.push('/home');
+    setIsLoggingIn(false);
   };
 
   const validateRegisterFields = () => {
@@ -135,7 +137,7 @@ export default function Login() {
     if (!validateRegisterFields()) {
       return;
     }
-    setIsLoading(true);
+    setIsRegisteringLoading(true);
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
       method: 'POST',
@@ -167,7 +169,7 @@ export default function Login() {
       setIsRegistering(false);
     }
 
-    setIsLoading(false);
+    setIsRegisteringLoading(false);
   };
 
   return (
@@ -250,8 +252,12 @@ export default function Login() {
                 </Link>
               </div>
               <div className="flex justify-center">
-                <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
-                  ENTRAR
+                <CustomButton 
+                  type="submit" 
+                  className={`bg-red-800 ${isLoggingIn ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#B3090F]'}`}
+                  disabled={isLoggingIn}
+                >
+                  {isLoggingIn ? 'Entrando...' : 'ENTRAR'}
                 </CustomButton>
               </div>
               <div className="text-center">
@@ -365,8 +371,12 @@ export default function Login() {
                 </div>
               </div>
               <div className="col-span-2 flex justify-center">
-                <CustomButton type="submit" className={'bg-red-800 hover:bg-[#B3090F]'}>
-                  CADASTRAR
+                <CustomButton 
+                  type="submit" 
+                  className={`bg-red-800 ${isRegisteringLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#B3090F]'}`}
+                  disabled={isRegisteringLoading}
+                >
+                  {isRegisteringLoading ? 'Cadastrando...' : 'CADASTRAR'}
                 </CustomButton>
               </div>
               <p className="col-span-2 text-center text-sm text-gray-700 dark:text-gray-400">

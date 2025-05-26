@@ -7,7 +7,7 @@ import Header from '../components/header';
 import Footer from '../components/footer';
 import CustomDropdown from '../components/custom-dropdown';
 import Banner from '../components/banner';
-import { Camera, Eye, EyeSlash, UserCircle, Lock, GenderIntersex, Student } from '@phosphor-icons/react'
+import { CameraIcon, EyeIcon, EyeSlashIcon, UserCircleIcon, LockIcon, GenderIntersexIcon, StudentIcon } from '@phosphor-icons/react'
 
 export default function MyAccount() {
     const [formData, setFormData] = useState({
@@ -27,6 +27,7 @@ export default function MyAccount() {
     const [showPassword, setShowPassword] = useState(false);
 
     const [showBanner, setShowBanner] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [bannerType, setBannerType] = useState('');
     const [bannerMessage, setBannerMessage] = useState('');
     const [bannerDescription, setBannerDescription] = useState('');
@@ -71,6 +72,7 @@ export default function MyAccount() {
     };
 
     const handleSubmit = async () => {
+        setIsSaving(true);
         const token = localStorage.getItem('token');
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
@@ -88,13 +90,20 @@ export default function MyAccount() {
                 showBannerMessage('Perfil atualizado com sucesso!', 'success', 'As alterações foram salvas corretamente.');
                 setTimeout(() => {
                     window.location.href = '/home';
+                    setIsSaving(false);
                 }, 1000);
+                // setIsSaving(false); // já está no setTimeout
+                return;
             } else {
                 showBannerMessage('Erro ao atualizar perfil.', 'error');
+                setIsSaving(false);
+                return;
             }
         } catch (err) {
             console.error(err);
             showBannerMessage('Erro de conexão com o servidor', 'error');
+            setIsSaving(false);
+            return;
         }
     };
 
@@ -147,7 +156,7 @@ export default function MyAccount() {
                             htmlFor="profilePhoto"
                             className="absolute inset-0 backdrop-blur-sm bg-white/40 dark:bg-gray-800/40 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                         >
-                            <Camera size={28} className="text-[#B3090F]" />
+                            <CameraIcon size={28} className="text-[#B3090F]" />
                             <input
                                 id="profilePhoto"
                                 type="file"
@@ -162,7 +171,7 @@ export default function MyAccount() {
                 <div className="space-y-4">
                     <div className="max-w-sm mx-auto">
                         <CustomField
-                            icon={UserCircle}
+                            icon={UserCircleIcon}
                             name="name"
                             placeholder="Nome completo"
                             value={formData.name}
@@ -171,7 +180,7 @@ export default function MyAccount() {
                     </div>
                     <div className="max-w-sm mx-auto">
                         <CustomDropdown
-                            icon={Student}
+                            icon={StudentIcon}
                             value={formData.course}
                             onChange={(value) => setFormData(prev => ({ ...prev, course: value }))}
                             options={[
@@ -187,7 +196,7 @@ export default function MyAccount() {
                     </div>
                     <div className="max-w-sm mx-auto">
                         <CustomDropdown
-                            icon={GenderIntersex}
+                            icon={GenderIntersexIcon}
                             value={formData.sex}
                             onChange={(value) => setFormData(prev => ({ ...prev, sex: value }))}
                             options={['Masculino', 'Feminino', 'Outro']}
@@ -197,7 +206,7 @@ export default function MyAccount() {
                     <div className="max-w-sm mx-auto">
                         <div className="max-w-sm mx-auto relative">
                             <CustomField
-                                icon={Lock}
+                                icon={LockIcon}
                                 name="password"
                                 placeholder="Nova senha"
                                 value={formData.password}
@@ -210,14 +219,14 @@ export default function MyAccount() {
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
                             >
-                                {showPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
+                                {showPassword ? <EyeIcon size={20} /> : <EyeSlashIcon size={20} />}
                             </button>
                         </div>
                     </div>
                     <div className="max-w-sm mx-auto">
                         <div className="max-w-sm mx-auto relative">
                             <CustomField
-                                icon={Lock}
+                                icon={LockIcon}
                                 type={showConfirmPassword ? 'text' : 'password'}
                                 name="confirmPassword"
                                 placeholder="Confirmar senha"
@@ -230,16 +239,17 @@ export default function MyAccount() {
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
                             >
-                                {showConfirmPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
+                                {showConfirmPassword ? <EyeIcon size={20} /> : <EyeSlashIcon size={20} />}
                             </button>
                         </div>
                     </div>
                     <div className="flex justify-end">
                         <CustomButton
-                            className="!bg-[#B3090F] hover:!bg-red-600 mt-5"
+                            className={`!bg-[#B3090F] ${isSaving ? 'opacity-50 cursor-not-allowed' : 'hover:!bg-red-600'} mt-5`}
                             onClick={handleSubmit}
+                            disabled={isSaving}
                         >
-                            Salvar Alterações
+                            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
                         </CustomButton>
                     </div>
                 </div>

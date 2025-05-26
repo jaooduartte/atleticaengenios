@@ -39,16 +39,20 @@ export default function CustomDropdown({ icon: Icon, options, value, onChange, p
       </button>
       {isOpen && (
         <ul className="absolute z-50 mt-1 w-full bg-white/30 dark:bg-white/5 backdrop-blur-3xl border border-white/20 dark:border-white/5 rounded-xl shadow-md max-h-60 overflow-auto text-sm text-black dark:text-white">
-          {Array.isArray(options) && options.map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => handleSelect(option)}
-              className="w-full text-left px-4 py-2 hover:bg-red-800 hover:text-white dark:hover:bg-[#0e1117] cursor-pointer whitespace-nowrap"
-            >
-              {option}
-            </button>
-          ))}
+          {Array.isArray(options) && options.map((option) => {
+            const label = option.label || option;
+            const value = option.value || option;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => handleSelect(value)}
+                className="w-full text-left px-4 py-2 hover:bg-red-800 hover:text-white dark:hover:bg-[#0e1117] cursor-pointer whitespace-nowrap"
+              >
+                {label}
+              </button>
+            );
+          })}
         </ul>
       )}
     </div>
