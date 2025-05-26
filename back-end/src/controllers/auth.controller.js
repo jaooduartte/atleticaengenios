@@ -49,7 +49,7 @@ const resetPassword = async (req, res) => {
   const { accessToken, newPassword } = req.body;
 
   try {
-    const response = await fetch('https://pkfjmobhbnvlyvfxcptd.supabase.co/auth/v1/user', {
+    await fetch('https://pkfjmobhbnvlyvfxcptd.supabase.co/auth/v1/user', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
