@@ -103,7 +103,7 @@ function FinancialPage() {
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filterPosition] = useState({ top: 0, left: 0 });
   const [filterMenuOptions, setFilterMenuOptions] = useState([]);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const filterMenuRef = useRef(null);
@@ -402,13 +402,18 @@ function FinancialPage() {
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/financial/transaction/${transactionToDelete.id}`, {
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/financial/transaction/${transactionToDelete.id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (response.ok) {
         setTransactions((prev) => prev.filter((t) => t.id !== transactionToDelete.id));
-        showBannerMessage("Transação excluída com sucesso!", "error");
+        showBannerMessage("Transação excluída com sucesso!", "success");
       } else {
         showBannerMessage("Erro ao excluir", "error", "Tente novamente mais tarde.");
       }
