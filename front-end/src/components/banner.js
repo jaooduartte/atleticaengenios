@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
 
 export default function Banner({ message, description, type }) {
   const [visible, setVisible] = useState(true);
@@ -27,11 +26,6 @@ export default function Banner({ message, description, type }) {
       clearTimeout(hideTimer);
     };
   }, []);
-
-  const closeBanner = () => {
-    setHideClass('translate-y-[-100%] opacity-0');
-    setTimeout(() => setVisible(false), 500);
-  };
 
   if (!visible) return null;
 

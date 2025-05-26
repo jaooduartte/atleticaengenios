@@ -369,8 +369,9 @@ function UsersPage() {
           >
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto mt-6">
               {gestoes.map((ano) => (
-                <div
+                <button
                   key={ano}
+                  type="button"
                   onClick={() => {
                     if (ano >= anoAtual) {
                       setGestaoSelecionada(ano);
@@ -400,7 +401,7 @@ function UsersPage() {
                       <Trash size={20} />
                     </button>
                   )}
-                </div>
+                </button>
               ))}
               {isGestor && (
                 <button
