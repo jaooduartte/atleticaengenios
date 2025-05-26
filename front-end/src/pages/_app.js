@@ -17,7 +17,7 @@ export default function App({ Component, pageProps }) {
   useEffect(() => {
     if (['/login', '/confirm'].includes(router.pathname)) return;
 
-    const checkToken = () => {
+    const checkToken = async () => {
       const token = localStorage.getItem('token');
       const tokenExp = localStorage.getItem('token_exp');
 
