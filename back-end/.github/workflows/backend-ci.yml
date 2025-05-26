@@ -7,6 +7,8 @@ on:
   pull_request:
     paths:
       - 'back-end/**'
+  schedule:
+      - cron: '0 6 * * *'
 
 jobs:
   build:
@@ -29,3 +31,11 @@ jobs:
 
       - name: Rodar verificação de vulnerabilidades
         run: npm audit --audit-level=high
+
+  inativar-usuarios-inativos:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Requisição para inativar usuários inativos
+        run: |
+          curl -X POST https://atleticaengenios.onrender.com/api/admin/inativar-inativos

@@ -609,7 +609,12 @@ function FinancialPage() {
             <CustomDropdown
               value={relates_to}
               onChange={setrelates_to}
-              options={['Eventos', 'Produtos', 'Jogos', 'Outros']}
+              options={[
+                { label: 'Eventos', value: 'Eventos' },
+                { label: 'Produtos', value: 'Produtos' },
+                { label: 'Jogos', value: 'Jogos' },
+                { label: 'Outros', value: 'Outros' },
+              ]}
               placeholder="Relacionado com"
               required
               isInvalid={isRelatesToInvalid}
@@ -870,14 +875,14 @@ function FinancialPage() {
                 applyFilter(option);
                 setIsFilterModalOpen(false);
               }}
-              className="py-2 px-4 rounded-lg bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition text-center text-gray-800 dark:text-white font-medium"
+              className="py-2 px-4 rounded-lg bg-gray-300 dark:bg-white/10 hover:bg-gray-400 dark:hover:bg-white/20 transition text-center text-gray-800 dark:text-white font-medium"
             >
               {option}
             </button>
           ))}
         </div>
         <div className="flex justify-center mt-4">
-          <CustomButton type="button" className={'dark:bg-black dark:hover:bg-white/5'} onClick={() => setIsFilterModalOpen(false)}>
+          <CustomButton type="button" className={'bg-gray-800 hover:bg-gray-600 dark:bg-black dark:hover:bg-white/5'} onClick={() => setIsFilterModalOpen(false)}>
             Fechar
           </CustomButton>
         </div>

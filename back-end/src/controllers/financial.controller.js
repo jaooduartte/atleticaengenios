@@ -1,15 +1,12 @@
 const financialService = require('../services/financial.service');
 
-// Function to create a new transaction (income/expense)
 const createTransaction = async (req, res) => {
     try {
         const { title, value, date, relates_to, user_id, type, note } = req.body;
 
-        // Verifique o valor de relates_to aqui
         console.log('relates_to no backend:', relates_to);
 
-        // Se não tiver user_id, insira um valor genérico
-        const finalUserId = user_id || 0; // ID genérico padrão como BIGINT
+        const finalUserId = user_id || 0;
 
         if (!title || !value || !date || !relates_to || finalUserId === undefined || finalUserId === null || isNaN(finalUserId) || !type) {
             return res.status(400).json({ message: 'Missing or invalid required fields' });

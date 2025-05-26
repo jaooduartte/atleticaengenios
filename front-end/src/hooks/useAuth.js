@@ -19,12 +19,11 @@ export default function useAuth() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('API URL em uso:', process.env.NEXT_PUBLIC_API_URL);
+        
 
         if (res.ok) {
-            const text = await res.text();
-            console.log('Resposta da API /me:', text);
-            const data = JSON.parse(text);
+          const text = await res.text();
+          const data = JSON.parse(text);
           setUser({
             id: Number(data.user?.id),
             name: data.user?.name || 'Usuário',

@@ -12,7 +12,7 @@ export default function ModalDesconected({ isOpen, onConfirm }) {
     <Modal
       isOpen={isOpen}
       onRequestClose={onConfirm}
-      className="bg-white dark:bg-gray-800 p-6 rounded-xl max-w-lg mx-auto mt-20 shadow-lg"
+      className="bg-white dark:bg-[#0e1117]/70 backdrop-blur-3xl p-6 rounded-xl max-w-lg mx-auto mt-20 shadow-lg"
       overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[999]"
     >
       <div className="text-center">

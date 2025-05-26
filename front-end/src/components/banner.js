@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
 import PropTypes from 'prop-types';
 
 export default function Banner({ message, description, type }) {
@@ -29,11 +28,6 @@ export default function Banner({ message, description, type }) {
     };
   }, []);
 
-  const closeBanner = () => {
-    setHideClass('translate-y-[-100%] opacity-0');
-    setTimeout(() => setVisible(false), 500);
-  };
-
   if (!visible) return null;
 
   let bannerClass = 'border bg-background text-foreground';
@@ -47,14 +41,11 @@ export default function Banner({ message, description, type }) {
     <div
       className={`fixed top-4 left-1/2 transform -translate-x-1/2 py-3 z-[999] px-4 pr-6 w-96 rounded-md ${bannerClass} shadow-lg transition-all duration-500 ease-in-out ${hideClass}`}
     >
-      <div className="flex justify-between items-start">
+      <div className="flex justify-center items-start text-center">
         <div>
           <p className="font-semibold">{message}</p>
           {description && <p className="text-xs mt-1 opacity-90">{description}</p>}
         </div>
-        <button onClick={closeBanner} className="text-white hover:text-gray-200 mt-0.5">
-          <X className="h-4 w-4" />
-        </button>
       </div>
       <div className="absolute bottom-0.5 right-1 h-1 bg-white rounded-xl opacity-50" style={{ width: `${progress}%`, transition: 'width 0.1s linear' }} />
     </div>

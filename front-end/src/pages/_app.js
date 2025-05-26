@@ -29,6 +29,15 @@ export default function App({ Component, pageProps }) {
       if (now > expTime) {
         setShowModal(true);
       }
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data?.is_active === false) {
+        setShowModal(true);
+      }
     };
 
     checkToken();
