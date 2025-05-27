@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#B3090F] dark:bg-red-900 text-white py-6">
+    <footer className="bg-[#B3090F] dark:bg-red-950 text-white py-6">
       <div className="flex justify-center space-x-6">
         <Link href="https://www.instagram.com/atleticaengenios" target="_blank">
           <InstagramLogo size={30} className="hover:text-red-500 transform hover:scale-110 transition duration-300" />

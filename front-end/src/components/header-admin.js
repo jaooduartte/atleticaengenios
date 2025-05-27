@@ -39,12 +39,12 @@ export default function Header() {
       </div>
       <nav className="absolute left-1/2 transform -translate-x-1/2 flex gap-8 z-10">
         {[
-          { href: "/admin/home", label: "Inicio" },
-          { href: "/admin/financial", label: "Financeiro" },
-          { href: "/admin/products", label: "Produtos" },
-          { href: "/admin/events", label: "Eventos" },
-          { href: "/admin/forms", label: "Formulários" },
-          { href: "/admin/users", label: "Usuários" },
+          { href: "/admin/inicio", label: "Inicio" },
+          { href: "/admin/financeiro", label: "Financeiro" },
+          { href: "/admin/produtos", label: "Produtos" },
+          { href: "/admin/eventos", label: "Eventos" },
+          { href: "/admin/formularios", label: "Formulários" },
+          { href: "/admin/usuarios", label: "Usuários" },
         ].map(({ href, label }) => (
           <Link href={href} key={label} className="group relative">
             <span className="transition-colors duration-300 group-hover:text-gray-200">{label}</span>
@@ -55,8 +55,8 @@ export default function Header() {
 
       <div className="flex items-center gap-10 ml-auto">
         <div>
-          <Link href="/home">
-            <button className="bg-[#B3090F] dark:bg-red-900 hover:bg-red-600 dark:hover:bg-red-800 hover:scale-[1.03] transition text-white px-4 py-2 rounded-lg">
+          <Link href="/inicio">
+            <button className="bg-[#B3090F] dark:bg-red-950 hover:bg-red-600 dark:hover:bg-red-900 hover:scale-[1.03] transition text-white px-4 py-2 rounded-lg">
               Área Usuários
             </button>
           </Link>
@@ -93,14 +93,14 @@ export default function Header() {
                 className="absolute right-0 mt-8 w-48 bg-white dark:bg-[#0e1117]/90 dark:backdrop-blur-lg dark:border dark:border-white/10 text-black dark:text-white rounded-lg shadow-lg z-50"
                 style={{ top: '50px' }}
               >
-                <Link href="/my-account">
-                  <div className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
+                <Link href="/minha-conta">
+                  <div className="px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
                     <UserGear size={16} />
                     Minha conta
                   </div>
                 </Link>
                 <div className="relative group" onClick={() => setThemeDropdownOpen(prev => !prev)}>
-                  <div className="block px-4 py-2 flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
+                  <div className="px-4 py-2 flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
                     <CaretLeft size={16} />
                     <span>Tema</span>
                   </div>
@@ -140,7 +140,7 @@ export default function Header() {
                 </div>
                 <Link href="/login">
                   <div
-                    className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg"
+                    className="px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg"
                     onClick={() => {
                       localStorage.removeItem('token');
                       localStorage.removeItem('user');

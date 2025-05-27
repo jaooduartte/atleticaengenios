@@ -33,17 +33,17 @@ export default function Header() {
   }, []);
 
   return (
-  <header className="bg-[#B3090F] dark:bg-red-900 text-white py-4 px-8 flex items-center justify-between relative">
+  <header className="bg-[#B3090F] dark:bg-red-950 text-white py-4 px-8 flex items-center justify-between relative">
       <div className="flex items-center">
         <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={100} height={100}/>
       </div>
       <nav className="absolute left-1/2 transform -translate-x-1/2 flex gap-8 z-10">
         {[
-          { href: "/home", label: "Início" },
-          { href: "/products", label: "Produtos" },
-          { href: "/events", label: "Eventos" },
-          { href: "/forms", label: "Formulários" },
-          { href: "/about", label: "Sobre" },
+          { href: "/inicio", label: "Início" },
+          { href: "/produtos", label: "Produtos" },
+          { href: "/eventos", label: "Eventos" },
+          { href: "/formularios", label: "Formulários" },
+          { href: "/sobre", label: "Sobre" },
         ].map(({ href, label }) => (
           <Link href={href} key={label} className="group relative">
             <span className="transition-colors duration-300 group-hover:text-gray-200">{label}</span>
@@ -54,8 +54,8 @@ export default function Header() {
       <div className='flex items-center justify-between gap-10 '>
       {user && user.is_admin && (
           <div>
-            <Link href="/admin/home">
-              <button className="bg-black dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 hover:scale-[1.03] transition text-white px-4 py-2 rounded-lg">
+            <Link href="/admin/inicio">
+              <button className="bg-black hover:bg-[#0e1117] hover:scale-[1.03] transition text-white px-4 py-2 rounded-lg">
                 Área Admin
               </button>
             </Link>
@@ -93,14 +93,14 @@ export default function Header() {
                 className="absolute right-0 mt-8 w-48 bg-white dark:bg-[#0e1117]/90 dark:backdrop-blur-lg dark:border dark:border-white/10 text-black dark:text-white rounded-lg shadow-lg z-50"
                 style={{ top: '50px' }}
               >
-                <Link href="/my-account">
-                  <div className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                <Link href="/minha-conta">
+                  <div className="px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
                     <UserGear size={16}/>
                     Minha conta
                   </div>
                 </Link>
                 <div className="relative group" onClick={() => setThemeDropdownOpen(prev => !prev)}>
-                  <div className="block px-4 py-2 flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                  <div className="px-4 py-2 flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg">
                     <CaretLeft size={16}/>
                     <span>Tema</span>
                   </div>
@@ -114,21 +114,21 @@ export default function Header() {
                         className="absolute right-full top-0 mr-1 w-64 bg-white/90 dark:bg-[#0e1117]/90 backdrop-blur-lg border dark:border-white/10 text-black dark:text-white rounded-lg shadow-xl dark:ring-white/10 z-10"
                       >
                         <div
-                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'dark' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
+                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg ${theme === 'dark' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('dark')}
                         >
                           <Image src="/theme/dark.png" alt="Tema escuro" width={50} height={38} className="mr-2 rounded border" />
                           Tema escuro
                         </div>
                         <div
-                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'light' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
+                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg ${theme === 'light' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('light')}
                         >
                           <Image src="/theme/light.png" alt="Tema claro" width={50} height={38} className="mr-2 rounded border" />
                           Tema claro
                         </div>
                         <div
-                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg ${theme === 'system' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
+                          className={`flex items-center px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg ${theme === 'system' ? 'text-[#B3090F] dark:text-red-400 font-bold' : ''}`}
                           onClick={() => setTheme('system')}
                         >
                           <Image src="/theme/system.png" alt="Corresponder ao sistema" width={50} height={38} className="mr-2 rounded border" />
@@ -140,7 +140,7 @@ export default function Header() {
                 </div>
                 <Link href="/login">
                   <div
-                    className="block px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                    className="px-4 py-2 flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg"
                     onClick={() => {
                       localStorage.removeItem('token');
                       localStorage.removeItem('user');

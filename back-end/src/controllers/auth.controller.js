@@ -80,7 +80,7 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   const userId = req.user.userId;
-  const { name, course, sex, photo } = req.body;
+  const { name, course, sex, photo, instagram, modalities, phone } = req.body;
   try {
     let photoUrl;
     if (photo?.startsWith('data:image')) {
@@ -90,6 +90,9 @@ const updateProfile = async (req, res) => {
       name,
       course,
       sex,
+      phone,
+      instagram,
+      modalities,
       ...(photoUrl && { photo: photoUrl }),
     });
     res.json({ message: 'Perfil atualizado com sucesso.' });
