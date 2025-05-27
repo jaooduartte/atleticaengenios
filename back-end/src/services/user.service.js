@@ -38,7 +38,7 @@ const createUserMetadata = async (uid, metadata, email) => {
 
 const getUserById = async (id) => {
   const result = await db.query(
-    'SELECT id, name, course, sex, role, photo, is_admin FROM users WHERE auth_id = $1',
+    'SELECT id, name, course, sex, role, photo, is_admin, phone, instagram, modalities FROM users WHERE auth_id = $1',
     [id]
   );
   return result.rows[0];

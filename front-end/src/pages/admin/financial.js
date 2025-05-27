@@ -103,7 +103,6 @@ function FinancialPage() {
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filterPosition] = useState({ top: 0, left: 0 });
   const [filterMenuOptions, setFilterMenuOptions] = useState([]);
-
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const filterMenuRef = useRef(null);
@@ -274,6 +273,7 @@ function FinancialPage() {
         setFilterMenuOptions([]);
     }
   };
+
   const applyFilter = (filterValue) => {
     setShowFilterMenu(false);
     const newFilterValues = { ...filterValues, [selectedFilterColumn]: filterValue };
@@ -306,8 +306,6 @@ function FinancialPage() {
     setTransactionType(transaction.type);
     setIsModalOpen(true);
   };
-
-
 
   const handleDeleteTransaction = (transaction) => {
     setTransactionToDelete(transaction);
