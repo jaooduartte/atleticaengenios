@@ -436,7 +436,7 @@ function FinancialPage() {
   return (
     <div className="financial-page flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">
       <Header />
-
+      <title>Financeiro | Área Admin</title>
       {showBanner && (
         <Banner
           message={bannerMessage}
