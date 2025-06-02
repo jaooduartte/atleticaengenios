@@ -30,6 +30,39 @@ export default function ResetPassword() {
   const [bannerType, setBannerType] = useState('');
   const [isResetting, setIsResetting] = useState(false);
 
+  const renderPasswordField = ({
+    label,
+    value,
+    setValue,
+    isInvalid,
+    show,
+    setShow,
+    name,
+    placeholder
+  }) => (
+    <div className="w-full flex justify-center">
+      <div className="relative w-full max-w-sm">
+        <CustomField
+          icon={Lock}
+          type={show ? 'text' : 'password'}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={placeholder}
+          name={name}
+          className="pr-10"
+          isInvalid={isInvalid}
+        />
+        <button
+          type="button"
+          onClick={() => setShow(!show)}
+          className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+        >
+          {show ? <Eye size={20} /> : <EyeSlash size={20} />}
+        </button>
+      </div>
+    </div>
+  );
+
   useEffect(() => {
     const supabase = createClientComponentClient();
     const urlParams = new URLSearchParams(window.location.search);
@@ -171,49 +204,27 @@ export default function ResetPassword() {
             </div>
           ) : (
             <form className="space-y-4" onSubmit={handleSubmit}>
-              <div className="w-full flex justify-center">
-                <div className="relative w-full max-w-sm">
-                  <CustomField
-                    icon={Lock}
-                    type={showNewPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Digite a nova senha"
-                    name="newPassword"
-                    className="pr-10"
-                    isInvalid={isNewPasswordInvalid}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-                  >
-                    {showNewPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
-                  </button>
-                </div>
-              </div>
+              {renderPasswordField({
+                label: 'Nova senha',
+                value: newPassword,
+                setValue: setNewPassword,
+                isInvalid: isNewPasswordInvalid,
+                show: showNewPassword,
+                setShow: setShowNewPassword,
+                name: 'newPassword',
+                placeholder: 'Digite a nova senha'
+              })}
 
-              <div className="w-full flex justify-center">
-                <div className="relative w-full max-w-sm">
-                  <CustomField
-                    icon={Lock}
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirme a nova senha"
-                    name="confirmPassword"
-                    className="pr-10"
-                    isInvalid={isConfirmPasswordInvalid}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-                  >
-                    {showConfirmPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
-                  </button>
-                </div>
-              </div>
+              {renderPasswordField({
+                label: 'Confirmar nova senha',
+                value: confirmPassword,
+                setValue: setConfirmPassword,
+                isInvalid: isConfirmPasswordInvalid,
+                show: showConfirmPassword,
+                setShow: setShowConfirmPassword,
+                name: 'confirmPassword',
+                placeholder: 'Confirme a nova senha'
+              })}
 
               <div className="flex justify-center">
                 <PasswordRequirements password={newPassword} confirmPassword={confirmPassword} />

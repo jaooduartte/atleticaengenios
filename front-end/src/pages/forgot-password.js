@@ -22,6 +22,41 @@ export default function ForgotPassword() {
   const supabase = createClientComponentClient();
   const { theme, setTheme } = useTheme();
 
+  const renderBackgroundImage = () => (
+    <div className="absolute inset-0 z-0">
+      <Image
+        src="/photos-login/1.png"
+        alt="Plano de fundo"
+        layout="fill"
+        objectFit="cover"
+        className="brightness-[.20]"
+        priority
+      />
+    </div>
+  );
+
+  const toggleTheme = () => {
+    if (theme === 'system') {
+      setTheme('light');
+    } else if (theme === 'light') {
+      setTheme('dark');
+    } else {
+      setTheme('system');
+    }
+  };
+
+  const renderThemeToggle = () => (
+    <button
+      onClick={toggleTheme}
+      className="absolute top-4 right-4 z-50 backdrop-blur-3xl bg-white/20 dark:bg-[#0e1117]/70 p-2 rounded-full shadow hover:scale-105 transition-transform"
+      title="Alternar tema"
+    >
+      {theme === 'system' && <Desktop size={20} className="text-gray-700 dark:text-gray-300" />}
+      {theme === 'light' && <Sun size={20} className="text-yellow-500" />}
+      {theme === 'dark' && <Moon size={20} className="text-blue-300" />}
+    </button>
+  );
+
   useEffect(() => setMounted(true), []);
 
   const handleSubmit = async (e) => {
@@ -49,16 +84,6 @@ export default function ForgotPassword() {
     setShowBanner(true);
   };
 
-  const toggleTheme = () => {
-    if (theme === 'system') {
-      setTheme('light');
-    } else if (theme === 'light') {
-      setTheme('dark');
-    } else {
-      setTheme('system');
-    }
-  };
-
   if (!mounted) return null;
 
   return (
@@ -67,26 +92,9 @@ export default function ForgotPassword() {
         <title>Redefinir Senha | Atlética Engênios</title>
       </Head>
       <div className="flex justify-center items-center h-screen relative">
-        <button
-          onClick={toggleTheme}
-          className="absolute top-4 right-4 z-50 backdrop-blur-3xl bg-white/20 dark:bg-[#0e1117]/70 p-2 rounded-full shadow hover:scale-105 transition-transform"
-          title="Alternar tema"
-        >
-          {theme === 'system' && <Desktop size={20} className="text-gray-700 dark:text-gray-300" />}
-          {theme === 'light' && <Sun size={20} className="text-yellow-500" />}
-          {theme === 'dark' && <Moon size={20} className="text-blue-300" />}
-        </button>
+        {renderThemeToggle()}
 
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/photos-login/1.png"
-            alt="Plano de fundo"
-            layout="fill"
-            objectFit="cover"
-            className="brightness-[.20]"
-            priority
-          />
-        </div>
+        {renderBackgroundImage()}
         {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
 
         <div className="w-full max-w-md p-6 rounded-xl shadow-xl relative z-10 bg-white dark:bg-[#0e1117] transition-all backdrop-blur-xl">

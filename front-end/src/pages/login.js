@@ -11,6 +11,16 @@ import CustomDropdown from '../components/custom-dropdown';
 import PasswordRequirements from '../components/password-requirements';
 import Head from 'next/head';
 
+const renderTogglePasswordButton = (show, setShow) => (
+  <button
+    type="button"
+    onClick={() => setShow(!show)}
+    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+  >
+    {show ? <Eye size={20} /> : <EyeSlash size={20} />}
+  </button>
+);
+
 const capitalizeName = (name) => {
   return name
     .split(' ')
@@ -272,13 +282,7 @@ export default function Login() {
                       className="pr-10"
                       isInvalid={isPasswordInvalid}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-                    >
-                      {showPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
-                    </button>
+                    {renderTogglePasswordButton(showPassword, setShowPassword)}
                   </div>
                 </div>
                 <div className="text-center mt-2">
@@ -413,13 +417,7 @@ export default function Login() {
                       className="pr-10"
                       isInvalid={isPasswordInvalid}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                      className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-                    >
-                      {showRegisterPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
-                    </button>
+                    {renderTogglePasswordButton(showRegisterPassword, setShowRegisterPassword)}
                   </div>
                   <PasswordRequirements className='justify-center' password={password} isEmailTaken={isEmailTaken} />
                 </div>
