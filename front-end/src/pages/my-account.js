@@ -9,6 +9,7 @@ import Footer from '../components/footer';
 import CustomDropdown from '../components/custom-dropdown';
 import Banner from '../components/banner';
 import { CameraIcon, EyeIcon, EyeSlashIcon, UserCircleIcon, LockIcon, GenderIntersexIcon, StudentIcon, InstagramLogoIcon, PhoneIcon } from '@phosphor-icons/react'
+import PasswordRequirements from '../components/password-requirements';
 
 export default function MyAccount() {
     const [formData, setFormData] = useState({
@@ -327,6 +328,10 @@ export default function MyAccount() {
                                     {showConfirmPassword ? <EyeIcon size={20} /> : <EyeSlashIcon size={20} />}
                                 </button>
                             </div>
+                            <PasswordRequirements
+                              password={formData.password}
+                              confirmPassword={confirmPassword}
+                            />
                         </div>
                         <div className="flex justify-end">
                         </div>
