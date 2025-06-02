@@ -254,7 +254,7 @@ function UsersPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">
       <Header />
-
+      <title>Usuários | Área Admin</title>
       {showBanner && (
         <Banner
           message={bannerMessage}
