@@ -9,6 +9,20 @@ import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import CustomDropdown from '../components/custom-dropdown';
 import PasswordRequirements from '../components/password-requirements';
+import Head from 'next/head';
+
+const capitalizeName = (name) => {
+  return name
+    .split(' ')
+    .map((word) => {
+      if (word.length > 2) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      } else {
+        return word.toLowerCase();
+      }
+    })
+    .join(' ');
+};
 
 export default function Login() {
   const [mounted, setMounted] = useState(false);
@@ -190,240 +204,245 @@ export default function Login() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen relative">
-      <button
-        onClick={toggleTheme}
-        className="absolute top-4 right-4 z-50 backdrop-blur-3xl bg-white/20 dark:bg-[#0e1117]/70 p-2 rounded-full shadow hover:scale-105 transition-transform"
-        title="Alternar tema"
-      >
-        {theme === 'system' && <Desktop size={20} className="text-gray-700 dark:text-gray-300" />}
-        {theme === 'light' && <Sun size={20} className="text-yellow-500" />}
-        {theme === 'dark' && <Moon size={20} className="text-blue-300" />}
-      </button>
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="/photos-login/1.png"
-          alt="Plano de fundo"
-          layout="fill"
-          objectFit="cover"
-          className="brightness-[.20]"
-          priority
-        />
-      </div>
-      <div
-        className={`w-full max-w-2xl p-6 bg-white dark:bg-[#0e1117]  rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out ${isRegistering ? 'min-h-[640px]' : 'min-h-[500px]'
-          }`}
-      >
-        <div className="flex justify-center mb-8">
-          <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
+    <>
+      <Head>
+        <title>Login | Atlética Engênios</title>
+      </Head>
+      <div className="flex justify-center items-center h-screen relative">
+        <button
+          onClick={toggleTheme}
+          className="absolute top-4 right-4 z-50 backdrop-blur-3xl bg-white/20 dark:bg-[#0e1117]/70 p-2 rounded-full shadow hover:scale-105 transition-transform"
+          title="Alternar tema"
+        >
+          {theme === 'system' && <Desktop size={20} className="text-gray-700 dark:text-gray-300" />}
+          {theme === 'light' && <Sun size={20} className="text-yellow-500" />}
+          {theme === 'dark' && <Moon size={20} className="text-blue-300" />}
+        </button>
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/photos-login/1.png"
+            alt="Plano de fundo"
+            layout="fill"
+            objectFit="cover"
+            className="brightness-[.20]"
+            priority
+          />
         </div>
+        <div
+          className={`w-full max-w-2xl p-6 bg-white dark:bg-[#0e1117]  rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out ${isRegistering ? 'min-h-[640px]' : 'min-h-[500px]'
+            }`}
+        >
+          <div className="flex justify-center mb-8">
+            <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
+          </div>
 
-        {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
+          {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
 
-        <div className={`relative flex flex-col justify-center transition-all duration-500 ease-in-out ${isRegistering ? 'min-h-[360px]' : 'min-h-[260px]'}`}>
-          <div className={`absolute w-full top-0 left-0 transition-opacity duration-500 ease-in-out ${isRegistering ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-            <form className="space-y-4" onSubmit={handleLogin}>
-              <div className="w-full flex justify-center">
-                <div className="w-full max-w-sm">
+          <div className={`relative flex flex-col justify-center transition-all duration-500 ease-in-out ${isRegistering ? 'min-h-[360px]' : 'min-h-[260px]'}`}>
+            <div className={`absolute w-full top-0 left-0 transition-opacity duration-500 ease-in-out ${isRegistering ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+              <form className="space-y-4" onSubmit={handleLogin}>
+                <div className="w-full flex justify-center">
+                  <div className="w-full max-w-sm">
+                    <CustomField
+                      icon={UserCircle}
+                      type="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setIsEmailInvalid(false);
+                      }}
+                      placeholder="Digite seu e-mail"
+                      name="emailLogin"
+                      isInvalid={isEmailInvalid}
+                    />
+                  </div>
+                </div>
+                <div className="w-full flex justify-center">
+                  <div className="relative w-full max-w-sm">
+                    <CustomField
+                      icon={Lock}
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setIsPasswordInvalid(false);
+                      }}
+                      placeholder="Digite sua senha"
+                      name="passwordLogin"
+                      className="pr-10"
+                      isInvalid={isPasswordInvalid}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+                    >
+                      {showPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
+                    </button>
+                  </div>
+                </div>
+                <div className="text-center mt-2">
+                  <Link href="/forgot-password" className="text-sm text-[#B3090F] dark:text-red-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B3090F] rounded">
+                    Esqueceu sua senha?
+                  </Link>
+                </div>
+                <div className="flex justify-center">
+                  <CustomButton
+                    type="submit"
+                    className={`bg-red-800 ${isLoggingIn ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#B3090F]'}`}
+                    disabled={isLoggingIn}
+                  >
+                    {isLoggingIn ? 'Entrando...' : 'ENTRAR'}
+                  </CustomButton>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-700 dark:text-gray-400">
+                    Não é um usuário?{' '}
+                    <button type="button" onClick={() => setIsRegistering(true)} className="text-[#B3090F] dark:text-red-400 hover:underline">
+                      Cadastre-se!
+                    </button>
+                  </p>
+                </div>
+              </form>
+            </div>
+
+            {/* Formulário Registro */}
+            <div className={`absolute w-full top-0 left-0 transition-opacity duration-500 ease-in-out ${isRegistering ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+              <form className="grid grid-cols-2 gap-4 " onSubmit={handleRegister}>
+                <div className='col-span-2'>
                   <CustomField
                     icon={UserCircle}
-                    type="email"
-                    value={email}
+                    name="name"
+                    placeholder="Digite seu nome"
+                    value={name}
                     onChange={(e) => {
-                      setEmail(e.target.value);
-                      setIsEmailInvalid(false);
+                      setName(capitalizeName(e.target.value));
+                      setIsNameInvalid(false);
                     }}
-                    placeholder="Digite seu e-mail"
-                    name="emailLogin"
-                    isInvalid={isEmailInvalid}
+                    isInvalid={isNameInvalid}
                   />
                 </div>
-              </div>
-              <div className="w-full flex justify-center">
-                <div className="relative w-full max-w-sm">
+                <CustomField
+                  icon={Envelope}
+                  type="email"
+                  value={email}
+                  onChange={async (e) => {
+                    const inputEmail = e.target.value;
+                    setEmail(inputEmail);
+                    setIsEmailInvalid(false);
+
+                    if (inputEmail.length > 5 && inputEmail.includes('@')) {
+                      try {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-email`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ email: inputEmail }),
+                        });
+                        const result = await res.json();
+                        setIsEmailTaken(result.exists);
+                      } catch (error) {
+                        console.error('Erro ao verificar e-mail:', error);
+                      }
+                    } else {
+                      setIsEmailTaken(false);
+                    }
+                  }}
+                  placeholder="Digite seu e-mail"
+                  name="email"
+                  isInvalid={isEmailInvalid}
+                />
+                <div className="col-span-2 sm:col-span-1">
+                  <CustomDropdown
+                    icon={Student}
+                    value={course}
+                    onChange={(value) => {
+                      setCourse(value);
+                      setIsCourseInvalid(false);
+                    }}
+                    options={[
+                      'Engenharia de Software',
+                      'Engenharia Civil',
+                      'Engenharia de Produção',
+                      'Engenharia Elétrica',
+                      'Engenharia Mecânica',
+                      'Arquitetura'
+                    ]}
+                    placeholder="Selecione o curso"
+                    isInvalid={isCourseInvalid}
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-1">
+                  <CustomDropdown
+                    icon={GenderIntersex}
+                    value={sex}
+                    onChange={(value) => {
+                      setSex(value);
+                      setIsSexInvalid(false);
+                    }}
+                    options={['Masculino', 'Feminino', 'Outro']}
+                    placeholder="Selecione o sexo"
+                    isInvalid={isSexInvalid}
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-1">
                   <CustomField
-                    icon={Lock}
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
+                    icon={Cake}
+                    type="date"
+                    value={birthday}
                     onChange={(e) => {
-                      setPassword(e.target.value);
-                      setIsPasswordInvalid(false);
+                      setBirthday(e.target.value);
+                      setIsBirthdayInvalid(false);
                     }}
-                    placeholder="Digite sua senha"
-                    name="passwordLogin"
-                    className="pr-10"
-                    isInvalid={isPasswordInvalid}
+                    name="birthday"
+                    isInvalid={isBirthdayInvalid}
+                    className={!birthday ? 'text-gray-400' : 'text-black'}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-                  >
-                    {showPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
-                  </button>
                 </div>
-              </div>
-              <div className="text-center mt-2">
-                <Link href="/forgot-password" className="text-sm text-[#B3090F] dark:text-red-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#B3090F] rounded">
-                  Esqueceu sua senha?
-                </Link>
-              </div>
-              <div className="flex justify-center">
-                <CustomButton
-                  type="submit"
-                  className={`bg-red-800 ${isLoggingIn ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#B3090F]'}`}
-                  disabled={isLoggingIn}
-                >
-                  {isLoggingIn ? 'Entrando...' : 'ENTRAR'}
-                </CustomButton>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-700 dark:text-gray-400">
-                  Não é um usuário?{' '}
-                  <button type="button" onClick={() => setIsRegistering(true)} className="text-[#B3090F] dark:text-red-400 hover:underline">
-                    Cadastre-se!
+                <div className='col-span-2'>
+                  <div className="relative w-full">
+                    <CustomField
+                      icon={Lock}
+                      type={showRegisterPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setIsPasswordInvalid(false);
+                      }}
+                      placeholder="Digite sua senha"
+                      name="password"
+                      className="pr-10"
+                      isInvalid={isPasswordInvalid}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                      className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+                    >
+                      {showRegisterPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
+                    </button>
+                  </div>
+                  <PasswordRequirements className='justify-center' password={password} isEmailTaken={isEmailTaken} />
+                </div>
+                <div className="col-span-2 flex justify-center">
+                  <CustomButton
+                    type="submit"
+                    className={`bg-red-800 ${isRegisteringLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#B3090F]'}`}
+                    disabled={isRegisteringLoading}
+                  >
+                    {isRegisteringLoading ? 'Cadastrando...' : 'CADASTRAR'}
+                  </CustomButton>
+                </div>
+                <p className="col-span-2 text-center text-sm text-gray-700 dark:text-gray-400">
+                  Já tem um cadastro?{' '}
+                  <button type="button" onClick={() => setIsRegistering(false)} className="col-span-2 text-center text-sm text-[#B3090F] dark:text-red-400 hover:underline">
+                    Faça login!
                   </button>
                 </p>
-              </div>
-            </form>
-          </div>
-
-          {/* Formulário Registro */}
-          <div className={`absolute w-full top-0 left-0 transition-opacity duration-500 ease-in-out ${isRegistering ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-            <form className="grid grid-cols-2 gap-4 " onSubmit={handleRegister}>
-              <div className='col-span-2'>
-                <CustomField
-                  icon={UserCircle}
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setIsNameInvalid(false);
-                  }}
-                  placeholder="Digite seu nome"
-                  name="name"
-                  isInvalid={isNameInvalid}
-                />
-              </div>
-              <CustomField
-                icon={Envelope}
-                type="email"
-                value={email}
-                onChange={async (e) => {
-                  const inputEmail = e.target.value;
-                  setEmail(inputEmail);
-                  setIsEmailInvalid(false);
-
-                  if (inputEmail.length > 5 && inputEmail.includes('@')) {
-                    try {
-                      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-email`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: inputEmail }),
-                      });
-                      const result = await res.json();
-                      setIsEmailTaken(result.exists);
-                    } catch (error) {
-                      console.error('Erro ao verificar e-mail:', error);
-                    }
-                  } else {
-                    setIsEmailTaken(false);
-                  }
-                }}
-                placeholder="Digite seu e-mail"
-                name="email"
-                isInvalid={isEmailInvalid}
-              />
-              <div className="col-span-2 sm:col-span-1">
-                <CustomDropdown
-                  icon={Student}
-                  value={course}
-                  onChange={(value) => {
-                    setCourse(value);
-                    setIsCourseInvalid(false);
-                  }}
-                  options={[
-                    'Engenharia de Software',
-                    'Engenharia Civil',
-                    'Engenharia de Produção',
-                    'Engenharia Elétrica',
-                    'Engenharia Mecânica',
-                    'Arquitetura'
-                  ]}
-                  placeholder="Selecione o curso"
-                  isInvalid={isCourseInvalid}
-                />
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <CustomDropdown
-                  icon={GenderIntersex}
-                  value={sex}
-                  onChange={(value) => {
-                    setSex(value);
-                    setIsSexInvalid(false);
-                  }}
-                  options={['Masculino', 'Feminino', 'Outro']}
-                  placeholder="Selecione o sexo"
-                  isInvalid={isSexInvalid}
-                />
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <CustomField
-                  icon={Cake}
-                  type="date"
-                  value={birthday}
-                  onChange={(e) => {
-                    setBirthday(e.target.value);
-                    setIsBirthdayInvalid(false);
-                  }}
-                  name="birthday"
-                  isInvalid={isBirthdayInvalid}
-                  className={!birthday ? 'text-gray-400' : 'text-black'}
-                />
-              </div>
-              <div className='col-span-2'>
-                <div className="relative w-full">
-                  <CustomField
-                    icon={Lock}
-                    type={showRegisterPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setIsPasswordInvalid(false);
-                    }}
-                    placeholder="Digite sua senha"
-                    name="password"
-                    className="pr-10"
-                    isInvalid={isPasswordInvalid}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
-                  >
-                    {showRegisterPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
-                  </button>
-                </div>
-                <PasswordRequirements className='justify-center' password={password} isEmailTaken={isEmailTaken} />
-              </div>
-              <div className="col-span-2 flex justify-center">
-                <CustomButton
-                  type="submit"
-                  className={`bg-red-800 ${isRegisteringLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#B3090F]'}`}
-                  disabled={isRegisteringLoading}
-                >
-                  {isRegisteringLoading ? 'Cadastrando...' : 'CADASTRAR'}
-                </CustomButton>
-              </div>
-              <p className="col-span-2 text-center text-sm text-gray-700 dark:text-gray-400">
-                Já tem um cadastro?{' '}
-                <button type="button" onClick={() => setIsRegistering(false)} className="col-span-2 text-center text-sm text-[#B3090F] dark:text-red-400 hover:underline">
-                  Faça login!
-                </button>
-              </p>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
