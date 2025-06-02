@@ -9,6 +9,21 @@ router.put('/me', authenticate, authController.updateProfile);
 
 router.post('/register', authController.registerUser);
 router.post('/reset-password', authController.resetPassword);
+router.post('/check-email', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'E-mail não fornecido.' });
+  }
+
+  try {
+    const user = await require('../services/user.service').getUserByEmail(email);
+    res.json({ exists: !!user });
+  } catch (error) {
+    console.error('Erro ao verificar e-mail:', error);
+    res.status(500).json({ error: 'Erro interno ao verificar e-mail.' });
+  }
+});
 
 router.get('/check-status', authenticate, async (req, res) => {
   const { createClient } = require('@supabase/supabase-js');

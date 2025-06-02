@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useTheme } from 'next-themes';
+import { Eye, EyeSlash, UserCircle, Lock, Envelope, GenderIntersex, Cake, Student, Desktop, Moon, Sun } from 'phosphor-react';
 import Image from 'next/image';
 import Banner from '../components/banner';
 import Link from 'next/link';
-import { Eye, EyeSlash, UserCircle, Lock, Envelope, GenderIntersex, Cake, Student, Desktop, Moon, Sun } from 'phosphor-react';
 import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import CustomDropdown from '../components/custom-dropdown';
-import { useTheme } from 'next-themes';
 import PasswordRequirements from '../components/password-requirements';
 
 export default function Login() {
@@ -44,6 +44,7 @@ export default function Login() {
   const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
   const [isCourseInvalid, setIsCourseInvalid] = useState(false);
   const [isBirthdayInvalid, setIsBirthdayInvalid] = useState(false);
+  const [isEmailTaken, setIsEmailTaken] = useState(false);
   const showBannerMessage = (message, type, description = '') => {
     setBannerMessage(message);
     setBannerDescription(description);
@@ -138,6 +139,21 @@ export default function Login() {
     if (!validateRegisterFields()) {
       return;
     }
+    const checkEmail = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    const emailCheck = await checkEmail.json();
+    if (emailCheck.exists) {
+      setIsEmailTaken(true);
+      showBannerMessage('E-mail já cadastrado', 'error', 'Tente recuperar a senha ou use outro e-mail.');
+      return;
+    } else {
+      setIsEmailTaken(false);
+    }
+
     setIsRegisteringLoading(true);
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
@@ -293,9 +309,26 @@ export default function Login() {
                 icon={Envelope}
                 type="email"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
+                onChange={async (e) => {
+                  const inputEmail = e.target.value;
+                  setEmail(inputEmail);
                   setIsEmailInvalid(false);
+
+                  if (inputEmail.length > 5 && inputEmail.includes('@')) {
+                    try {
+                      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-email`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: inputEmail }),
+                      });
+                      const result = await res.json();
+                      setIsEmailTaken(result.exists);
+                    } catch (error) {
+                      console.error('Erro ao verificar e-mail:', error);
+                    }
+                  } else {
+                    setIsEmailTaken(false);
+                  }
                 }}
                 placeholder="Digite seu e-mail"
                 name="email"
@@ -371,7 +404,7 @@ export default function Login() {
                     {showRegisterPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
                   </button>
                 </div>
-                <PasswordRequirements className='justify-center' password={password} />
+                <PasswordRequirements className='justify-center' password={password} isEmailTaken={isEmailTaken} />
               </div>
               <div className="col-span-2 flex justify-center">
                 <CustomButton 
