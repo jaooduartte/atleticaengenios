@@ -32,6 +32,16 @@ jobs:
       - name: Rodar verificação de vulnerabilidades
         run: npm audit --audit-level=high
 
+      - name: Upload coverage to SonarCloud
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          args: >
+            -Dsonar.organization=jaooduartte
+            -Dsonar.projectKey=atletica-engenios-backend
+            -Dsonar.sources=.
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+
   inativar-usuarios-inativos:
     runs-on: ubuntu-latest
     

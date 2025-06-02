@@ -82,7 +82,7 @@ export default function Login() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    
+
 
     const data = await response.json();
 
@@ -115,7 +115,7 @@ export default function Login() {
       setIsEmailInvalid(true);
       isValid = false;
     }
-    if (!password) {
+    if (!password || password.length < 6) {
       setIsPasswordInvalid(true);
       isValid = false;
     }
@@ -211,9 +211,8 @@ export default function Login() {
         />
       </div>
       <div
-        className={`w-full max-w-2xl p-6 bg-white dark:bg-[#0e1117]  rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out ${
-          isRegistering ? 'min-h-[640px]' : 'min-h-[500px]'
-        }`}
+        className={`w-full max-w-2xl p-6 bg-white dark:bg-[#0e1117]  rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out ${isRegistering ? 'min-h-[640px]' : 'min-h-[500px]'
+          }`}
       >
         <div className="flex justify-center mb-8">
           <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
@@ -270,8 +269,8 @@ export default function Login() {
                 </Link>
               </div>
               <div className="flex justify-center">
-                <CustomButton 
-                  type="submit" 
+                <CustomButton
+                  type="submit"
                   className={`bg-red-800 ${isLoggingIn ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#B3090F]'}`}
                   disabled={isLoggingIn}
                 >
@@ -407,8 +406,8 @@ export default function Login() {
                 <PasswordRequirements className='justify-center' password={password} isEmailTaken={isEmailTaken} />
               </div>
               <div className="col-span-2 flex justify-center">
-                <CustomButton 
-                  type="submit" 
+                <CustomButton
+                  type="submit"
                   className={`bg-red-800 ${isRegisteringLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#B3090F]'}`}
                   disabled={isRegisteringLoading}
                 >
