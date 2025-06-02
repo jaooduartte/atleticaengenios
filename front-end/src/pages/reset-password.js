@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Lock, Eye, EyeSlash, Desktop, Moon, Sun, WarningCircle } from 'phosphor-react';
 import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
+import PasswordRequirements from '../components/password-requirements';
 import { useTheme } from 'next-themes';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
@@ -207,6 +208,10 @@ export default function ResetPassword() {
                   {showConfirmPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
                 </button>
               </div>
+            </div>
+
+            <div className="flex justify-center">
+              <PasswordRequirements password={newPassword} confirmPassword={confirmPassword} />
             </div>
 
             <div className="flex justify-center">

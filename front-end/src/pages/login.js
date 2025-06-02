@@ -8,6 +8,7 @@ import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import CustomDropdown from '../components/custom-dropdown';
 import { useTheme } from 'next-themes';
+import PasswordRequirements from '../components/password-requirements';
 
 export default function Login() {
   const [mounted, setMounted] = useState(false);
@@ -194,7 +195,9 @@ export default function Login() {
         />
       </div>
       <div
-        className="w-full max-w-2xl p-6 bg-white dark:bg-[#0e1117] rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out"
+        className={`w-full max-w-2xl p-6 bg-white dark:bg-[#0e1117]  rounded-xl shadow-xl relative z-10 transition-all duration-500 ease-in-out ${
+          isRegistering ? 'min-h-[640px]' : 'min-h-[500px]'
+        }`}
       >
         <div className="flex justify-center mb-8">
           <Image src="/Logo-Engenios.png" alt="Logo Engênios" width={150} height={150} />
@@ -203,7 +206,6 @@ export default function Login() {
         {showBanner && <Banner message={bannerMessage} description={bannerDescription} type={bannerType} />}
 
         <div className={`relative flex flex-col justify-center transition-all duration-500 ease-in-out ${isRegistering ? 'min-h-[360px]' : 'min-h-[260px]'}`}>
-          {/* Formulário Login */}
           <div className={`absolute w-full top-0 left-0 transition-opacity duration-500 ease-in-out ${isRegistering ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             <form className="space-y-4" onSubmit={handleLogin}>
               <div className="w-full flex justify-center">
@@ -369,6 +371,7 @@ export default function Login() {
                     {showRegisterPassword ? <Eye size={20} /> : <EyeSlash size={20} />}
                   </button>
                 </div>
+                <PasswordRequirements className='justify-center' password={password} />
               </div>
               <div className="col-span-2 flex justify-center">
                 <CustomButton 
