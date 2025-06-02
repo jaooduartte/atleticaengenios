@@ -1,5 +1,5 @@
+import PropTypes from 'prop-types';
 import { CheckCircle, XCircle } from 'phosphor-react';
-
 export default function PasswordRequirements({
   password,
   confirmPassword,
@@ -37,3 +37,10 @@ export default function PasswordRequirements({
     </div>
   );
 }
+
+PasswordRequirements.propTypes = {
+  password: PropTypes.string.isRequired,
+  confirmPassword: PropTypes.string,
+  isEmailTaken: PropTypes.bool,
+  showMatchOnlyIfFilled: PropTypes.bool
+};
