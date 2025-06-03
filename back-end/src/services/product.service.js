@@ -7,14 +7,15 @@ async function createProduct(productData) {
     RETURNING *;
   `;
   const queryValues = [
-    productData.name,
+    productData.title,
     productData.description,
     parseFloat(productData.value),
-    parseInt(productData.amount, 10),
+    Number.isNaN(parseInt(productData.amount, 10)) ? 0 : parseInt(productData.amount, 10),
     productData.relates_to,
     productData.image || null
   ];
   try {
+    console.log(productData);
     const res = await db.query(queryText, queryValues);
     return res.rows[0];
   } catch (error) {

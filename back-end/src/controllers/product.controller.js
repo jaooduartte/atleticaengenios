@@ -1,4 +1,10 @@
 const { createProduct, fetchProducts } = require('../services/product.service');
+const { createClient } = require('@supabase/supabase-js');
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 
 async function addProduct(req, res) {
     try {
@@ -6,7 +12,6 @@ async function addProduct(req, res) {
         let imageUrl = '';
 
         if (imageFile) {
-            const { supabase } = require('../utils/supabase');
             const fileExt = imageFile.originalname.split('.').pop();
             const fileName = `${Date.now()}.${fileExt}`;
 

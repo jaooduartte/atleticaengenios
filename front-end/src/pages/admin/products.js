@@ -77,38 +77,19 @@ function ProductsPage() {
 
         setIsLoading(true);
         try {
-            let imageUrl = '';
-            if (image) {
-                formData.append('file', image);
-                const formData = new FormData();
-                formData.append('title', title);
-                formData.append('description', description);
-                formData.append('value', numericValue);
-                formData.append('amount', amount);
-                formData.append('relates_to', relates_to);
-                if (image) formData.append('image', image);
-
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`, {
-                    method: 'POST',
-                    body: formData,
-                });
-                const result = await res.json();
-                imageUrl = result.imageUrl;
-            }
-
             const numericValue = Number(value.replace(/[^\d]/g, '')) / 100;
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('value', numericValue);
+            formData.append('amount', amount);
+            formData.append('relates_to', relates_to);
+            if (image) formData.append('image', image);
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: title,
-                    description,
-                    value: numericValue,
-                    amount: Number(amount),
-                    relates_to,
-                    image: imageUrl
-                })
+                body: formData,
             });
 
             const result = await response.json();
