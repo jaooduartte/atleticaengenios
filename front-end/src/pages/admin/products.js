@@ -9,6 +9,7 @@ import CustomButton from '../../components/custom-buttom';
 import CustomDropdown from '../../components/custom-dropdown';
 import Banner from '../../components/banner';
 import withAdminProtection from '../../utils/withAdminProtection';
+import RichTextEditor from '../../components/rich-text-editor.js';
 
 function ProductsPage() {
     const [products, setProducts] = useState([]);
@@ -49,14 +50,13 @@ function ProductsPage() {
         fetchProducts();
     }, []);
 
-    // Filter logic
     const displayedProducts = products
-      .filter((product) =>
-        product.title?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      .filter((product) =>
-        styleFilter === '' || product.relates_to === styleFilter
-      );
+        .filter((product) =>
+            product.title?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .filter((product) =>
+            styleFilter === '' || product.relates_to === styleFilter
+        );
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
@@ -77,7 +77,6 @@ function ProductsPage() {
         setIsModalOpen(false);
     };
 
-    // Placeholder: handleDeleteProduct, handleFilter logic would go here
 
     const handleRegisterProduct = async () => {
         setIsTitleInvalid(!title);
@@ -229,70 +228,108 @@ function ProductsPage() {
                         Adicionar Produto
                     </h2>
                     <form className="space-y-4">
-                        <div>
-                            <label className="block font-semibold mb-1 text-gray-700 dark:text-white">Upload de Imagem</label>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={e => setImage(e.target.files?.[0] || null)}
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-red-700 hover:file:bg-red-100"
-                            />
+                        <div className="flex justify-center mb-4">
+                            <div className="relative group w-24 h-24">
+                                {image ? (
+                                    <img
+                                        src={URL.createObjectURL(image)}
+                                        alt="Pré-visualização"
+                                        className="w-24 h-24 rounded-md object-cover shadow-md"
+                                    />
+                                ) : (
+                                    <div className="w-24 h-24 rounded-md bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-500 text-sm">
+                                        Sem imagem
+                                    </div>
+                                )}
+                                <label
+                                    htmlFor="productImage"
+                                    className="absolute inset-0 backdrop-blur-sm bg-white/40 dark:bg-[#0e1117]/40 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                >
+                                    <react.CameraIcon size={24} className="text-[#B3090F]" />
+                                    <input
+                                        id="productImage"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setImage(e.target.files?.[0] || null)}
+                                        hidden
+                                    />
+                                </label>
+                            </div>
                         </div>
-                        <CustomField
+                        <div>
+                          <label className="block mb-2 font-semibold pl-2 dark:text-white/70 " htmlFor="title">
+                            Título do produto
+                          </label>
+                          <CustomField
                             name="title"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="Título do produto"
                             required
                             isInvalid={isTitleInvalid}
-                        />
-                        <CustomField
-                            name="description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Descrição"
-                            required
-                            isInvalid={isDescriptionInvalid}
-                        />
-                        <CustomField
-                            name="value"
-                            value={value}
-                            onChange={(e) => {
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="value">
+                              Valor
+                            </label>
+                            <CustomField
+                              name="value"
+                              value={value}
+                              onChange={(e) => {
                                 let input = e.target.value.replace(/[^\d]/g, '');
                                 const number = (parseFloat(input) / 100).toFixed(2);
                                 const formatted = Number(number).toLocaleString('pt-BR', {
-                                    style: 'currency',
-                                    currency: 'BRL',
+                                  style: 'currency',
+                                  currency: 'BRL',
                                 });
                                 setValue(formatted);
-                            }}
-                            placeholder="Valor (R$)"
-                            required
-                            isInvalid={isValueInvalid}
-                        />
-                        <CustomDropdown
+                              }}
+                              required
+                              isInvalid={isValueInvalid}
+                            />
+                          </div>
+                          <div>
+                            <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="amount">
+                              Estoque
+                            </label>
+                            <CustomField
+                              name="amount"
+                              value={amount}
+                              type="number"
+                              min="0"
+                              onChange={(e) => setAmount(e.target.value)}
+                              required
+                              isInvalid={isAmountInvalid}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="relates_to">
+                            Categoria
+                          </label>
+                          <CustomDropdown
                             value={relates_to}
                             onChange={setRelatesTo}
                             options={[
-                                { label: 'Camisetas', value: 'Camisetas' },
-                                { label: 'Shorts', value: 'Shorts' },
-                                { label: 'Canecas', value: 'Canecas' },
-                                { label: 'Outros', value: 'Outros' },
+                              { label: 'Camisetas', value: 'Camisetas' },
+                              { label: 'Shorts', value: 'Shorts' },
+                              { label: 'Canecas', value: 'Canecas' },
+                              { label: 'Outros', value: 'Outros' },
                             ]}
-                            placeholder="Estilo"
                             required
                             isInvalid={isRelatesToInvalid}
-                        />
-                        <CustomField
-                            name="amount"
-                            value={amount}
-                            type="number"
-                            min="0"
-                            onChange={(e) => setAmount(e.target.value)}
-                            placeholder="Quantidade inicial"
-                            required
-                            isInvalid={isAmountInvalid}
-                        />
+                          />
+                        </div>
+                        <div>
+                          <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="description">
+                            Descrição
+                          </label>
+                          <RichTextEditor
+                            value={description}
+                            onChange={setDescription}
+                          />
+                        </div>
                         <div className="flex justify-end gap-4 pt-4">
                             <CustomButton
                                 type="button"

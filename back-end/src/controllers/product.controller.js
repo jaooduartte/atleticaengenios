@@ -15,7 +15,7 @@ async function addProduct(req, res) {
             const fileExt = imageFile.originalname.split('.').pop();
             const fileName = `${Date.now()}.${fileExt}`;
 
-            const { data, error } = await supabase.storage
+            const { error } = await supabase.storage
                 .from('products')
                 .upload(fileName, imageFile.buffer, {
                     contentType: imageFile.mimetype,
