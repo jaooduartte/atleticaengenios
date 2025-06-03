@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as react from '@phosphor-icons/react';
 import useAuth from '../../hooks/useAuth';
 import Header from '../../components/header-admin';
@@ -34,16 +34,29 @@ function ProductsPage() {
     const [bannerDescription, setBannerDescription] = useState('');
     const [styleFilter, setStyleFilter] = useState('');
 
-    // Placeholder: useEffect to fetch products would go here
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`);
+                const data = await response.json();
+                setProducts(data);
+                setFilteredProducts(data);
+            } catch (error) {
+                console.error('Erro ao buscar produtos:', error);
+            }
+        };
+
+        fetchProducts();
+    }, []);
 
     // Filter logic
-    const displayedProducts = (styleFilter ? filteredProducts : products)
-        .filter((product) =>
-            product.title?.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .filter((product) =>
-            !styleFilter || product.relates_to === styleFilter
-        );
+    const displayedProducts = products
+      .filter((product) =>
+        product.title?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .filter((product) =>
+        styleFilter === '' || product.relates_to === styleFilter
+      );
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
@@ -144,7 +157,7 @@ function ProductsPage() {
                     <div className="flex-1 max-w-xs">
                         <CustomDropdown
                             value={styleFilter}
-                            onChange={setStyleFilter}
+                            onChange={(option) => setStyleFilter(option)}
                             options={[
                                 { label: 'Todos os estilos', value: '' },
                                 { label: 'Camisetas', value: 'Camisetas' },
