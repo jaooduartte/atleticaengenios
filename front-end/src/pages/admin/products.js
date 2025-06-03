@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Badge } from "@/components/ui/badge";
 import * as react from '@phosphor-icons/react';
 import useAuth from '../../hooks/useAuth';
 import Header from '../../components/header-admin';
@@ -186,27 +187,36 @@ function ProductsPage() {
                         </div>
                     ) : (
                         displayedProducts.map((product) => (
-                            <div key={product.id} className="bg-white dark:bg-white/10 dark:border dark:border-white/10 rounded-xl shadow-md p-6 flex flex-col items-center relative">
-                                <div className="w-32 h-32 bg-gray-200 dark:bg-gray-800 rounded-md mb-4 overflow-hidden flex items-center justify-center">
-                                    {product.image ? (
-                                        <img src={product.image} alt={product.title} className="object-cover w-full h-full" />
-                                    ) : (
-                                        <react.ImageIcon size={48} className="text-gray-400" />
-                                    )}
-                                </div>
-                                <h3 className="text-lg font-bold mb-1 text-center">{product.title}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-300 mb-2 text-center">{product.description}</p>
-                                <div className="flex flex-col items-center gap-1 w-full">
-                                    <span className="font-bold text-green-800 dark:text-green-400 text-lg">
-                                        {Number(product.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                    </span>
-                                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-200 dark:bg-white/10 dark:text-white text-gray-800 inline-block">
-                                        {product.relates_to}
-                                    </span>
-                                    <span className="text-sm mt-1">Estoque: <strong>{product.amount}</strong></span>
-                                </div>
-                                {/* Ações: editar/excluir poderiam ir aqui */}
+                          <div key={product.id} className="bg-white dark:bg-white/10 dark:border dark:border-white/10 rounded-xl shadow-md p-6 flex flex-col items-center justify-between relative transition-transform hover:scale-[1.02]">
+                            <div className="w-32 h-32 bg-gray-200 dark:bg-gray-800 rounded-md mb-4 overflow-hidden flex items-center justify-center">
+                              {product.image ? (
+                                <img src={product.image} alt={product.title} className="object-cover w-full h-full" />
+                              ) : (
+                                <react.ImageIcon size={48} className="text-gray-400" />
+                              )}
                             </div>
+                            <h3 className="text-lg font-semibold text-center text-gray-900 dark:text-white mb-1">{product.title}</h3>
+                            <span className="font-bold text-green-800 dark:text-green-400 text-base mt-1">
+                              {Number(product.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            </span>
+                            <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 dark:text-white text-gray-800 mt-2">
+                              {product.relates_to}
+                            </span>
+                            <span className="text-sm mt-2 font-medium text-gray-700 dark:text-white/80">
+                              Estoque:{' '}
+                              <strong
+                                className={`${
+                                  product.amount === 0
+                                    ? 'text-red-600'
+                                    : product.amount <= 10
+                                    ? 'text-orange-500'
+                                    : 'text-gray-700 dark:text-white/80'
+                                }`}
+                              >
+                                {product.amount}
+                              </strong>
+                            </span>
+                          </div>
                         ))
                     )}
                 </div>
