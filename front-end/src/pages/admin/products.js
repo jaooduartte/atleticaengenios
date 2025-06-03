@@ -159,13 +159,13 @@ function ProductsPage() {
                             value={styleFilter}
                             onChange={(option) => setStyleFilter(option)}
                             options={[
-                                { label: 'Todos os estilos', value: '' },
+                                { label: 'Todos as categorias', value: '' },
                                 { label: 'Camisetas', value: 'Camisetas' },
                                 { label: 'Shorts', value: 'Shorts' },
                                 { label: 'Canecas', value: 'Canecas' },
                                 { label: 'Outros', value: 'Outros' },
                             ]}
-                            placeholder="Filtrar por estilo"
+                            placeholder="Filtrar por categoria"
                         />
                     </div>
                     <CustomButton
@@ -204,7 +204,7 @@ function ProductsPage() {
                                     <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-200 dark:bg-white/10 dark:text-white text-gray-800 inline-block">
                                         {product.relates_to}
                                     </span>
-                                    <span className="text-sm mt-1">Qtd: <strong>{product.amount}</strong></span>
+                                    <span className="text-sm mt-1">Estoque: <strong>{product.amount}</strong></span>
                                 </div>
                                 {/* Ações: editar/excluir poderiam ir aqui */}
                             </div>
@@ -217,15 +217,15 @@ function ProductsPage() {
                     onRequestClose={handleCloseModal}
                     shouldCloseOnOverlayClick={true}
                     overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
-                    className="relative bg-white dark:bg-[#0e1117] dark:backdrop-blur-xl text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto border-t-[6px] border-green-800 dark:border-green-600 transform transition-all duration-300 ease-in-out"
+                    className="relative bg-white dark:bg-[#0e1117] dark:backdrop-blur-xl text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-lg mx-auto border-t-[6px] border-[#B3090F] dark:border-red-600 transform transition-all duration-300 ease-in-out"
                 >
                     <button
                         onClick={handleCloseModal}
-                        className="absolute top-4 right-4 text-gray-500 hover:text-black text-xl"
+                        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl"
                     >
                         ×
                     </button>
-                    <h2 className="text-2xl mb-6 text-center font-bold text-green-800 dark:text-green-600">
+                    <h2 className="text-2xl mb-6 text-center font-bold text-[#B3090F] dark:text-red-600">
                         Adicionar Produto
                     </h2>
                     <form className="space-y-4">
@@ -235,7 +235,7 @@ function ProductsPage() {
                                 type="file"
                                 accept="image/*"
                                 onChange={e => setImage(e.target.files?.[0] || null)}
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-red-700 hover:file:bg-red-100"
                             />
                         </div>
                         <CustomField
@@ -298,7 +298,7 @@ function ProductsPage() {
                                 type="button"
                                 onClick={handleRegisterProduct}
                                 disabled={isLoading}
-                                className={`!bg-green-800 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:!bg-green-700 dark:hover:!bg-green-700'}`}
+                                className={`!bg-red-800 ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:!bg-red-700 dark:hover:!bg-red-700'}`}
                             >
                                 {isLoading ? 'Registrando...' : 'Registrar'}
                             </CustomButton>
