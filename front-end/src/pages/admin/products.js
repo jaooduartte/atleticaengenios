@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Badge } from "@/components/ui/badge";
 import * as react from '@phosphor-icons/react';
-import useAuth from '../../hooks/useAuth';
 import Header from '../../components/header-admin';
 import Footer from '../../components/footer-admin';
 import Modal from 'react-modal';
@@ -17,6 +15,7 @@ function ProductsPage() {
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -30,24 +29,25 @@ function ProductsPage() {
     const [isAmountInvalid, setIsAmountInvalid] = useState(false);
     const [isRelatesToInvalid, setIsRelatesToInvalid] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    // Banner states
     const [showBanner, setShowBanner] = useState(false);
-    const [bannerMessage, setBannerMessage] = useState('');
-    const [bannerType, setBannerType] = useState('');
+    const [bannerMessage, setBannerMessage] = useState("");
+    const [bannerType, setBannerType] = useState("success");
     const [bannerDescription, setBannerDescription] = useState('');
     const [styleFilter, setStyleFilter] = useState('');
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`);
-                const data = await response.json();
-                setProducts(data);
-                setFilteredProducts(data);
-            } catch (error) {
-                console.error('Erro ao buscar produtos:', error);
-            }
-        };
+    const fetchProducts = async () => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`);
+            const data = await response.json();
+            setProducts(data);
+            setFilteredProducts(data);
+        } catch (error) {
+            console.error('Erro ao buscar produtos:', error);
+        }
+    };
 
+    useEffect(() => {
         fetchProducts();
     }, []);
 
@@ -100,8 +100,13 @@ function ProductsPage() {
             formData.append('relates_to', relates_to);
             if (image) formData.append('image', image);
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`, {
-                method: 'POST',
+            const url = productToDelete
+                ? `${process.env.NEXT_PUBLIC_API_URL}/api/products/${productToDelete}`
+                : `${process.env.NEXT_PUBLIC_API_URL}/api/products`;
+            const method = productToDelete ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
                 body: formData,
             });
 
@@ -109,15 +114,16 @@ function ProductsPage() {
 
             if (!response.ok) throw new Error(result.error || 'Erro ao registrar produto');
 
-            setBannerMessage('Produto cadastrado com sucesso!');
+            setBannerMessage(productToDelete ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
             setBannerDescription('');
             setBannerType('success');
             setShowBanner(true);
             setTimeout(() => setShowBanner(false), 4000);
             handleCloseModal();
+            fetchProducts();
         } catch (error) {
             console.error(error);
-            setBannerMessage('Erro ao cadastrar produto');
+            setBannerMessage(productToDelete ? 'Erro ao atualizar produto' : 'Erro ao cadastrar produto');
             setBannerDescription(error.message || 'Erro inesperado');
             setBannerType('error');
             setShowBanner(true);
@@ -127,16 +133,62 @@ function ProductsPage() {
         }
     };
 
+    const handleEditProduct = (product) => {
+        setTitle(product.title);
+        setDescription(product.description);
+        setValue(product.value.toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+        }));
+        setAmount(product.amount.toString());
+        setRelatesTo(product.relates_to);
+        setImage(product.image ? { url: product.image } : null);
+        setProductToDelete(product.id);
+        setIsModalOpen(true);
+    };
+
+    // Nova função de exclusão com modal de confirmação
+    const handleDeleteProduct = (product) => {
+        setProductToDelete(product);
+    };
+
+    const handleConfirmDelete = async () => {
+      try {
+        setIsDeleting(true);
+        await fetch(`http://localhost:3001/api/products/${productToDelete.id}`, {
+          method: 'DELETE',
+        });
+        // Banner de sucesso
+        setShowBanner(true);
+        setBannerMessage("Produto excluído com sucesso!");
+        setBannerType("success");
+        setTimeout(() => {
+          setShowBanner(false);
+          setBannerMessage("");
+        }, 3000);
+        setProductToDelete(null);
+        fetchProducts(); // Atualiza a lista
+      } catch (error) {
+        console.error('Erro ao excluir produto:', error);
+      } finally {
+        setIsDeleting(false);
+      }
+    };
+
+    const handleSellProduct = (product) => {
+        console.log('Realizar venda do produto:', product);
+    };
+
     return (
         <div className="products-page flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">
             <Header />
             <title>Produtos | Área Admin</title>
+            {/* Banner após exclusão ou outras ações */}
             {showBanner && (
                 <Banner
-                    message={bannerMessage}
-                    description={bannerDescription}
                     type={bannerType}
-                    className="absolute top-0 left-0 right-0 z-[100] p-4 text-white text-center shadow-md"
+                    message={bannerMessage}
+                    onClose={() => setShowBanner(false)}
                 />
             )}
             <div className="container mx-auto p-6 flex-grow">
@@ -187,36 +239,45 @@ function ProductsPage() {
                         </div>
                     ) : (
                         displayedProducts.map((product) => (
-                          <div key={product.id} className="bg-white dark:bg-white/10 dark:border dark:border-white/10 rounded-xl shadow-md p-6 flex flex-col items-center justify-between relative transition-transform hover:scale-[1.02]">
-                            <div className="w-32 h-32 bg-gray-200 dark:bg-gray-800 rounded-md mb-4 overflow-hidden flex items-center justify-center">
-                              {product.image ? (
-                                <img src={product.image} alt={product.title} className="object-cover w-full h-full" />
-                              ) : (
-                                <react.ImageIcon size={48} className="text-gray-400" />
-                              )}
+                            <div key={product.id} className="relative bg-white dark:bg-white/10 dark:border dark:border-white/10 rounded-xl shadow-md p-6 flex flex-col items-center justify-between transition-transform hover:scale-[1.02]">
+                                <div className="absolute top-2 right-2 z-10">
+                                    <div className="group relative w-fit h-fit">
+                                        <react.DotsThreeVerticalIcon size={24} className="text-gray-700 dark:text-white cursor-pointer" />
+                                        <div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all  duration-200 pointer-events-none group-hover:pointer-events-auto">
+                                            <button onClick={() => handleEditProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Editar produto</button>
+                                            <button onClick={() => handleSellProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm text-green-600 dark:text-green-400">Realizar venda</button>
+                                            <button onClick={() => handleDeleteProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm text-red-600 dark:text-red-400">Excluir produto</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="w-32 h-32 bg-gray-200 dark:bg-gray-800 rounded-md mb-4 overflow-hidden flex items-center justify-center">
+                                    {product.image ? (
+                                        <img src={product.image} alt={product.title} className="object-cover w-full h-full" />
+                                    ) : (
+                                        <react.ImageIcon size={48} className="text-gray-400" />
+                                    )}
+                                </div>
+                                <h3 className="text-lg font-semibold text-center text-gray-900 dark:text-white mb-1">{product.title}</h3>
+                                <span className="font-bold text-green-800 dark:text-green-400 text-base mt-1">
+                                    {Number(product.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                </span>
+                                <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 dark:text-white text-gray-800 mt-2">
+                                    {product.relates_to}
+                                </span>
+                                <span className="text-sm mt-2 font-medium text-gray-700 dark:text-white/80">
+                                    Estoque:{' '}
+                                    <strong
+                                        className={`${product.amount === 0
+                                            ? 'text-red-600'
+                                            : product.amount <= 10
+                                                ? 'text-orange-500'
+                                                : 'text-gray-700 dark:text-white/80'
+                                            }`}
+                                    >
+                                        {product.amount}
+                                    </strong>
+                                </span>
                             </div>
-                            <h3 className="text-lg font-semibold text-center text-gray-900 dark:text-white mb-1">{product.title}</h3>
-                            <span className="font-bold text-green-800 dark:text-green-400 text-base mt-1">
-                              {Number(product.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                            </span>
-                            <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 dark:text-white text-gray-800 mt-2">
-                              {product.relates_to}
-                            </span>
-                            <span className="text-sm mt-2 font-medium text-gray-700 dark:text-white/80">
-                              Estoque:{' '}
-                              <strong
-                                className={`${
-                                  product.amount === 0
-                                    ? 'text-red-600'
-                                    : product.amount <= 10
-                                    ? 'text-orange-500'
-                                    : 'text-gray-700 dark:text-white/80'
-                                }`}
-                              >
-                                {product.amount}
-                              </strong>
-                            </span>
-                          </div>
                         ))
                     )}
                 </div>
@@ -242,7 +303,7 @@ function ProductsPage() {
                             <div className="relative group w-24 h-24">
                                 {image ? (
                                     <img
-                                        src={URL.createObjectURL(image)}
+                                        src={image instanceof File ? URL.createObjectURL(image) : image.url}
                                         alt="Pré-visualização"
                                         className="w-24 h-24 rounded-md object-cover shadow-md"
                                     />
@@ -267,78 +328,78 @@ function ProductsPage() {
                             </div>
                         </div>
                         <div>
-                          <label className="block mb-2 font-semibold pl-2 dark:text-white/70 " htmlFor="title">
-                            Título do produto
-                          </label>
-                          <CustomField
-                            name="title"
-                            value={title}
-                            onChange={(e) => setTitle(e.target.value)}
-                            required
-                            isInvalid={isTitleInvalid}
-                          />
+                            <label className="block mb-2 font-semibold pl-2 dark:text-white/70 " htmlFor="title">
+                                Título do produto
+                            </label>
+                            <CustomField
+                                name="title"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                required
+                                isInvalid={isTitleInvalid}
+                            />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="value">
-                              Valor
-                            </label>
-                            <CustomField
-                              name="value"
-                              value={value}
-                              onChange={(e) => {
-                                let input = e.target.value.replace(/[^\d]/g, '');
-                                const number = (parseFloat(input) / 100).toFixed(2);
-                                const formatted = Number(number).toLocaleString('pt-BR', {
-                                  style: 'currency',
-                                  currency: 'BRL',
-                                });
-                                setValue(formatted);
-                              }}
-                              required
-                              isInvalid={isValueInvalid}
-                            />
-                          </div>
-                          <div>
-                            <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="amount">
-                              Estoque
-                            </label>
-                            <CustomField
-                              name="amount"
-                              value={amount}
-                              type="number"
-                              min="0"
-                              onChange={(e) => setAmount(e.target.value)}
-                              required
-                              isInvalid={isAmountInvalid}
-                            />
-                          </div>
+                            <div>
+                                <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="value">
+                                    Valor
+                                </label>
+                                <CustomField
+                                    name="value"
+                                    value={value}
+                                    onChange={(e) => {
+                                        let input = e.target.value.replace(/[^\d]/g, '');
+                                        const number = (parseFloat(input) / 100).toFixed(2);
+                                        const formatted = Number(number).toLocaleString('pt-BR', {
+                                            style: 'currency',
+                                            currency: 'BRL',
+                                        });
+                                        setValue(formatted);
+                                    }}
+                                    required
+                                    isInvalid={isValueInvalid}
+                                />
+                            </div>
+                            <div>
+                                <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="amount">
+                                    Estoque
+                                </label>
+                                <CustomField
+                                    name="amount"
+                                    value={amount}
+                                    type="number"
+                                    min="0"
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    required
+                                    isInvalid={isAmountInvalid}
+                                />
+                            </div>
                         </div>
                         <div>
-                          <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="relates_to">
-                            Categoria
-                          </label>
-                          <CustomDropdown
-                            value={relates_to}
-                            onChange={setRelatesTo}
-                            options={[
-                              { label: 'Camisetas', value: 'Camisetas' },
-                              { label: 'Shorts', value: 'Shorts' },
-                              { label: 'Canecas', value: 'Canecas' },
-                              { label: 'Outros', value: 'Outros' },
-                            ]}
-                            required
-                            isInvalid={isRelatesToInvalid}
-                          />
+                            <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="relates_to">
+                                Categoria
+                            </label>
+                            <CustomDropdown
+                                value={relates_to}
+                                onChange={setRelatesTo}
+                                options={[
+                                    { label: 'Camisetas', value: 'Camisetas' },
+                                    { label: 'Shorts', value: 'Shorts' },
+                                    { label: 'Canecas', value: 'Canecas' },
+                                    { label: 'Outros', value: 'Outros' },
+                                ]}
+                                required
+                                isInvalid={isRelatesToInvalid}
+                            />
                         </div>
                         <div>
-                          <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="description">
-                            Descrição
-                          </label>
-                          <RichTextEditor
-                            value={description}
-                            onChange={setDescription}
-                          />
+                            <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="description">
+                                Descrição
+                            </label>
+                            <RichTextEditor
+                                value={description}
+                                onChange={setDescription}
+                            />
                         </div>
                         <div className="flex justify-end gap-4 pt-4">
                             <CustomButton
@@ -351,6 +412,42 @@ function ProductsPage() {
                             </CustomButton>
                         </div>
                     </form>
+                </Modal>
+                {/* Modal de confirmação de exclusão */}
+                <Modal
+                  isOpen={Boolean(productToDelete)}
+                  onRequestClose={() => setProductToDelete(null)}
+                  shouldCloseOnOverlayClick={true}
+                  overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
+                  className={`relative bg-white dark:bg-[#0e1117] dark:backdrop-blur-xl text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out border-red-800 dark:border-red-600 ${productToDelete ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                >
+                  <button
+                    onClick={() => setProductToDelete(null)}
+                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
+                  >
+                    ×
+                  </button>
+                  <h2 className="text-2xl mb-4 text-center font-bold text-red-800 dark:text-red-600">Confirmar Exclusão</h2>
+                  <p className="text-center text-sm text-gray-700 dark:text-gray-300 mb-6">
+                    Tem certeza que deseja excluir o produto <strong>{productToDelete?.title}</strong>?
+                  </p>
+                  <div className="flex justify-center">
+                    <CustomButton
+                      type="button"
+                      onClick={() => setProductToDelete(null)}
+                      className="!bg-gray-500 hover:!bg-gray-600"
+                    >
+                      Cancelar
+                    </CustomButton>
+                    <CustomButton
+                      type="button"
+                      onClick={handleConfirmDelete}
+                      className={`!bg-red-800 ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:!bg-red-700'}`}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? 'Excluindo...' : 'Excluir'}
+                    </CustomButton>
+                  </div>
                 </Modal>
             </div>
             <Footer />

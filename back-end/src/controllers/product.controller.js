@@ -1,4 +1,4 @@
-const { createProduct, fetchProducts } = require('../services/product.service');
+const { createProduct, fetchProducts, editProduct, removeProduct } = require('../services/product.service');
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
@@ -54,4 +54,55 @@ async function getProducts(req, res) {
     }
 }
 
-module.exports = { addProduct, getProducts };
+async function updateProduct(req, res) {
+  try {
+    const { id } = req.params;
+    const imageFile = req.file;
+    let imageUrl = req.body.image || '';
+
+    if (imageFile) {
+      const fileExt = imageFile.originalname.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+
+      const { error } = await supabase.storage
+        .from('products')
+        .upload(fileName, imageFile.buffer, {
+          contentType: imageFile.mimetype,
+        });
+
+      if (error) {
+        console.error('Erro ao enviar imagem:', error);
+        return res.status(500).json({ error: 'Erro ao enviar imagem' });
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('products')
+        .getPublicUrl(fileName);
+
+      imageUrl = publicUrlData.publicUrl;
+    }
+
+    const updated = await editProduct(id, {
+      ...req.body,
+      image: imageUrl
+    });
+
+    res.status(200).json(updated);
+  } catch (error) {
+    console.error('Erro ao atualizar produto:', error);
+    res.status(500).json({ error: 'Erro ao atualizar produto' });
+  }
+}
+
+async function deleteProduct(req, res) {
+  try {
+    const { id } = req.params;
+    await removeProduct(id);
+    res.status(204).end();
+  } catch (error) {
+    console.error('Erro ao excluir produto:', error);
+    res.status(500).json({ error: 'Erro ao excluir produto' });
+  }
+}
+
+module.exports = { addProduct, getProducts, updateProduct, deleteProduct };

@@ -39,4 +39,28 @@ async function fetchProducts() {
   }
 }
 
-module.exports = { createProduct, fetchProducts };
+async function editProduct(id, data) {
+  const query = `
+    UPDATE products
+    SET title = $1, description = $2, value = $3, amount = $4, relates_to = $5, image = $6
+    WHERE id = $7
+    RETURNING *;
+  `;
+  const values = [
+    data.title,
+    data.description,
+    parseFloat(data.value),
+    parseInt(data.amount, 10),
+    data.relates_to,
+    data.image || null,
+    id,
+  ];
+  const res = await db.query(query, values);
+  return res.rows[0];
+}
+
+async function removeProduct(id) {
+  await db.query(`DELETE FROM products WHERE id = $1`, [id]);
+}
+
+module.exports = { createProduct, fetchProducts, editProduct, removeProduct };

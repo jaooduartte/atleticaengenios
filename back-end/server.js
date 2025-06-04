@@ -29,9 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/financial', financialRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
-const productController = require('./src/controllers/product.controller');
-app.post('/api/products', upload.single('image'), productController.addProduct);
-app.get('/api/products', productController.getProducts);
+app.use('/api/products', upload.single('image'), productRoutes);
 
 app.listen(3001, () => {
   console.log('Servidor rodando na porta 3001');
