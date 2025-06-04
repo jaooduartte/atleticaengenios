@@ -15,6 +15,7 @@ function ProductsPage() {
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState(null);
+    const [productToEdit, setProductToEdit] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [title, setTitle] = useState('');
@@ -98,12 +99,17 @@ function ProductsPage() {
             formData.append('value', numericValue);
             formData.append('amount', amount);
             formData.append('relates_to', relates_to);
-            if (image) formData.append('image', image);
+            // Adiciona a imagem por URL se for um objeto com url
+            if (typeof image === 'object' && image?.url) {
+                formData.append('image', image.url);
+            }
+            // Adiciona a imagem se for um File
+            if (image instanceof File) formData.append('image', image);
 
-            const url = productToDelete
-                ? `${process.env.NEXT_PUBLIC_API_URL}/api/products/${productToDelete}`
+            const url = productToEdit
+                ? `${process.env.NEXT_PUBLIC_API_URL}/api/products/${productToEdit}`
                 : `${process.env.NEXT_PUBLIC_API_URL}/api/products`;
-            const method = productToDelete ? 'PUT' : 'POST';
+            const method = productToEdit ? 'PUT' : 'POST';
 
             const response = await fetch(url, {
                 method,
@@ -114,16 +120,17 @@ function ProductsPage() {
 
             if (!response.ok) throw new Error(result.error || 'Erro ao registrar produto');
 
-            setBannerMessage(productToDelete ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
+            setBannerMessage(productToEdit ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
             setBannerDescription('');
             setBannerType('success');
             setShowBanner(true);
             setTimeout(() => setShowBanner(false), 4000);
             handleCloseModal();
             fetchProducts();
+            setProductToEdit(null);
         } catch (error) {
             console.error(error);
-            setBannerMessage(productToDelete ? 'Erro ao atualizar produto' : 'Erro ao cadastrar produto');
+            setBannerMessage(productToEdit ? 'Erro ao atualizar produto' : 'Erro ao cadastrar produto');
             setBannerDescription(error.message || 'Erro inesperado');
             setBannerType('error');
             setShowBanner(true);
@@ -136,14 +143,14 @@ function ProductsPage() {
     const handleEditProduct = (product) => {
         setTitle(product.title);
         setDescription(product.description);
-        setValue(product.value.toLocaleString('pt-BR', {
-          style: 'currency',
-          currency: 'BRL',
+        setValue(Number(product.value).toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL',
         }));
         setAmount(product.amount.toString());
         setRelatesTo(product.relates_to);
         setImage(product.image ? { url: product.image } : null);
-        setProductToDelete(product.id);
+        setProductToEdit(product.id);
         setIsModalOpen(true);
     };
 
@@ -153,26 +160,26 @@ function ProductsPage() {
     };
 
     const handleConfirmDelete = async () => {
-      try {
-        setIsDeleting(true);
-        await fetch(`http://localhost:3001/api/products/${productToDelete.id}`, {
-          method: 'DELETE',
-        });
-        // Banner de sucesso
-        setShowBanner(true);
-        setBannerMessage("Produto excluído com sucesso!");
-        setBannerType("success");
-        setTimeout(() => {
-          setShowBanner(false);
-          setBannerMessage("");
-        }, 3000);
-        setProductToDelete(null);
-        fetchProducts(); // Atualiza a lista
-      } catch (error) {
-        console.error('Erro ao excluir produto:', error);
-      } finally {
-        setIsDeleting(false);
-      }
+        try {
+            setIsDeleting(true);
+            await fetch(`http://localhost:3001/api/products/${productToDelete.id}`, {
+                method: 'DELETE',
+            });
+            // Banner de sucesso
+            setShowBanner(true);
+            setBannerMessage("Produto excluído com sucesso!");
+            setBannerType("success");
+            setTimeout(() => {
+                setShowBanner(false);
+                setBannerMessage("");
+            }, 3000);
+            setProductToDelete(null);
+            fetchProducts(); // Atualiza a lista
+        } catch (error) {
+            console.error('Erro ao excluir produto:', error);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const handleSellProduct = (product) => {
@@ -246,7 +253,7 @@ function ProductsPage() {
                                         <div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all  duration-200 pointer-events-none group-hover:pointer-events-auto">
                                             <button onClick={() => handleEditProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Editar produto</button>
                                             <button onClick={() => handleSellProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm text-green-600 dark:text-green-400">Realizar venda</button>
-                                            <button onClick={() => handleDeleteProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm text-red-600 dark:text-red-400">Excluir produto</button>
+                                            <button onClick={() => setProductToDelete(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm text-red-600 dark:text-red-400">Excluir produto</button>
                                         </div>
                                     </div>
                                 </div>
@@ -415,39 +422,41 @@ function ProductsPage() {
                 </Modal>
                 {/* Modal de confirmação de exclusão */}
                 <Modal
-                  isOpen={Boolean(productToDelete)}
-                  onRequestClose={() => setProductToDelete(null)}
-                  shouldCloseOnOverlayClick={true}
-                  overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
-                  className={`relative bg-white dark:bg-[#0e1117] dark:backdrop-blur-xl text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out border-red-800 dark:border-red-600 ${productToDelete ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                    isOpen={Boolean(productToDelete)}
+                    onRequestClose={() => setProductToDelete(null)}
+                    shouldCloseOnOverlayClick={true}
+                    overlayClassName="ReactModal__Overlay fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 transition-opacity duration-300"
+                    className={`relative bg-white dark:bg-[#0e1117] dark:backdrop-blur-xl text-gray-800 p-8 rounded-xl shadow-xl w-full max-w-md mx-auto border-t-[6px] transform transition-all duration-300 ease-in-out border-red-800 dark:border-red-600 ${productToDelete ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
                 >
-                  <button
-                    onClick={() => setProductToDelete(null)}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
-                  >
-                    ×
-                  </button>
-                  <h2 className="text-2xl mb-4 text-center font-bold text-red-800 dark:text-red-600">Confirmar Exclusão</h2>
-                  <p className="text-center text-sm text-gray-700 dark:text-gray-300 mb-6">
-                    Tem certeza que deseja excluir o produto <strong>{productToDelete?.title}</strong>?
-                  </p>
-                  <div className="flex justify-center">
-                    <CustomButton
-                      type="button"
-                      onClick={() => setProductToDelete(null)}
-                      className="!bg-gray-500 hover:!bg-gray-600"
+                    <button
+                        onClick={() => setProductToDelete(null)}
+                        className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-xl"
                     >
-                      Cancelar
-                    </CustomButton>
-                    <CustomButton
-                      type="button"
-                      onClick={handleConfirmDelete}
-                      className={`!bg-red-800 ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:!bg-red-700'}`}
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? 'Excluindo...' : 'Excluir'}
-                    </CustomButton>
-                  </div>
+                        ×
+                    </button>
+
+                    <h2 className="text-2xl mb-4 text-center font-bold text-red-800 dark:text-red-600">Confirmar Exclusão</h2>
+                    <p className="text-center text-sm text-gray-700 dark:text-gray-300 mb-6">
+                        Tem certeza que deseja excluir o produto <strong>{productToDelete?.title}</strong>?
+                    </p>
+
+                    <div className="flex justify-center">
+                        <CustomButton
+                            type="button"
+                            onClick={() => setProductToDelete(null)}
+                            className="!bg-gray-500 hover:!bg-gray-600"
+                        >
+                            Cancelar
+                        </CustomButton>
+                        <CustomButton
+                            type="button"
+                            onClick={() => handleConfirmDelete(productToDelete)}
+                            className={`!bg-red-800 ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:!bg-red-700'}`}
+                            disabled={isDeleting}
+                        >
+                            {isDeleting ? 'Excluindo...' : 'Excluir'}
+                        </CustomButton>
+                    </div>
                 </Modal>
             </div>
             <Footer />
