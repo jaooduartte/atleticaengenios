@@ -10,7 +10,15 @@ export default function useAuth() {
       if (!token) return;
 
       try {
-        const decoded = jwtDecode(token);
+        let decoded;
+        try {
+          decoded = jwtDecode(token);
+        } catch (decodeErr) {
+          console.error('Token inválido:', decodeErr);
+          localStorage.removeItem('token');
+          return;
+        }
+
         if (decoded.exp * 1000 < Date.now()) {
           localStorage.removeItem('token');
           return;
@@ -19,11 +27,9 @@ export default function useAuth() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        
 
         if (res.ok) {
-          const text = await res.text();
-          const data = JSON.parse(text);
+          const data = await res.json();
           setUser({
             id: Number(data.user?.id),
             name: data.user?.name || 'Usuário',
