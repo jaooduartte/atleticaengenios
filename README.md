@@ -43,21 +43,26 @@ O projeto será desenvolvido utilizando as seguintes tecnologias:
 
 ### 🚀 Clonar o Repositório
 
-bash
+```bash
 git clone https://github.com/jaooduartte/atleticaengenios.git
 cd atleticaengenios
+```
 
 ### ⚙️ Configuração do Front-end
 
-cd frontend
+```bash
+cd front-end
 npm install
 npm run dev
+```
 
 ### 🔧 Configuração do Back-end
 
-cd backend
+```bash
+cd back-end
 npm install
 npm start
+```
 
 ### ✉️ Contato
 
