@@ -151,7 +151,7 @@ function ProductsPage() {
 			setBannerDescription('');
 			setBannerType('success');
 			setShowBanner(true);
-			setTimeout(() => setShowBanner(false), 4000);
+			setTimeout(() => setShowBanner(false), 4500);
 			handleCloseModal();
 			fetchProducts();
 			setProductToEdit(null);
@@ -161,7 +161,7 @@ function ProductsPage() {
 			setBannerDescription(error.message || 'Erro inesperado');
 			setBannerType('error');
 			setShowBanner(true);
-			setTimeout(() => setShowBanner(false), 4000);
+			setTimeout(() => setShowBanner(false), 4500);
 		} finally {
 			setIsLoading(false);
 		}
@@ -209,8 +209,45 @@ function ProductsPage() {
 		}
 	};
 
-	const handleSellProduct = (product) => {
-		console.log('Realizar venda do produto:', product);
+	const handleSellProduct = async (product) => {
+	  if (product.amount <= 0) {
+	    setBannerMessage('Produto esgotado!');
+	    setBannerType('error');
+	    setShowBanner(true);
+	    setTimeout(() => setShowBanner(false), 4500);
+	    return;
+	  }
+
+	  try {
+	    const updatedAmount = product.amount - 1;
+	    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${product.id}`, {
+	      method: 'PUT',
+	      body: JSON.stringify({
+	        ...product,
+	        amount: updatedAmount,
+	        image: product.image,
+	      }),
+	      headers: {
+	        'Content-Type': 'application/json',
+	      },
+	    });
+
+	    const result = await response.json();
+
+	    if (!response.ok) throw new Error(result.error || 'Erro ao realizar venda');
+
+	    setBannerMessage('Venda realizada com sucesso!');
+	    setBannerType('success');
+	    setShowBanner(true);
+	    setTimeout(() => setShowBanner(false), 4500);
+	    fetchProducts();
+	  } catch (error) {
+	    console.error('Erro ao realizar venda:', error);
+	    setBannerMessage('Erro ao realizar venda');
+	    setBannerType('error');
+	    setShowBanner(true);
+	    setTimeout(() => setShowBanner(false), 4500);
+	  }
 	};
 
 	const handleDuplicateProduct = async (product) => {
@@ -241,14 +278,14 @@ function ProductsPage() {
 			setBannerMessage('Produto duplicado com sucesso!');
 			setBannerType('success');
 			setShowBanner(true);
-			setTimeout(() => setShowBanner(false), 4000);
+			setTimeout(() => setShowBanner(false), 4500);
 			fetchProducts();
 		} catch (error) {
 			console.error('Erro ao duplicar produto:', error);
 			setBannerMessage('Erro ao duplicar produto');
 			setBannerType('error');
 			setShowBanner(true);
-			setTimeout(() => setShowBanner(false), 4000);
+			setTimeout(() => setShowBanner(false), 4500);
 		}
 	};
 
@@ -322,7 +359,7 @@ function ProductsPage() {
 					</div>
 					<div>
 						<CustomButton
-							className="bg-red-900 hover:bg-red-800 w-fit px-6 py-2 justify-end"
+							className="bg-red-700 hover:bg-red-600 dark:bg-red-900 dark:hover:bg-red-800 w-fit px-6 py-2 justify-end"
 							onClick={handleOpenModal}
 						>
 							<span className="flex items-center justify-center gap-2 text-sm whitespace-nowrap">
