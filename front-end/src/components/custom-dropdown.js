@@ -17,9 +17,10 @@ export default function CustomDropdown({ icon: Icon, options, value, onChange, p
   }, []);
 
   const handleSelect = (option) => {
-    onChange(option);
+    const selected = typeof option === 'object' ? option : { label: option, value: option };
+    onChange(selected.value);
     setIsOpen(false);
-    if (onFilterApplied) onFilterApplied(option);
+    if (onFilterApplied) onFilterApplied(selected);
   };
 
   return (
@@ -33,7 +34,7 @@ export default function CustomDropdown({ icon: Icon, options, value, onChange, p
         className={`w-full p-3 ${Icon ? 'pl-12' : 'pl-4'} pr-10 bg-gray-100 dark:bg-white/5 text-left rounded-xl transition-colors focus:outline-none ${isInvalid ? 'border-2 border-red-500' : 'border border-transparent'}`}
       >
         <span className={`block truncate whitespace-nowrap !text-sm ${value ? 'text-black dark:text-white' : 'text-gray-400'}`}>
-          {value || placeholder}
+          {options.find(opt => (opt.value || opt) === value)?.label || placeholder}
         </span>
         <CaretDown className="absolute dark:text-white right-3 top-1/2 transform -translate-y-1/2" size={16} />
       </button>
@@ -46,7 +47,7 @@ export default function CustomDropdown({ icon: Icon, options, value, onChange, p
               <button
                 key={value}
                 type="button"
-                onClick={() => handleSelect(value)}
+                onClick={() => handleSelect(option)}
                 className="w-full text-left px-4 py-2 hover:bg-red-800 hover:text-white dark:hover:bg-[#0e1117] cursor-pointer whitespace-nowrap"
               >
                 {label}
@@ -61,7 +62,15 @@ export default function CustomDropdown({ icon: Icon, options, value, onChange, p
 
 CustomDropdown.propTypes = {
   icon: PropTypes.elementType,
-  options: PropTypes.arrayOf(PropTypes.string).isRequired,
+  options: PropTypes.arrayOf(
+    PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.shape({
+        label: PropTypes.string.isRequired,
+        value: PropTypes.string.isRequired,
+      }),
+    ])
+  ).isRequired,
   value: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,

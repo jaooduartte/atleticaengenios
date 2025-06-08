@@ -1,4 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import {
+  Chart as ChartJS,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 import * as react from '@phosphor-icons/react';
 import useAuth from '../../hooks/useAuth';
 import Header from '../../components/header-admin';
@@ -8,14 +16,6 @@ import CustomField from '../../components/custom-field';
 import CustomButton from '../../components/custom-buttom';
 import CustomDropdown from '../../components/custom-dropdown';
 import Banner from '../../components/banner';
-import {
-  Chart as ChartJS,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-} from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
 
