@@ -113,11 +113,12 @@ module.exports = { addProduct, getProducts, updateProduct, deleteProduct, sellPr
 async function sellProduct(req, res) {
   try {
     const { id } = req.params;
-    const user = await userService.getUserById(req.userId);
-    if (!user || typeof user.id !== 'number') {
+    const authId = req.user.userId || req.user.id;
+    const user = await userService.getUserById(authId);
+    const userId = parseInt(user?.id, 10);
+    if (!user || Number.isNaN(userId)) {
       throw new Error('user_id inválido');
     }
-    const userId = user.id;
 
     const { data: products, error } = await supabase
       .from('products')
@@ -142,10 +143,13 @@ async function sellProduct(req, res) {
       image: product.image
     });
 
+    const brazilNow = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    const formattedDate = brazilNow.toISOString().split('T')[0];
+
     const transaction = await createTransaction({
       title: `Venda de ${product.title}`,
       value: parseFloat(product.value),
-      date: new Date().toISOString().split('T')[0],
+      date: formattedDate,
       relates_to: 'Produtos',
       user_id: userId,
       type: 'receita',
