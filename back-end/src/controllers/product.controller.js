@@ -131,7 +131,7 @@ async function sellProduct(req, res) {
       return res.status(500).json({ error: 'Erro ao buscar produto' });
     }
 
-    const product = products && products[0];
+    const product = products?.[0];
 
     if (!product || product.amount <= 0) {
       return res.status(400).json({ error: 'Produto esgotado ou não encontrado' });
@@ -152,7 +152,7 @@ async function sellProduct(req, res) {
       date: formattedDate,
       relates_to: 'Produtos',
       user_id: userId,
-      type: 'entrada',
+      type: 'receita',
       note: null
     });
 

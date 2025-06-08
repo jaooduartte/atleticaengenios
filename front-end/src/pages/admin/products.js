@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import useAuth from '../../hooks/useAuth';
+import Image from 'next/image';
 import * as react from '@phosphor-icons/react';
 import Header from '../../components/header-admin';
 import Footer from '../../components/footer-admin';
@@ -12,11 +12,9 @@ import withAdminProtection from '../../utils/withAdminProtection';
 import RichTextEditor from '../../components/rich-text-editor.js';
 
 function ProductsPage() {
-	const user = useAuth();
 	const [products, setProducts] = useState([]);
 	// Novo estado para filtro de baixo estoque
 	const [showLowStockOnly, setShowLowStockOnly] = useState(false);
-	const [filteredProducts, setFilteredProducts] = useState([]);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [productToDelete, setProductToDelete] = useState(null);
 	const [productToEdit, setProductToEdit] = useState(null);
@@ -29,7 +27,6 @@ function ProductsPage() {
 	const [relates_to, setRelatesTo] = useState('');
 	const [image, setImage] = useState(null);
 	const [isTitleInvalid, setIsTitleInvalid] = useState(false);
-	const [isDescriptionInvalid, setIsDescriptionInvalid] = useState(false);
 	const [isValueInvalid, setIsValueInvalid] = useState(false);
 	const [isAmountInvalid, setIsAmountInvalid] = useState(false);
 	const [isRelatesToInvalid, setIsRelatesToInvalid] = useState(false);
@@ -37,25 +34,22 @@ function ProductsPage() {
 	// Banner states
 	const [showBanner, setShowBanner] = useState(false);
 	const [bannerMessage, setBannerMessage] = useState("");
-        const [bannerType, setBannerType] = useState("success");
-        const [bannerDescription, setBannerDescription] = useState('');
-        const [styleFilter, setStyleFilter] = useState('');
-        const [sortOrder, setSortOrder] = useState('recent-desc');
+	const [bannerType, setBannerType] = useState("success");
+	const [styleFilter, setStyleFilter] = useState('');
+	const [sortOrder, setSortOrder] = useState('recent-desc');
 
-        const showBannerMessage = (message, type, description = '') => {
-                setBannerMessage(message);
-                setBannerDescription(description);
-                setBannerType(type);
-                setShowBanner(true);
-                setTimeout(() => setShowBanner(false), 4500);
-        };
+	const showBannerMessage = (message, type, description = '') => {
+		setBannerMessage(message);
+		setBannerType(type);
+		setShowBanner(true);
+		setTimeout(() => setShowBanner(false), 4500);
+	};
 
 	const fetchProducts = async () => {
 		try {
 			const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`);
 			const data = await response.json();
 			setProducts(data);
-			setFilteredProducts(data);
 		} catch (error) {
 			console.error('Erro ao buscar produtos:', error);
 		}
@@ -191,10 +185,6 @@ function ProductsPage() {
 		setIsModalOpen(true);
 	};
 
-	// Nova função de exclusão com modal de confirmação
-	const handleDeleteProduct = (product) => {
-		setProductToDelete(product);
-	};
 
 	const handleConfirmDelete = async () => {
 		try {
@@ -219,26 +209,26 @@ function ProductsPage() {
 		}
 	};
 
-        const handleSellProduct = async (productId) => {
-                try {
-                        const token = localStorage.getItem('token');
-                        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}/sell`, {
-                                method: 'POST',
-                                headers: {
-                                        Authorization: `Bearer ${token}`,
-                                        'Content-Type': 'application/json',
-                                },
-                        });
+	const handleSellProduct = async (productId) => {
+		try {
+			const token = localStorage.getItem('token');
+			const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}/sell`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json',
+				},
+			});
 
-                        if (!response.ok) throw new Error('Erro ao realizar venda do produto');
+			if (!response.ok) throw new Error('Erro ao realizar venda do produto');
 
-                        showBannerMessage('Venda realizada com sucesso!', 'success');
-                        fetchProducts(); // Atualiza a listagem após venda
-                } catch (err) {
-                        console.error('Erro ao realizar venda:', err);
-                        showBannerMessage('Erro ao realizar venda do produto', 'error');
-                }
-        };
+			showBannerMessage('Venda realizada com sucesso!', 'success');
+			fetchProducts();
+		} catch (err) {
+			console.error('Erro ao realizar venda:', err);
+			showBannerMessage('Erro ao realizar venda do produto', 'error');
+		}
+	};
 
 	const handleDuplicateProduct = async (product) => {
 		try {
@@ -382,14 +372,23 @@ function ProductsPage() {
 										<div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all  duration-200 pointer-events-none group-hover:pointer-events-auto">
 											<button onClick={() => handleEditProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Editar produto</button>
 											<button onClick={() => handleDuplicateProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Duplicar produto</button>
-											<button onClick={() => handleSellProduct(product.id)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm text-green-600 dark:text-green-400">Realizar venda</button>
+											<button
+												onClick={() => product.amount > 0 && handleSellProduct(product.id)}
+												disabled={product.amount === 0}
+												className={`block w-full rounded-lg text-left px-4 py-2 text-sm ${product.amount === 0
+													? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-500'
+													: 'text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-white/5'
+													}`}
+											>
+												Realizar venda
+											</button>
 											<button onClick={() => setProductToDelete(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm text-red-600 dark:text-red-400">Excluir produto</button>
 										</div>
 									</div>
 								</div>
 								<div className="w-32 h-32 bg-gray-200 dark:bg-gray-800 rounded-md mb-4 overflow-hidden flex items-center justify-center">
 									{product.image ? (
-										<img src={product.image} alt={product.title} className="object-cover w-full h-full" />
+										<Image src={product.image} alt={product.title} className="object-cover w-full h-full" width={128} height={128} />
 									) : (
 										<react.ImageIcon size={48} className="text-gray-400" />
 									)}
@@ -402,17 +401,22 @@ function ProductsPage() {
 									{product.relates_to}
 								</span>
 								<span className="text-sm mt-2 font-medium text-gray-700 dark:text-white/80">
-									Estoque:{' '}
-									<strong
-										className={`${product.amount === 0
-											? 'text-red-600'
-											: product.amount <= 10
-												? 'text-orange-500'
-												: 'text-gray-700 dark:text-white/80'
-											}`}
-									>
-										{product.amount}
-									</strong>
+									{product.amount === 0 ? (
+										<strong className="text-red-600">Sem estoque</strong>
+									) : (
+										<>
+											Estoque:{' '}
+											<strong
+												className={`${
+													product.amount <= 10
+														? 'text-orange-500'
+														: 'text-gray-700 dark:text-white/80'
+												}`}
+											>
+												{product.amount}
+											</strong>
+										</>
+									)}
 								</span>
 							</div>
 						))
@@ -439,10 +443,12 @@ function ProductsPage() {
 						<div className="flex justify-center mb-4">
 							<div className="relative group w-24 h-24">
 								{image ? (
-									<img
+									<Image
 										src={image instanceof File ? URL.createObjectURL(image) : image.url}
 										alt="Pré-visualização"
 										className="w-24 h-24 rounded-md object-cover shadow-md"
+										width={96}
+										height={96}
 									/>
 								) : (
 									<div className="w-24 h-24 rounded-md bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-500 text-sm">
@@ -580,7 +586,7 @@ function ProductsPage() {
 						</CustomButton>
 						<CustomButton
 							type="button"
-							onClick={() => handleConfirmDelete(productToDelete)}
+							onClick={handleConfirmDelete}
 							className={`!bg-red-800 ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'hover:!bg-red-700'}`}
 							disabled={isDeleting}
 						>
@@ -599,7 +605,7 @@ function ProductsPage() {
           animation: fade-in 0.4s ease-out;
         }
       `}</style>
-			<style jsx>{`
+			<style>{`
 				.shadow-bright-red {
 					box-shadow: 0 0 18px rgba(255, 0, 0, 0.5);
 				}
