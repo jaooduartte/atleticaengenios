@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import useAuth from '../../hooks/useAuth';
 import * as react from '@phosphor-icons/react';
 import Header from '../../components/header-admin';
 import Footer from '../../components/footer-admin';
@@ -11,6 +12,7 @@ import withAdminProtection from '../../utils/withAdminProtection';
 import RichTextEditor from '../../components/rich-text-editor.js';
 
 function ProductsPage() {
+	const user = useAuth();
 	const [products, setProducts] = useState([]);
 	// Novo estado para filtro de baixo estoque
 	const [showLowStockOnly, setShowLowStockOnly] = useState(false);
@@ -209,45 +211,25 @@ function ProductsPage() {
 		}
 	};
 
-	const handleSellProduct = async (product) => {
-	  if (product.amount <= 0) {
-	    setBannerMessage('Produto esgotado!');
-	    setBannerType('error');
-	    setShowBanner(true);
-	    setTimeout(() => setShowBanner(false), 4500);
-	    return;
-	  }
+	const handleSellProduct = async (productId) => {
+		try {
+			const token = localStorage.getItem('token');
+			const response = await fetch(`http://localhost:3001/api/products/sell/${productId}`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json',
+				},
+			});
 
-	  try {
-	    const updatedAmount = product.amount - 1;
-	    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${product.id}`, {
-	      method: 'PUT',
-	      body: JSON.stringify({
-	        ...product,
-	        amount: updatedAmount,
-	        image: product.image,
-	      }),
-	      headers: {
-	        'Content-Type': 'application/json',
-	      },
-	    });
+			if (!response.ok) throw new Error('Erro ao realizar venda do produto');
 
-	    const result = await response.json();
-
-	    if (!response.ok) throw new Error(result.error || 'Erro ao realizar venda');
-
-	    setBannerMessage('Venda realizada com sucesso!');
-	    setBannerType('success');
-	    setShowBanner(true);
-	    setTimeout(() => setShowBanner(false), 4500);
-	    fetchProducts();
-	  } catch (error) {
-	    console.error('Erro ao realizar venda:', error);
-	    setBannerMessage('Erro ao realizar venda');
-	    setBannerType('error');
-	    setShowBanner(true);
-	    setTimeout(() => setShowBanner(false), 4500);
-	  }
+			toast.success('Venda realizada com sucesso!');
+			fetchProducts(); // Atualiza a listagem após venda
+		} catch (err) {
+			console.error('Erro ao realizar venda:', err);
+			toast.error('Erro ao realizar venda do produto');
+		}
 	};
 
 	const handleDuplicateProduct = async (product) => {
@@ -347,7 +329,7 @@ function ProductsPage() {
 							/>
 						</div>
 						<button
-						title='Filtrar por estoque baixo'
+							title='Filtrar por estoque baixo'
 							onClick={() => setShowLowStockOnly((prev) => !prev)}
 							className={`items-center p-2 rounded-full text-sm shadow-sm transition-all duration-200 ${showLowStockOnly
 								? 'bg-red-900 text-white shadow-[0_0_12px_rgba(255,0,0,0.7)]'
@@ -379,13 +361,12 @@ function ProductsPage() {
 						sortedProducts.map((product) => (
 							<div
 								key={product.id}
-								className={`relative bg-white dark:bg-white/10 dark:border dark:border-white/10 rounded-xl p-6 flex flex-col items-center justify-between transition-transform hover:scale-[1.02] ${
-									product.amount === 0
-										? 'shadow-bright-red'
-										: product.amount <= 10
-											? 'shadow-bright-orange'
-											: 'shadow-md'
-								}`}
+								className={`relative bg-white dark:bg-white/10 dark:border dark:border-white/10 rounded-xl p-6 flex flex-col items-center justify-between transition-transform hover:scale-[1.02] ${product.amount === 0
+									? 'shadow-bright-red'
+									: product.amount <= 10
+										? 'shadow-bright-orange'
+										: 'shadow-md'
+									}`}
 							>
 								<div className="absolute top-2 right-2 z-10">
 									<div className="group relative w-fit h-fit">
@@ -393,7 +374,7 @@ function ProductsPage() {
 										<div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all  duration-200 pointer-events-none group-hover:pointer-events-auto">
 											<button onClick={() => handleEditProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Editar produto</button>
 											<button onClick={() => handleDuplicateProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Duplicar produto</button>
-											<button onClick={() => handleSellProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm text-green-600 dark:text-green-400">Realizar venda</button>
+											<button onClick={() => handleSellProduct(product.id)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm text-green-600 dark:text-green-400">Realizar venda</button>
 											<button onClick={() => setProductToDelete(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm text-red-600 dark:text-red-400">Excluir produto</button>
 										</div>
 									</div>

@@ -78,8 +78,8 @@ const deleteTransaction = async (id) => {
 };
 
 module.exports = {
-    createTransaction,
-    listTransactions,
-    updateTransaction,
-    deleteTransaction,
+  createTransaction,
+  listTransactions,
+  updateTransaction,
+  deleteTransaction,
 };
