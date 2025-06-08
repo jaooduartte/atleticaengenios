@@ -37,10 +37,18 @@ function ProductsPage() {
 	// Banner states
 	const [showBanner, setShowBanner] = useState(false);
 	const [bannerMessage, setBannerMessage] = useState("");
-	const [bannerType, setBannerType] = useState("success");
-	const [bannerDescription, setBannerDescription] = useState('');
-	const [styleFilter, setStyleFilter] = useState('');
-	const [sortOrder, setSortOrder] = useState('recent-desc');
+        const [bannerType, setBannerType] = useState("success");
+        const [bannerDescription, setBannerDescription] = useState('');
+        const [styleFilter, setStyleFilter] = useState('');
+        const [sortOrder, setSortOrder] = useState('recent-desc');
+
+        const showBannerMessage = (message, type, description = '') => {
+                setBannerMessage(message);
+                setBannerDescription(description);
+                setBannerType(type);
+                setShowBanner(true);
+                setTimeout(() => setShowBanner(false), 4500);
+        };
 
 	const fetchProducts = async () => {
 		try {
@@ -211,26 +219,26 @@ function ProductsPage() {
 		}
 	};
 
-	const handleSellProduct = async (productId) => {
-		try {
-			const token = localStorage.getItem('token');
-			const response = await fetch(`http://localhost:3001/api/products/sell/${productId}`, {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json',
-				},
-			});
+        const handleSellProduct = async (productId) => {
+                try {
+                        const token = localStorage.getItem('token');
+                        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}/sell`, {
+                                method: 'POST',
+                                headers: {
+                                        Authorization: `Bearer ${token}`,
+                                        'Content-Type': 'application/json',
+                                },
+                        });
 
-			if (!response.ok) throw new Error('Erro ao realizar venda do produto');
+                        if (!response.ok) throw new Error('Erro ao realizar venda do produto');
 
-			toast.success('Venda realizada com sucesso!');
-			fetchProducts(); // Atualiza a listagem após venda
-		} catch (err) {
-			console.error('Erro ao realizar venda:', err);
-			toast.error('Erro ao realizar venda do produto');
-		}
-	};
+                        showBannerMessage('Venda realizada com sucesso!', 'success');
+                        fetchProducts(); // Atualiza a listagem após venda
+                } catch (err) {
+                        console.error('Erro ao realizar venda:', err);
+                        showBannerMessage('Erro ao realizar venda do produto', 'error');
+                }
+        };
 
 	const handleDuplicateProduct = async (product) => {
 		try {
