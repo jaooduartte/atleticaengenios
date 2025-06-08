@@ -113,11 +113,12 @@ module.exports = { addProduct, getProducts, updateProduct, deleteProduct, sellPr
 async function sellProduct(req, res) {
   try {
     const { id } = req.params;
-    const user = await userService.getUserById(req.user.userId);
-    if (!user || typeof user.id !== 'number') {
+    const authId = req.user.userId || req.user.id;
+    const user = await userService.getUserById(authId);
+    const userId = parseInt(user?.id, 10);
+    if (!user || Number.isNaN(userId)) {
       throw new Error('user_id inválido');
     }
-    const userId = user.id;
 
     const { data: products, error } = await supabase
       .from('products')
