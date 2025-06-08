@@ -143,13 +143,16 @@ async function sellProduct(req, res) {
       image: product.image
     });
 
+    const brazilNow = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    const formattedDate = brazilNow.toISOString().split('T')[0];
+
     const transaction = await createTransaction({
       title: `Venda de ${product.title}`,
       value: parseFloat(product.value),
-      date: new Date().toISOString().split('T')[0],
+      date: formattedDate,
       relates_to: 'Produtos',
       user_id: userId,
-      type: 'entrada',
+      type: 'receita',
       note: null
     });
 
