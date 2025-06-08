@@ -70,7 +70,7 @@ CustomDropdown.propTypes = {
         value: PropTypes.string.isRequired,
       }),
     ])
-  ).isRequired, options: PropTypes.arrayOf(PropTypes.string).isRequired,
+  ).isRequired,
   value: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   placeholder: PropTypes.string,

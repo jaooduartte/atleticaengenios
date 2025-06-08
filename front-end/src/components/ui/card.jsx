@@ -1,4 +1,5 @@
 import * as React from "react"
+import PropTypes from "prop-types"
 
 import { cn } from "@/lib/utils"
 
@@ -9,6 +10,9 @@ const Card = React.forwardRef(({ className, ...props }, ref) => (
     {...props} />
 ))
 Card.displayName = "Card"
+Card.propTypes = {
+  className: PropTypes.string,
+};
 
 const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
   <div
@@ -17,6 +21,9 @@ const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
     {...props} />
 ))
 CardHeader.displayName = "CardHeader"
+CardHeader.propTypes = {
+  className: PropTypes.string,
+};
 
 const CardTitle = React.forwardRef(({ className, ...props }, ref) => (
   <div
@@ -25,6 +32,9 @@ const CardTitle = React.forwardRef(({ className, ...props }, ref) => (
     {...props} />
 ))
 CardTitle.displayName = "CardTitle"
+CardTitle.propTypes = {
+  className: PropTypes.string,
+};
 
 const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
   <div
@@ -33,11 +43,17 @@ const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
     {...props} />
 ))
 CardDescription.displayName = "CardDescription"
+CardDescription.propTypes = {
+  className: PropTypes.string,
+};
 
 const CardContent = React.forwardRef(({ className, ...props }, ref) => (
   <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
 ))
 CardContent.displayName = "CardContent"
+CardContent.propTypes = {
+  className: PropTypes.string,
+};
 
 const CardFooter = React.forwardRef(({ className, ...props }, ref) => (
   <div
@@ -46,5 +62,8 @@ const CardFooter = React.forwardRef(({ className, ...props }, ref) => (
     {...props} />
 ))
 CardFooter.displayName = "CardFooter"
+CardFooter.propTypes = {
+  className: PropTypes.string,
+};
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }

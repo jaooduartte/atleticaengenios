@@ -1,6 +1,7 @@
 const React = require('react');
 const { useEditor, EditorContent } = require('@tiptap/react');
 const StarterKit = require('@tiptap/starter-kit').default;
+const PropTypes = require('prop-types');
 
 function RichTextEditor({ value, onChange, placeholder }) {
   const editor = useEditor({
@@ -22,5 +23,11 @@ function RichTextEditor({ value, onChange, placeholder }) {
     className: editor?.isEmpty ? 'is-empty' : '',
   });
 }
+
+RichTextEditor.propTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
+};
 
 module.exports = RichTextEditor;
