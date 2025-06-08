@@ -214,7 +214,7 @@ function ProductsPage() {
 	const handleSellProduct = async (productId) => {
 		try {
 			const token = localStorage.getItem('token');
-			const response = await fetch(`http://localhost:3001/api/products/sell/${productId}`, {
+                        const response = await fetch(`http://localhost:3001/api/products/${productId}/sell`, {
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${token}`,
