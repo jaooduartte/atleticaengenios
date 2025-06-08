@@ -113,7 +113,7 @@ module.exports = { addProduct, getProducts, updateProduct, deleteProduct, sellPr
 async function sellProduct(req, res) {
   try {
     const { id } = req.params;
-    const user = await userService.getUserById(req.userId);
+    const user = await userService.getUserById(req.user.userId);
     if (!user || typeof user.id !== 'number') {
       throw new Error('user_id inválido');
     }
@@ -148,7 +148,7 @@ async function sellProduct(req, res) {
       date: new Date().toISOString().split('T')[0],
       relates_to: 'Produtos',
       user_id: userId,
-      type: 'receita',
+      type: 'entrada',
       note: null
     });
 
