@@ -395,4 +395,5 @@ function MyAccount() {
       </div>
     </>
   );
-}\nexport default withAuth(MyAccount);
+}
+export default withAuth(MyAccount);
