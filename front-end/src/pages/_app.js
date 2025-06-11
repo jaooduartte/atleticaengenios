@@ -23,7 +23,7 @@ export default function App({ Component, pageProps }) {
       const tokenExp = localStorage.getItem('token_exp');
 
       if (!token || !tokenExp) {
-        router.replace('/login');
+        setShowModal(true);
         return;
       }
 
@@ -42,6 +42,8 @@ export default function App({ Component, pageProps }) {
       const data = await res.json();
 
       if (!res.ok || data?.is_active === false) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('token_exp');
         setShowModal(true);
       }
     };
@@ -49,7 +51,7 @@ export default function App({ Component, pageProps }) {
     checkToken();
     const interval = setInterval(checkToken, 60000);
     return () => clearInterval(interval);
-  }, [router.pathname]);
+  }, [router, router.pathname]);
 
   useEffect(() => {
     (function (h, o, t, j, a, r) {
