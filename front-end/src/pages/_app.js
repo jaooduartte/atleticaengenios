@@ -15,20 +15,26 @@ export default function App({ Component, pageProps }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (['/login', '/confirm'].includes(router.pathname)) return;
+    const publicRoutes = ['/login', '/confirm', '/forgot-password', '/reset-password'];
+    if (publicRoutes.includes(router.pathname)) return;
 
     const checkToken = async () => {
       const token = localStorage.getItem('token');
       const tokenExp = localStorage.getItem('token_exp');
 
-      if (!token || !tokenExp) return;
+      if (!token || !tokenExp) {
+        setShowModal(true);
+        return;
+      }
 
       const now = Date.now();
       const expTime = Number(tokenExp) * 1000;
 
       if (now > expTime) {
         setShowModal(true);
+        return;
       }
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-status`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -36,6 +42,8 @@ export default function App({ Component, pageProps }) {
       const data = await res.json();
 
       if (!res.ok || data?.is_active === false) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('token_exp');
         setShowModal(true);
       }
     };
@@ -43,7 +51,7 @@ export default function App({ Component, pageProps }) {
     checkToken();
     const interval = setInterval(checkToken, 60000);
     return () => clearInterval(interval);
-  }, [router.pathname]);
+  }, [router, router.pathname]);
 
   useEffect(() => {
     (function (h, o, t, j, a, r) {

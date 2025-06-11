@@ -6,9 +6,10 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024
   }
 });
-const authenticate = require('./src/middleware/auth.middleware');
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const bodyParser = require('body-parser');
 const authRoutes = require('./src/routes/auth.routes');
 const financialRoutes = require('./src/routes/financial.routes');
@@ -19,6 +20,14 @@ const authController = require('./src/controllers/auth.controller');
 
 const app = express();
 
+app.use(helmet());
+
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { error: 'Muitas tentativas de login. Tente novamente em 1 minuto.' }
+});
+
 app.use(cors({
   origin: [
     'http://localhost:3000',
@@ -28,7 +37,7 @@ app.use(cors({
 }));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
-app.post('/api/auth/login', authController.loginUser);
+app.post('/api/auth/login', loginLimiter, authController.loginUser);
 app.get('/api/health', (req, res) => res.send('ok'));
 app.use('/api/auth', authRoutes);
 app.use('/api/financial', financialRoutes);
