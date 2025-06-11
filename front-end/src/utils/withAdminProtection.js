@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import useAuth from '../hooks/useAuth';
+import withAuth from './withAuth';
 
 const withAdminProtection = (WrappedComponent) => {
-  return function ProtectedComponent(props) {
+  const AdminComponent = (props) => {
     const router = useRouter();
     const user = useAuth();
 
@@ -12,11 +13,13 @@ const withAdminProtection = (WrappedComponent) => {
         router.replace('/home');
       }
     }, [user, router]);
-    
+
     if (!user) return null;
 
     return <WrappedComponent {...props} />;
   };
+
+  return withAuth(AdminComponent);
 };
 
 export default withAdminProtection;

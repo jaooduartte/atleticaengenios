@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import Header from '../components/header';
 import Footer from '../components/footer';
 import Head from 'next/head';
+import withAuth from '../utils/withAuth';
 
-export default function Home() {
+function Home() {
   useEffect(() => {
     console.log('Home');
   }, []);
@@ -24,3 +25,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default withAuth(Home);

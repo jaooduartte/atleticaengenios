@@ -11,8 +11,9 @@ import CustomDropdown from '../components/custom-dropdown';
 import Banner from '../components/banner';
 import PasswordRequirements from '../components/password-requirements';
 import Head from 'next/head';
+import withAuth from '../utils/withAuth';
 
-export default function MyAccount() {
+function MyAccount() {
   const [formData, setFormData] = useState({
     name: '',
     course: '',
@@ -394,4 +395,4 @@ export default function MyAccount() {
       </div>
     </>
   );
-}
+}\nexport default withAuth(MyAccount);

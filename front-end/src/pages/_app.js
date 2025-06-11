@@ -15,20 +15,26 @@ export default function App({ Component, pageProps }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (['/login', '/confirm'].includes(router.pathname)) return;
+    const publicRoutes = ['/login', '/confirm', '/forgot-password', '/reset-password'];
+    if (publicRoutes.includes(router.pathname)) return;
 
     const checkToken = async () => {
       const token = localStorage.getItem('token');
       const tokenExp = localStorage.getItem('token_exp');
 
-      if (!token || !tokenExp) return;
+      if (!token || !tokenExp) {
+        router.replace('/login');
+        return;
+      }
 
       const now = Date.now();
       const expTime = Number(tokenExp) * 1000;
 
       if (now > expTime) {
         setShowModal(true);
+        return;
       }
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-status`, {
         headers: { Authorization: `Bearer ${token}` }
       });
