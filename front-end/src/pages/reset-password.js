@@ -142,11 +142,24 @@ export default function ResetPassword() {
       return;
     }
 
+    if (newPassword.length < 6) {
+      showBannerMessage('A senha deve ter pelo menos 6 caracteres.', 'error');
+      setIsResetting(false);
+      return;
+    }
+
     const supabase = createClientComponentClient();
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
-      showBannerMessage(error.message || 'Erro ao redefinir senha.', 'error');
+      const translatedErrors = {
+        'New password should be different from the old password.': 'A nova senha deve ser diferente da anterior.',
+        'Password should be at least 6 characters.': 'A senha deve ter pelo menos 6 caracteres.',
+        'Invalid token': 'Token inválido ou expirado.',
+      };
+
+      const translated = translatedErrors[error.message] || 'Erro ao redefinir senha.';
+      showBannerMessage(translated, 'error');
       setIsResetting(false);
     } else {
       showBannerMessage('Senha redefinida com sucesso!', 'success', 'Você será redirecionado ao login em instantes.');
