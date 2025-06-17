@@ -10,6 +10,7 @@ import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import PasswordRequirements from '../components/password-requirements';
 import Head from 'next/head';
+import translatedErrors from '../utils/authErrorMessages';
 
 export default function ResetPassword() {
   const [mounted, setMounted] = useState(false);
@@ -152,12 +153,6 @@ export default function ResetPassword() {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
-      const translatedErrors = {
-        'New password should be different from the old password.': 'A nova senha deve ser diferente da anterior.',
-        'Password should be at least 6 characters.': 'A senha deve ter pelo menos 6 caracteres.',
-        'Invalid token': 'Token inválido ou expirado.',
-      };
-
       const translated = translatedErrors[error.message] || 'Erro ao redefinir senha.';
       showBannerMessage(translated, 'error');
       setIsResetting(false);
