@@ -10,6 +10,7 @@ import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import PasswordRequirements from '../components/password-requirements';
 import Head from 'next/head';
+import translatedErrors from '../utils/authErrorMessages';
 
 export default function ResetPassword() {
   const [mounted, setMounted] = useState(false);
@@ -142,11 +143,18 @@ export default function ResetPassword() {
       return;
     }
 
+    if (newPassword.length < 6) {
+      showBannerMessage('A senha deve ter pelo menos 6 caracteres.', 'error');
+      setIsResetting(false);
+      return;
+    }
+
     const supabase = createClientComponentClient();
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
-      showBannerMessage(error.message || 'Erro ao redefinir senha.', 'error');
+      const translated = translatedErrors[error.message] || 'Erro ao redefinir senha.';
+      showBannerMessage(translated, 'error');
       setIsResetting(false);
     } else {
       showBannerMessage('Senha redefinida com sucesso!', 'success', 'Você será redirecionado ao login em instantes.');

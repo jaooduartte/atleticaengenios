@@ -16,7 +16,8 @@ export default function App({ Component, pageProps }) {
 
   useEffect(() => {
     const publicRoutes = ['/login', '/confirm', '/forgot-password', '/reset-password'];
-    if (publicRoutes.includes(router.pathname)) return;
+    const currentPath = router.asPath.split(/[?#]/)[0];
+    if (publicRoutes.includes(currentPath) || publicRoutes.includes(router.pathname)) return;
 
     const checkToken = async () => {
       const token = localStorage.getItem('token');
