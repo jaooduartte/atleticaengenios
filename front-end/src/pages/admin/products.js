@@ -7,6 +7,7 @@ import Modal from 'react-modal';
 import CustomField from '../../components/custom-field';
 import CustomButton from '../../components/custom-buttom';
 import CustomDropdown from '../../components/custom-dropdown';
+import ActionsDropdown from '../../components/ActionsDropdown';
 import Banner from '../../components/banner';
 import withAdminProtection from '../../utils/withAdminProtection';
 import RichTextEditor from '../../components/rich-text-editor.js';
@@ -26,24 +27,27 @@ function ProductsPage() {
 	const [amount, setAmount] = useState('');
 	const [relates_to, setRelatesTo] = useState('');
 	const [image, setImage] = useState(null);
-	const [isTitleInvalid, setIsTitleInvalid] = useState(false);
-	const [isValueInvalid, setIsValueInvalid] = useState(false);
+        const [isTitleInvalid, setIsTitleInvalid] = useState(false);
+        const [isDescriptionInvalid, setIsDescriptionInvalid] = useState(false);
+        const [isValueInvalid, setIsValueInvalid] = useState(false);
 	const [isAmountInvalid, setIsAmountInvalid] = useState(false);
 	const [isRelatesToInvalid, setIsRelatesToInvalid] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
-	// Banner states
-	const [showBanner, setShowBanner] = useState(false);
-	const [bannerMessage, setBannerMessage] = useState("");
-	const [bannerType, setBannerType] = useState("success");
+        // Banner states
+        const [showBanner, setShowBanner] = useState(false);
+        const [bannerMessage, setBannerMessage] = useState("");
+        const [bannerDescription, setBannerDescription] = useState("");
+        const [bannerType, setBannerType] = useState("success");
 	const [styleFilter, setStyleFilter] = useState('');
 	const [sortOrder, setSortOrder] = useState('recent-desc');
 
-	const showBannerMessage = (message, type, description = '') => {
-		setBannerMessage(message);
-		setBannerType(type);
-		setShowBanner(true);
-		setTimeout(() => setShowBanner(false), 4500);
-	};
+        const showBannerMessage = (message, type, description = '') => {
+                setBannerMessage(message);
+                setBannerDescription(description);
+                setBannerType(type);
+                setShowBanner(true);
+                setTimeout(() => setShowBanner(false), 4500);
+        };
 
 	const fetchProducts = async () => {
 		try {
@@ -147,26 +151,25 @@ function ProductsPage() {
 				body: formData,
 			});
 
-			const result = await response.json();
+                        const result = await response.json();
 
-			if (!response.ok) throw new Error(result.error || 'Erro ao registrar produto');
+                        if (!response.ok) throw new Error(result.error || 'Erro ao registrar produto');
 
-			setBannerMessage(productToEdit ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!');
-			setBannerDescription('');
-			setBannerType('success');
-			setShowBanner(true);
-			setTimeout(() => setShowBanner(false), 4500);
-			handleCloseModal();
-			fetchProducts();
-			setProductToEdit(null);
-		} catch (error) {
-			console.error(error);
-			setBannerMessage(productToEdit ? 'Erro ao atualizar produto' : 'Erro ao cadastrar produto');
-			setBannerDescription(error.message || 'Erro inesperado');
-			setBannerType('error');
-			setShowBanner(true);
-			setTimeout(() => setShowBanner(false), 4500);
-		} finally {
+                        showBannerMessage(
+                                productToEdit ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!',
+                                'success'
+                        );
+                        handleCloseModal();
+                        fetchProducts();
+                        setProductToEdit(null);
+                } catch (error) {
+                        console.error(error);
+                        showBannerMessage(
+                                productToEdit ? 'Erro ao atualizar produto' : 'Erro ao cadastrar produto',
+                                'error',
+                                error.message || 'Erro inesperado'
+                        );
+                } finally {
 			setIsLoading(false);
 		}
 	};
@@ -187,24 +190,17 @@ function ProductsPage() {
 
 
 	const handleConfirmDelete = async () => {
-		try {
-			setIsDeleting(true);
-			await fetch(`http://localhost:3001/api/products/${productToDelete.id}`, {
-				method: 'DELETE',
-			});
-			// Banner de sucesso
-			setShowBanner(true);
-			setBannerMessage("Produto excluído com sucesso!");
-			setBannerType("success");
-			setTimeout(() => {
-				setShowBanner(false);
-				setBannerMessage("");
-			}, 3000);
-			setProductToDelete(null);
-			fetchProducts(); // Atualiza a lista
-		} catch (error) {
-			console.error('Erro ao excluir produto:', error);
-		} finally {
+                try {
+                        setIsDeleting(true);
+                        await fetch(`http://localhost:3001/api/products/${productToDelete.id}`, {
+                                method: 'DELETE',
+                        });
+                        showBannerMessage('Produto excluído com sucesso!', 'success');
+                        setProductToDelete(null);
+                        fetchProducts(); // Atualiza a lista
+                } catch (error) {
+                        console.error('Erro ao excluir produto:', error);
+                } finally {
 			setIsDeleting(false);
 		}
 	};
@@ -255,18 +251,12 @@ function ProductsPage() {
 
 			if (!response.ok) throw new Error(result.error || 'Erro ao duplicar produto');
 
-			setBannerMessage('Produto duplicado com sucesso!');
-			setBannerType('success');
-			setShowBanner(true);
-			setTimeout(() => setShowBanner(false), 4500);
-			fetchProducts();
-		} catch (error) {
-			console.error('Erro ao duplicar produto:', error);
-			setBannerMessage('Erro ao duplicar produto');
-			setBannerType('error');
-			setShowBanner(true);
-			setTimeout(() => setShowBanner(false), 4500);
-		}
+                        showBannerMessage('Produto duplicado com sucesso!', 'success');
+                        fetchProducts();
+                } catch (error) {
+                        console.error('Erro ao duplicar produto:', error);
+                        showBannerMessage('Erro ao duplicar produto', 'error');
+                }
 	};
 
 	return (
@@ -274,13 +264,14 @@ function ProductsPage() {
 			<Header />
 			<title>Produtos | Área Admin</title>
 			{/* Banner após exclusão ou outras ações */}
-			{showBanner && (
-				<Banner
-					type={bannerType}
-					message={bannerMessage}
-					onClose={() => setShowBanner(false)}
-				/>
-			)}
+                        {showBanner && (
+                                <Banner
+                                        type={bannerType}
+                                        message={bannerMessage}
+                                        description={bannerDescription}
+                                        onClose={() => setShowBanner(false)}
+                                />
+                        )}
 			<div className="container mx-auto p-6 flex-grow">
 				<h1 className="text-5xl font-bold mb-10 mt-4 text-center text-gray-800 dark:text-white">Gestão de Produtos</h1>
 
@@ -366,26 +357,33 @@ function ProductsPage() {
 										: 'shadow-md'
 									}`}
 							>
-								<div className="absolute top-2 right-2 z-10">
-									<div className="group relative w-fit h-fit">
-										<react.DotsThreeVerticalIcon size={24} className="text-gray-700 dark:text-white cursor-pointer" />
-										<div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all  duration-200 pointer-events-none group-hover:pointer-events-auto">
-											<button onClick={() => handleEditProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Editar produto</button>
-											<button onClick={() => handleDuplicateProduct(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Duplicar produto</button>
-											<button
-												onClick={() => product.amount > 0 && handleSellProduct(product.id)}
-												disabled={product.amount === 0}
-												className={`block w-full rounded-lg text-left px-4 py-2 text-sm ${product.amount === 0
-													? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-500'
-													: 'text-green-600 dark:text-green-400 hover:bg-gray-100 dark:hover:bg-white/5'
-													}`}
-											>
-												Realizar venda
-											</button>
-											<button onClick={() => setProductToDelete(product)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm text-red-600 dark:text-red-400">Excluir produto</button>
-										</div>
-									</div>
-								</div>
+                                                                <div className="absolute top-2 right-2 z-10">
+                                                                        <ActionsDropdown
+                                                                          items={[
+                                                                            {
+                                                                              label: 'Editar produto',
+                                                                              icon: react.PencilSimple,
+                                                                              onClick: () => handleEditProduct(product),
+                                                                            },
+                                                                            {
+                                                                              label: 'Duplicar produto',
+                                                                              icon: react.Copy,
+                                                                              onClick: () => handleDuplicateProduct(product),
+                                                                            },
+                                                                            {
+                                                                              label: 'Realizar venda',
+                                                                              icon: react.ShoppingCart,
+                                                                              onClick: () => handleSellProduct(product.id),
+                                                                              disabled: product.amount === 0,
+                                                                            },
+                                                                            {
+                                                                              label: 'Excluir produto',
+                                                                              icon: react.Trash,
+                                                                              onClick: () => setProductToDelete(product),
+                                                                            },
+                                                                          ]}
+                                                                        />
+                                                                </div>
 								<div className="w-32 h-32 bg-gray-200 dark:bg-gray-800 rounded-md mb-4 overflow-hidden flex items-center justify-center">
 									{product.image ? (
 										<Image src={product.image} alt={product.title} className="object-cover w-full h-full" width={128} height={128} />

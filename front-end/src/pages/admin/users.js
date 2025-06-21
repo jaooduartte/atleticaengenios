@@ -7,7 +7,8 @@ import Banner from '../../components/banner';
 import CustomField from '../../components/custom-field';
 import Modal from 'react-modal';
 import CustomButton from '../../components/custom-buttom';
-import { MagnifyingGlassIcon, DotsThreeVerticalIcon, TrashIcon } from '@phosphor-icons/react';
+import { MagnifyingGlassIcon, TrashIcon, Info, UserSwitch } from '@phosphor-icons/react';
+import ActionsDropdown from '../../components/ActionsDropdown';
 import CustomDropdown from '../../components/custom-dropdown';
 
 function UsersPage() {
@@ -340,23 +341,20 @@ function UsersPage() {
                     </div>
                   </div>
                   <div className="w-[80px] flex justify-center items-center">
-                    <div className="relative group w-fit h-fit">
-                      <DotsThreeVerticalIcon size={24} className="text-gray-700 dark:text-white cursor-pointer" />
-                      <div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
-                        <button
-                          onClick={() => abrirModalEdicao(user)}
-                          className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm"
-                        >
-                          Informações
-                        </button>
-                        <button
-                          onClick={() => toggleActive(user.auth_id, user.is_active)}
-                          className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm"
-                        >
-                          {user.is_active ? 'Inativar usuário' : 'Ativar usuário'}
-                        </button>
-                      </div>
-                    </div>
+                    <ActionsDropdown
+                      items={[
+                        {
+                          label: 'Informações',
+                          icon: Info,
+                          onClick: () => abrirModalEdicao(user),
+                        },
+                        {
+                          label: user.is_active ? 'Inativar usuário' : 'Ativar usuário',
+                          icon: UserSwitch,
+                          onClick: () => toggleActive(user.auth_id, user.is_active),
+                        },
+                      ]}
+                    />
                   </div>
                 </div>
               ))}
@@ -691,8 +689,8 @@ function UsersPage() {
             <CustomDropdown
               options={tiposDiretores.map(tipo => ({ value: tipo, label: tipo }))}
               value={cargoSelecionado.tipoDiretor || ''}
-              onChange={opt =>
-                setCargoSelecionado(cs => ({ ...cs, tipoDiretor: opt.value }))
+              onChange={value =>
+                setCargoSelecionado(cs => ({ ...cs, tipoDiretor: value }))
               }
               placeholder="Selecione o tipo de Diretor"
             />
@@ -703,8 +701,8 @@ function UsersPage() {
             <CustomDropdown
               options={tiposTrainees.map(tipo => ({ value: tipo, label: tipo }))}
               value={cargoSelecionado.tipoTrainee || ''}
-              onChange={opt =>
-                setCargoSelecionado(cs => ({ ...cs, tipoTrainee: opt.value }))
+              onChange={value =>
+                setCargoSelecionado(cs => ({ ...cs, tipoTrainee: value }))
               }
               placeholder="Selecione o tipo de Trainee"
             />

@@ -15,6 +15,7 @@ import Modal from 'react-modal';
 import CustomField from '../../components/custom-field';
 import CustomButton from '../../components/custom-buttom';
 import CustomDropdown from '../../components/custom-dropdown';
+import ActionsDropdown from '../../components/ActionsDropdown';
 import Banner from '../../components/banner';
 import { Bar } from 'react-chartjs-2';
 
@@ -851,15 +852,20 @@ function FinancialPage() {
                     </div>
                   </div>
                   <div className="w-12 flex justify-center items-center">
-                    <div className="relative flex justify-end">
-                      <div className=" relative group w-fit h-fit">
-                        <react.DotsThreeVerticalIcon size={24} className="text-gray-700 dark:text-white cursor-pointer" />
-                        <div className="absolute right-0 top-6 w-40 bg-white dark:bg-[#0e1117] dark:border dark:border-white/10 rounded-lg shadow-lg z-50 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto">
-                          <button onClick={() => handleEditTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-white/5 text-sm">Editar transação</button>
-                          <button onClick={() => handleDeleteTransaction(transaction)} className="block w-full rounded-lg text-left px-4 py-2 hover:bg-gray-200 dark:hover:bg-white/5 text-sm text-red-600 dark:text-red-400">Excluir transação</button>
-                        </div>
-                      </div>
-                    </div>
+                    <ActionsDropdown
+                      items={[
+                        {
+                          label: 'Editar transação',
+                          icon: react.PencilSimple,
+                          onClick: () => handleEditTransaction(transaction),
+                        },
+                        {
+                          label: 'Excluir transação',
+                          icon: react.Trash,
+                          onClick: () => handleDeleteTransaction(transaction),
+                        },
+                      ]}
+                    />
                   </div>
                 </div>
               ))
