@@ -47,6 +47,7 @@ export default function UserDropdown() {
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => router.push('/minha-conta')}>
           <UserGear className="mr-2 h-4 w-4" /> Conta
         </DropdownMenuItem>
