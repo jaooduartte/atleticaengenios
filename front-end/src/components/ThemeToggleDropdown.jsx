@@ -1,4 +1,4 @@
-import { Moon, Sun, Laptop2 } from 'lucide-react'
+import { Moon, Sun, Laptop2, ChevronLeft } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import {
   DropdownMenuSub,
@@ -14,7 +14,7 @@ export default function ThemeToggleDropdown() {
 
   return (
     <DropdownMenuSub>
-      <DropdownMenuSubTrigger inset>
+      <DropdownMenuSubTrigger leftIcon={<ChevronLeft className="h-4 w-4" />} rightIcon={null}>
         Tema
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent className="w-56">

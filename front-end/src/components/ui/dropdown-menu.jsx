@@ -1,7 +1,7 @@
 import * as React from "react"
 import PropTypes from "prop-types"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
-import { Check, ChevronRight, Circle } from "lucide-react"
+import { Check, ChevronRight, ChevronLeft, Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -12,25 +12,33 @@ const DropdownMenuPortal = DropdownMenuPrimitive.Portal
 const DropdownMenuSub = DropdownMenuPrimitive.Sub
 const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup
 
-const DropdownMenuSubTrigger = React.forwardRef(({ className, inset, children, ...props }, ref) => (
-  <DropdownMenuPrimitive.SubTrigger
-    ref={ref}
-    className={cn(
-      "flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent data-[state=open]:bg-accent",
-      inset && "pl-8",
-      className
-    )}
-    {...props}
-  >
-    {children}
-    <ChevronRight className="ml-auto h-4 w-4" />
-  </DropdownMenuPrimitive.SubTrigger>
-))
+const DropdownMenuSubTrigger = React.forwardRef(
+  (
+    { className, inset, children, leftIcon, rightIcon = <ChevronRight className="ml-auto h-4 w-4" />, ...props },
+    ref
+  ) => (
+    <DropdownMenuPrimitive.SubTrigger
+      ref={ref}
+      className={cn(
+        "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent data-[state=open]:bg-accent",
+        (inset || leftIcon) && "pl-8",
+        className
+      )}
+      {...props}
+    >
+      {leftIcon && <span className="absolute left-2 flex items-center h-4 w-4">{leftIcon}</span>}
+      {children}
+      {rightIcon}
+    </DropdownMenuPrimitive.SubTrigger>
+  )
+)
 DropdownMenuSubTrigger.displayName = DropdownMenuPrimitive.SubTrigger.displayName
 DropdownMenuSubTrigger.propTypes = {
   className: PropTypes.string,
   inset: PropTypes.bool,
   children: PropTypes.node,
+  leftIcon: PropTypes.node,
+  rightIcon: PropTypes.node,
 }
 
 const DropdownMenuSubContent = React.forwardRef(({ className, ...props }, ref) => (
