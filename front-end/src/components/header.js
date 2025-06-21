@@ -4,7 +4,9 @@ import useAuth from '../hooks/useAuth';
 import UserDropdown from './UserDropdown';
 
 export default function Header() {
-  const user = useAuth();
+  const { user, isLoadingUser } = useAuth();
+
+  if (isLoadingUser) return null;
 
   return (
   <header className="bg-[#B3090F] dark:bg-red-950 text-white py-4 px-8 flex items-center justify-between relative">

@@ -6,6 +6,7 @@ import { useRouter } from 'next/router'
 import ModalDesconected from '../components/modals/modal-desconected'
 import GlobalLoader from '../components/global-loader'
 import { LoadingProvider } from '../context/LoadingContext'
+import { AuthProvider } from '../context/AuthContext'
 import RouteLoaderHandler from '../components/RouteLoaderHandler'
 import PropTypes from 'prop-types'
 
@@ -78,22 +79,24 @@ export default function App({ Component, pageProps }) {
 
   return (
     <ThemeProvider attribute="class" enableSystem={true} defaultTheme="system">
-      <LoadingProvider>
-        <RouteLoaderHandler />
-        <>
-          <GlobalLoader />
-          <Component {...pageProps} />
-          <ModalDesconected
-            isOpen={showModal}
-            onConfirm={() => {
-              setShowModal(false);
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-              router.push('/login');
-            }}
-          />
-        </>
-      </LoadingProvider>
+      <AuthProvider>
+        <LoadingProvider>
+          <RouteLoaderHandler />
+          <>
+            <GlobalLoader />
+            <Component {...pageProps} />
+            <ModalDesconected
+              isOpen={showModal}
+              onConfirm={() => {
+                setShowModal(false);
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                router.push('/login');
+              }}
+            />
+          </>
+        </LoadingProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
