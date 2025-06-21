@@ -26,7 +26,7 @@ export default function Header() {
         ))}
       </nav>
       <div className='flex items-center justify-between gap-10 '>
-      {user && user.is_admin && (
+      {user?.is_admin && (
           <div>
             <Link href="/admin/inicio">
               <button className="bg-black hover:bg-[#0e1117] hover:scale-[1.03] transition text-white px-4 py-2 rounded-lg">

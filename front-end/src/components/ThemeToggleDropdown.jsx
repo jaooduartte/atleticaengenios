@@ -8,8 +8,6 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu'
-import PropTypes from 'prop-types'
-
 export default function ThemeToggleDropdown() {
   const { theme, setTheme } = useTheme()
 

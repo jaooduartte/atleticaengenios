@@ -5,13 +5,11 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import ThemeToggleDropdown from './ThemeToggleDropdown'
 import useAuth from '../hooks/useAuth'
-import PropTypes from 'prop-types'
 
 export default function UserDropdown() {
   const router = useRouter()
@@ -30,8 +28,8 @@ export default function UserDropdown() {
           <div className="mb-2">
             <div className="w-10 h-10 rounded-full overflow-hidden">
               <Image
-                src={user && user.image ? user.image : '/placeholder.png'}
-                alt={user && user.name ? user.name : 'Usuário'}
+                src={user?.image || '/placeholder.png'}
+                alt={user?.name || 'Usuário'}
                 width={40}
                 height={40}
                 className="object-cover w-full h-full"
