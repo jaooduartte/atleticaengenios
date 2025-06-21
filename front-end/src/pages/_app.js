@@ -1,10 +1,13 @@
-import '../styles/globals.css';
-import { ThemeProvider } from 'next-themes';
-import Modal from 'react-modal';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import ModalDesconected from '../components/modals/modal-desconected';
-import PropTypes from 'prop-types';
+import '../styles/globals.css'
+import { ThemeProvider } from 'next-themes'
+import Modal from 'react-modal'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import ModalDesconected from '../components/modals/modal-desconected'
+import GlobalLoader from '../components/global-loader'
+import { LoadingProvider } from '../context/LoadingContext'
+import RouteLoaderHandler from '../components/RouteLoaderHandler'
+import PropTypes from 'prop-types'
 
 if (typeof window !== 'undefined') {
   Modal.setAppElement('#__next');
@@ -75,18 +78,22 @@ export default function App({ Component, pageProps }) {
 
   return (
     <ThemeProvider attribute="class" enableSystem={true} defaultTheme="system">
-      <>
-        <Component {...pageProps} />
-        <ModalDesconected
-          isOpen={showModal}
-          onConfirm={() => {
-            setShowModal(false);
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            router.push('/login');
-          }}
-        />
-      </>
+      <LoadingProvider>
+        <RouteLoaderHandler />
+        <>
+          <GlobalLoader />
+          <Component {...pageProps} />
+          <ModalDesconected
+            isOpen={showModal}
+            onConfirm={() => {
+              setShowModal(false);
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              router.push('/login');
+            }}
+          />
+        </>
+      </LoadingProvider>
     </ThemeProvider>
   );
 }

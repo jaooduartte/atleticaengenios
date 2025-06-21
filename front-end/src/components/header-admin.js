@@ -1,10 +1,23 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import useAuth from '../hooks/useAuth';
 import UserDropdown from './UserDropdown';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Header() {
-  const user = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    const routes = [
+      '/admin/inicio',
+      '/admin/financeiro',
+      '/admin/produtos',
+      '/admin/eventos',
+      '/admin/formularios',
+      '/admin/usuarios',
+    ];
+    routes.forEach((r) => router.prefetch(r));
+  }, [router]);
 
   return (
     <header className="bg-black text-white py-4 px-8 flex items-center justify-between relative">

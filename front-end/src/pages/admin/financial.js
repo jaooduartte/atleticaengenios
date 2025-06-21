@@ -17,7 +17,10 @@ import CustomButton from '../../components/custom-buttom';
 import CustomDropdown from '../../components/custom-dropdown';
 import ActionsDropdown from '../../components/ActionsDropdown';
 import Banner from '../../components/banner';
-import { Bar } from 'react-chartjs-2';
+import dynamic from 'next/dynamic';
+import { useLoading } from '../../context/LoadingContext';
+
+const Bar = dynamic(() => import('react-chartjs-2').then(mod => mod.Bar), { ssr: false });
 
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
@@ -105,6 +108,7 @@ function FinancialPage() {
   const [filterPosition] = useState({ top: 0, left: 0 });
   const [filterMenuOptions, setFilterMenuOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { setLoading } = useLoading();
   const [isDeleting, setIsDeleting] = useState(false);
   const filterMenuRef = useRef(null);
 
@@ -351,6 +355,7 @@ function FinancialPage() {
     if (!isValid) return;
 
     setIsLoading(true);
+    setLoading(true);
 
     const newTransaction = createNewTransaction({ title, value, date, relates_to, note, transactionType, user });
 
@@ -395,11 +400,13 @@ function FinancialPage() {
       showBannerMessage('Erro de conexão', 'error', 'Não foi possível se conectar ao servidor.');
     } finally {
       setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
 
@@ -411,7 +418,10 @@ function FinancialPage() {
       });
 
       if (response.ok) {
-        setTransactions((prev) => prev.filter((t) => t.id !== transactionToDelete.id));
+        const updated = transactions.filter((t) => t.id !== transactionToDelete.id);
+        setTransactions(updated);
+        setFilteredTransactions((prev) => prev.filter((t) => t.id !== transactionToDelete.id));
+        updateTransactionTotals(updated, setTotalAmount, setTotalIncomes, setTotalExpenses);
         showBannerMessage("Transação excluída com sucesso!", "success");
       } else {
         showBannerMessage("Erro ao excluir", "error", "Tente novamente mais tarde.");
@@ -422,6 +432,7 @@ function FinancialPage() {
     } finally {
       setTransactionToDelete(null);
       setIsDeleting(false);
+      setLoading(false);
     }
   };
 

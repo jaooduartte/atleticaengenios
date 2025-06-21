@@ -11,16 +11,17 @@ import ActionsDropdown from '../../components/ActionsDropdown';
 import Banner from '../../components/banner';
 import withAdminProtection from '../../utils/withAdminProtection';
 import RichTextEditor from '../../components/rich-text-editor.js';
+import { useLoading } from '../../context/LoadingContext';
 
 function ProductsPage() {
 	const [products, setProducts] = useState([]);
-	// Novo estado para filtro de baixo estoque
 	const [showLowStockOnly, setShowLowStockOnly] = useState(false);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [productToDelete, setProductToDelete] = useState(null);
 	const [productToEdit, setProductToEdit] = useState(null);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
+	const { setLoading } = useLoading();
 	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');
 	const [value, setValue] = useState('');
@@ -30,6 +31,7 @@ function ProductsPage() {
 	const [isTitleInvalid, setIsTitleInvalid] = useState(false);
 	const [isValueInvalid, setIsValueInvalid] = useState(false);
 	const [isAmountInvalid, setIsAmountInvalid] = useState(false);
+	const [, setIsDescriptionInvalid] = useState(false);
 	const [isRelatesToInvalid, setIsRelatesToInvalid] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [showBanner, setShowBanner] = useState(false);
@@ -61,7 +63,6 @@ function ProductsPage() {
 		fetchProducts();
 	}, []);
 
-	// Variável para aplicar filtro de baixo estoque
 	const filteredProductsLowStock = showLowStockOnly
 		? products.filter((product) => product.amount <= 10)
 		: products;
@@ -123,6 +124,7 @@ function ProductsPage() {
 		if (!title || !description || !value || !amount || !relates_to) return;
 
 		setIsLoading(true);
+		setLoading(true);
 		try {
 			const numericValue = Number(value.replace(/[^\d]/g, '')) / 100;
 
@@ -132,11 +134,9 @@ function ProductsPage() {
 			formData.append('value', numericValue);
 			formData.append('amount', amount);
 			formData.append('relates_to', relates_to);
-			// Adiciona a imagem por URL se for um objeto com url
 			if (typeof image === 'object' && image?.url) {
 				formData.append('image', image.url);
 			}
-			// Adiciona a imagem se for um File
 			if (image instanceof File) formData.append('image', image);
 
 			const url = productToEdit
@@ -169,6 +169,7 @@ function ProductsPage() {
 			);
 		} finally {
 			setIsLoading(false);
+			setLoading(false);
 		}
 	};
 
@@ -190,16 +191,18 @@ function ProductsPage() {
 	const handleConfirmDelete = async () => {
 		try {
 			setIsDeleting(true);
+			setLoading(true);
 			await fetch(`http://localhost:3001/api/products/${productToDelete.id}`, {
 				method: 'DELETE',
 			});
 			showBannerMessage('Produto excluído com sucesso!', 'success');
 			setProductToDelete(null);
-			fetchProducts(); // Atualiza a lista
+			fetchProducts(); 
 		} catch (error) {
 			console.error('Erro ao excluir produto:', error);
 		} finally {
 			setIsDeleting(false);
+			setLoading(false);
 		}
 	};
 
@@ -404,8 +407,8 @@ function ProductsPage() {
 											Estoque:{' '}
 											<strong
 												className={`${product.amount <= 10
-														? 'text-orange-500'
-														: 'text-gray-700 dark:text-white/80'
+													? 'text-orange-500'
+													: 'text-gray-700 dark:text-white/80'
 													}`}
 											>
 												{product.amount}
