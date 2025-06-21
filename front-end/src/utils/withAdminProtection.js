@@ -6,15 +6,15 @@ import withAuth from './withAuth';
 const withAdminProtection = (WrappedComponent) => {
   const AdminComponent = (props) => {
     const router = useRouter();
-    const user = useAuth();
+    const { user, isLoadingUser } = useAuth();
 
     useEffect(() => {
-      if (user && !user.is_admin) {
+      if (!isLoadingUser && user && !user.is_admin) {
         router.replace('/home');
       }
-    }, [user, router]);
+    }, [user, isLoadingUser, router]);
 
-    if (!user) return null;
+    if (isLoadingUser || !user) return null;
 
     return <WrappedComponent {...props} />;
   };

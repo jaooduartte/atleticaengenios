@@ -77,7 +77,7 @@ function FinancialPage() {
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerType, setBannerType] = useState('');
   const [bannerDescription, setBannerDescription] = useState('');
-  const user = useAuth();
+  const { user, isLoadingUser } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactionType, setTransactionType] = useState(null);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
@@ -167,6 +167,8 @@ function FinancialPage() {
   };
 
   useEffect(() => {
+    if (isLoadingUser) return;
+
     const fetchTransactions = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -212,7 +214,7 @@ function FinancialPage() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isLoadingUser]);
 
   useEffect(() => {
     const groupByMonth = () => {
@@ -444,6 +446,8 @@ function FinancialPage() {
     }
     return new Date(b.date) - new Date(a.date);
   });
+
+  if (isLoadingUser) return null;
 
   return (
     <div className="financial-page flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">

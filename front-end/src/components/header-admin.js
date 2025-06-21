@@ -3,9 +3,11 @@ import Image from 'next/image';
 import UserDropdown from './UserDropdown';
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
+import useAuth from '../hooks/useAuth';
 
 export default function Header() {
   const router = useRouter();
+  const { isLoadingUser } = useAuth();
 
   useEffect(() => {
     const routes = [
@@ -18,6 +20,8 @@ export default function Header() {
     ];
     routes.forEach((r) => router.prefetch(r));
   }, [router]);
+
+  if (isLoadingUser) return null;
 
   return (
     <header className="bg-black text-white py-4 px-8 flex items-center justify-between relative">

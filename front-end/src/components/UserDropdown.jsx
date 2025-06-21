@@ -13,7 +13,9 @@ import useAuth from '../hooks/useAuth'
 
 export default function UserDropdown() {
   const router = useRouter()
-  const user = useAuth()
+  const { user, isLoadingUser } = useAuth()
+
+  if (isLoadingUser) return null
 
   const handleLogout = () => {
     localStorage.removeItem('token')
