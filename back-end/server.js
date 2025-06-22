@@ -16,6 +16,7 @@ const financialRoutes = require('./src/routes/financial.routes');
 const adminRoutes = require('./src/routes/admin.routes');
 const userRoutes = require('./src/routes/user.routes');
 const productRoutes = require('./src/routes/product.routes');
+const eventRoutes = require('./src/routes/event.routes');
 const authController = require('./src/controllers/auth.controller');
 
 const app = express();
@@ -44,6 +45,7 @@ app.use('/api/financial', financialRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/products', upload.single('image'), productRoutes);
+app.use('/api/events', upload.single('image'), eventRoutes);
 
 app.listen(3001, () => {
   console.log('Servidor rodando na porta 3001');
