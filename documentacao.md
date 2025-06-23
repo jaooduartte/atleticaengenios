@@ -1,5 +1,10 @@
 # Planejamento do Desenvolvimento da Plataforma Atlética Engênios
 
+## Introdução
+A plataforma **Atlética Engênios** trata do domínio de **gestão de atléticas universitárias**, reunindo em um único sistema o cadastro de membros da diretoria, o controle de estoque de produtos e o acompanhamento financeiro.
+
+Em apresentações rápidas, siga estes passos: abra a aplicação, mostre a tela de login, autentique-se com um usuário de demonstração e navegue pelas telas principais de cadastro de membros, produtos e finanças.
+
 ## **1. Ajustes sugeridos da primeira interação (25/02)**
 Na primeira interação, foram feitas as seguintes decisões e ajustes para aprimorar o projeto:
 
