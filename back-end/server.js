@@ -1,11 +1,4 @@
-const multer = require('multer');
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024
-  }
-});
+const upload = require('./src/middleware/upload.middleware');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -44,8 +37,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/financial', financialRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/products', upload.single('image'), productRoutes);
-app.use('/api/events', upload.single('image'), eventRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/events', eventRoutes);
 
 app.listen(3001, () => {
   console.log('Servidor rodando na porta 3001');

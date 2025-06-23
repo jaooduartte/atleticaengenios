@@ -60,6 +60,7 @@ const listEvents = async (_req, res) => {
 
 const updateEvent = async (req, res) => {
   try {
+    console.log(req.method, req.body);
     const { id } = req.params;
     const updates = req.body;
     if (req.file) {
@@ -74,7 +75,12 @@ const updateEvent = async (req, res) => {
         console.error('Erro ao subir imagem:', error);
         return res.status(500).json({ error: 'Erro ao salvar imagem' });
       }
-      updates.image = `event-images/${fileName}`;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('event-images')
+        .getPublicUrl(fileName);
+
+      updates.image = publicUrlData.publicUrl;
     }
 
     const event = await eventService.updateEvent(id, updates);
