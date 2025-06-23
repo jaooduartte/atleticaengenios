@@ -92,3 +92,20 @@ Criar sistema de login com validação de acesso.
 Criar sistema de movimentação financeira.
 Melhorias na interface e experiência do usuário.
 Testes e deploy final.
+
+## **5. Integração Contínua (CI)**
+
+O repositório possui um workflow definido em `.github/workflows/ci.yml`.
+Ele é executado sempre que há `push` ou `pull_request` para os ramos `main` e `develop`.
+Duas etapas de teste são realizadas:
+
+1. **test-backend**
+   - checkout do código
+   - instalação do Node.js v18
+   - instalação das dependências em `back-end`
+   - execução dos testes com `npm test -- --passWithNoTests`
+
+2. **test-frontend**
+   - mesmos passos para o diretório `front-end`
+
+Até o momento não foi adotada a metodologia **TDD** e não existe configuração de ambiente de produção.
