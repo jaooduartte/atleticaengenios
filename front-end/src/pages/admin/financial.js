@@ -15,6 +15,7 @@ import Modal from 'react-modal';
 import CustomField from '../../components/custom-field';
 import CustomButton from '../../components/custom-buttom';
 import CustomDropdown from '../../components/custom-dropdown';
+import CustomCalendar from '../../components/custom-calendar';
 import ActionsDropdown from '../../components/ActionsDropdown';
 import Banner from '../../components/banner';
 import dynamic from 'next/dynamic';
@@ -625,13 +626,11 @@ function FinancialPage() {
                   required
                   isInvalid={isValueInvalid}
                 />
-                <CustomField
+                <CustomCalendar
                   name="date"
-                  type="date"
                   value={date}
-                  className={!date ? 'text-gray-400' : 'text-black'}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
+                  onChange={setDate}
+                  placeholder="Selecione a data"
                   isInvalid={isDateInvalid}
                 />
                 <CustomDropdown

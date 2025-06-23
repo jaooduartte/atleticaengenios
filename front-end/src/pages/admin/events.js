@@ -17,8 +17,9 @@ import CustomDropdown from '../../components/custom-dropdown'
 import ActionsDropdown from '../../components/ActionsDropdown'
 import Banner from '../../components/banner'
 import RichTextEditor from '../../components/rich-text-editor.js';
+import CustomCalendar from '../../components/custom-calendar'
 import withAdminProtection from '../../utils/withAdminProtection'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 
@@ -54,6 +55,7 @@ function EventsPage() {
     handleSubmit,
     reset,
     watch,
+    control,
     formState: { errors, isSubmitting }
   } = useForm({ resolver: zodResolver(eventSchema), defaultValues: { visible: false } })
 
@@ -536,16 +538,19 @@ function EventsPage() {
                 <label className="block mb-2 font-semibold pl-2 dark:text-white/70" htmlFor="date_event">
                   Data do evento
                 </label>
-                <CustomField
-                  label="Data do evento"
-                  type="date"
-                  placeholder="Selecione a data"
-                  {...register("date_event")}
-                  value={watch("date_event")}
-                  className={`text-sm ${watch("date_event")
-                    ? "text-foreground"
-                    : "text-muted-foreground"
-                    }`}
+                <Controller
+                  control={control}
+                  name="date_event"
+                  render={({ field }) => (
+                    <CustomCalendar
+                      {...field}
+                      placeholder="Selecione a data"
+                      onChange={(val) => {
+                        field.onChange(val)
+                        setFormData((prev) => ({ ...prev, date_event: val }))
+                      }}
+                    />
+                  )}
                 />
               </div>
               <div>
