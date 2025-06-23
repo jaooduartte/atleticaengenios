@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import clsx from "clsx";
+import { ArchiveIcon } from "lucide-react";
 import { useLoading } from "@/context/LoadingContext";
 import Head from "next/head";
 import Cropper from 'react-easy-crop'
@@ -43,7 +45,7 @@ function EventsPage() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
   const [showCropModal, setShowCropModal] = useState(false)
   const [rawImage, setRawImage] = useState(null)
-  // Estado para armazenar imagem recortada (base64 ou blob URL)
+  const [showPastEvents, setShowPastEvents] = useState(false);
   const [croppedImage, setCroppedImage] = useState(null)
 
   const {
@@ -269,13 +271,22 @@ function EventsPage() {
     }
   }
 
-  const filteredEvents = events.filter((ev) => {
-    const matchesSearch = ev.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesVisibility =
       visibilityFilter === '' ||
-      (visibilityFilter === 'true' ? ev.visible : !ev.visible)
-    return matchesSearch && matchesVisibility
-  })
+      (visibilityFilter === 'true' ? event.visible : !event.visible);
+    const isPast = new Date(event.date_event) < new Date();
+    const matchesDate = showPastEvents ? isPast : !isPast;
+    return matchesSearch && matchesVisibility && matchesDate;
+  });
+
+  const sortedEvents = [...filteredEvents].sort((a, b) => {
+    if (a.visible === b.visible) {
+      return new Date(a.date_event) - new Date(b.date_event);
+    }
+    return a.visible ? -1 : 1;
+  });
 
   // Função para alternar visibilidade do evento
   const toggleVisibility = async (event) => {
@@ -335,6 +346,20 @@ function EventsPage() {
                   placeholder="Filtrar por visibilidade"
                 />
               </div>
+              <Button
+                variant="outline"
+                size="icon"
+                title={showPastEvents ? "Ocultar eventos passados" : "Exibir eventos passados"}
+                onClick={() => setShowPastEvents((prev) => !prev)}
+                className={clsx(
+                  'rounded-full p-2 flex items-center justify-center transition-all duration-200',
+                  showPastEvents
+                    ? 'bg-red-900 text-white'
+                    : 'text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20'
+                )}
+              >
+                <ArchiveIcon size={25} />
+              </Button>
             </div>
             <div>
               <CustomButton
@@ -348,14 +373,14 @@ function EventsPage() {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredEvents.length === 0 ? (
+            {sortedEvents.length === 0 ? (
               <div className="col-span-full flex flex-col items-center justify-center text-red-900 dark:text-red-400 rounded-xl px-8 py-12 text-center text-base max-w-2xl mx-auto mt-12 animate-fade-in space-y-4">
                 <react.WarningCircleIcon size={64} />
                 <h3 className="text-2xl font-semibold">Nenhum evento encontrado</h3>
                 <p className="text-sm">Verifique se digitou corretamente o nome do evento ou experimente outros termos para a busca.</p>
               </div>
             ) : (
-              filteredEvents.map((event) => (
+              sortedEvents.map((event) => (
                 <div
                   key={event.id}
                   className="relative bg-white dark:bg-white/10 dark:border dark:border-white/10 rounded-xl p-6 flex flex-col items-center justify-between transition-transform hover:scale-[1.02] shadow-md animate-fade-in"
@@ -583,3 +608,35 @@ function EventsPage() {
 }
 
 export default withAdminProtection(EventsPage)
+
+// Button component that allows custom className (for event page)
+function Button({ variant, size, title, onClick, children, className }) {
+  return (
+    <button
+      type="button"
+      title={title}
+      onClick={onClick}
+      className={
+        className ||
+        `items-center p-2 rounded-full text-sm shadow-sm transition-all duration-200 ${
+          variant === "outline"
+            ? "bg-red-900 text-white shadow-[0_0_12px_rgba(255,0,0,0.7)]"
+            : "text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20"
+        }`
+      }
+      style={
+        size === "icon"
+          ? {
+              width: 36,
+              height: 36,
+              display: "inline-flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }
+          : {}
+      }
+    >
+      {children}
+    </button>
+  );
+}
