@@ -716,7 +716,7 @@ function FinancialPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por título..."
-              clearable={searchTerm ? 'true' : ''}
+              clearable={!!searchTerm}
               onClear={() => setSearchTerm('')}
             />
           </div>
