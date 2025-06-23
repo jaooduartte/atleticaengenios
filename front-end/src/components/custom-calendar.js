@@ -9,7 +9,6 @@ import clsx from 'clsx'
 
 import { Calendar } from './ui/calendar'
 import { Popover, PopoverTrigger, PopoverContent } from './ui/popover'
-import { Button } from './ui/button'
 
 export default function CustomCalendar({
   value,
@@ -24,7 +23,6 @@ export default function CustomCalendar({
 }) {
   const [open, setOpen] = React.useState(false)
   const date = value ? parseISO(value) : undefined
-  const [month, setMonth] = React.useState(date)
 
   const handleSelect = (selected) => {
     setOpen(false)
@@ -58,16 +56,13 @@ export default function CustomCalendar({
             <CalendarIcon className="absolute right-3 h-4 w-4 text-black dark:text-white" />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto overflow-hidden p-0 rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0e1117] text-popover-foreground shadow-xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out" align="start">
+        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
           <Calendar
             mode="single"
             selected={date}
-            captionLayout="dropdown"
             locale={ptBR}
-            month={month}
-            onMonthChange={setMonth}
+            captionLayout="dropdown"
             onSelect={handleSelect}
-            className="rounded-md text-popover-foreground"
           />
         </PopoverContent>
       </Popover>
