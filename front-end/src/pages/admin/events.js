@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import Cropper from 'react-easy-crop'
+import getCroppedImg from '../../utils/cropImage'
 import Image from 'next/image'
 import * as react from '@phosphor-icons/react'
 import Modal from 'react-modal'
@@ -32,6 +34,14 @@ function EventsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [visibilityFilter, setVisibilityFilter] = useState('')
   const [imagePreview, setImagePreview] = useState(null)
+  // Estados para crop de imagem
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
+  const [showCropModal, setShowCropModal] = useState(false)
+  const [rawImage, setRawImage] = useState(null)
+  // Estado para armazenar imagem recortada (base64 ou blob URL)
+  const [croppedImage, setCroppedImage] = useState(null)
 
   const {
     register,
@@ -45,7 +55,9 @@ function EventsPage() {
 
   useEffect(() => {
     if (watchedImage && watchedImage[0]) {
-      setImagePreview(URL.createObjectURL(watchedImage[0]))
+      const url = URL.createObjectURL(watchedImage[0])
+      setRawImage(url)
+      setShowCropModal(true)
     }
   }, [watchedImage])
 
@@ -121,7 +133,18 @@ function EventsPage() {
     if (!editingEvent) {
       formData.append('visible', values.visible)
     }
-    if (values.image && values.image[0]) {
+    // Lógica para imagem recortada
+    if (croppedImage) {
+      try {
+        const response = await fetch(croppedImage)
+        const blob = await response.blob()
+        const file = new File([blob], 'cropped-image.png', { type: 'image/png' })
+        formData.append('image', file)
+      } catch (e) {
+        // Fallback: não envia imagem se der erro
+        console.error('Erro ao processar imagem recortada', e)
+      }
+    } else if (values.image && values.image[0]) {
       formData.append('image', values.image[0])
     }
 
@@ -143,6 +166,7 @@ function EventsPage() {
       showBanner(editingEvent ? 'Evento atualizado!' : 'Evento criado!', 'success')
       closeModal()
       fetchEvents()
+      setCroppedImage(null)
     } catch (err) {
       console.error(err)
       showBanner('Erro ao salvar evento', 'error')
@@ -222,8 +246,13 @@ function EventsPage() {
     }
   }
 
+  // Modal de crop de imagem
+  // Função para resetar o input file visualmente
+  // (Não necessário pois react-hook-form já reseta, mas podemos simular input para atualizar preview)
+
   return (
     <div className="events-page flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">
+      <title>Eventos | Área Admin</title>
       <Header />
       {banner && <Banner type={banner.type} message={banner.message} />}
       <div className="container mx-auto p-6 flex-grow">
@@ -280,7 +309,7 @@ function EventsPage() {
                 key={event.id}
                 className="relative bg-white dark:bg-white/10 dark:border dark:border-white/10 rounded-xl p-6 flex flex-col items-center justify-between transition-transform hover:scale-[1.02] shadow-md animate-fade-in"
               >
-                <div className="absolute top-3 right-3 z-10">
+                <div className="absolute top-3 right-2 z-10">
                   <ActionsDropdown
                     items={[
                       {
@@ -306,19 +335,21 @@ function EventsPage() {
                     ]}
                   />
                 </div>
-                <div className="w-full h-32 bg-gray-200 dark:bg-gray-800 rounded-xl mb-4 overflow-hidden flex items-center justify-center">
-                  {event.image ? (
-                    <Image
-                      src={event.image}
-                      alt={event.name}
-                      width={320}
-                      height={160}
-                      className="object-cover w-full h-full rounded-xl"
-                      priority={true}
-                    />
-                  ) : (
-                    <span className="text-sm text-gray-500">Sem imagem</span>
-                  )}
+                <div className="p-2 w-full">
+                  <div className="w-full h-36 bg-gray-200 dark:bg-gray-800 rounded-md overflow-hidden flex items-center justify-center">
+                    {event.image ? (
+                      <Image
+                        src={event.image}
+                        alt={event.name}
+                        width={320}
+                        height={144}
+                        className="object-cover w-full h-36 rounded-md"
+                        priority={true}
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-500">Sem imagem</span>
+                    )}
+                  </div>
                 </div>
                 <h3 className="text-lg font-semibold text-center text-gray-900 dark:text-white mb-1">{event.name}</h3>
                 <p className="text-sm text-center text-gray-600 dark:text-gray-300">{new Date(event.date_event).toLocaleDateString()}</p>
@@ -335,6 +366,50 @@ function EventsPage() {
           )}
         </div>
       </div>
+
+      {/* Modal de crop de imagem */}
+      {showCropModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80">
+          <div className="bg-white dark:bg-[#0e1117] p-6 rounded-md w-[90vw] max-w-3xl h-[60vh] relative flex flex-col">
+            <Cropper
+              image={rawImage}
+              crop={crop}
+              zoom={zoom}
+              aspect={940 / 360}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={(_, croppedPixels) => setCroppedAreaPixels(croppedPixels)}
+            />
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-4 z-50">
+              <CustomButton
+                type="button"
+                className="!bg-gray-500 hover:!bg-gray-600"
+                onClick={() => {
+                  setShowCropModal(false);
+                  setRawImage(null);
+                  setCroppedImage(null);
+                  // remove reset() e setImagePreview(null) aqui
+                }}
+              >
+                Cancelar
+              </CustomButton>
+              <CustomButton
+                type="button"
+                className="!bg-red-800 hover:!bg-red-700"
+                onClick={async () => {
+                  const cropped = await getCroppedImg(rawImage, croppedAreaPixels);
+                  setImagePreview(cropped);
+                  setCroppedImage(cropped);
+                  setShowCropModal(false);
+                  setRawImage(null);
+                }}
+              >
+                Salvar
+              </CustomButton>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Modal
         isOpen={isModalOpen}
@@ -354,24 +429,27 @@ function EventsPage() {
         </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="flex justify-center mb-4">
-            <div className="relative group w-24 h-24">
-              {imagePreview ? (
-                <Image
-                  src={imagePreview}
-                  alt="Pré-visualização"
-                  width={96}
-                  height={96}
-                  className="w-24 h-24 rounded-md object-cover shadow-md"
-                  priority={true}
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-md bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-500 text-sm">
+            <div className="relative group w-full max-w-xs">
+              {imagePreview && (
+                <div className="w-full aspect-[3/1] relative mb-4 rounded-md overflow-hidden border border-gray-600">
+                  <Image
+                    src={imagePreview}
+                    alt="Pré-visualização"
+                    layout="fill"
+                    objectFit="cover"
+                    priority={true}
+                  />
+                </div>
+              )}
+              {!imagePreview && (
+                <div className="w-full aspect-[3/1] rounded-md bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-500 text-sm border border-gray-600 mb-4">
                   Sem imagem
                 </div>
               )}
               <label
                 htmlFor="eventImage"
-                className="absolute inset-0 backdrop-blur-sm bg-white/40 dark:bg-[#0e1117]/40 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                className="absolute top-0 left-0 w-full h-full flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-sm bg-white/40 dark:bg-[#0e1117]/40"
+                style={{ zIndex: 2 }}
               >
                 <react.CameraIcon size={24} className="text-[#B3090F]" />
                 <input id="eventImage" type="file" accept="image/*" {...register('image')} hidden />
