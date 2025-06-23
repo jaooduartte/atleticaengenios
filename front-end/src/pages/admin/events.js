@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { useLoading } from "@/context/LoadingContext";
+import Head from "next/head";
 import Cropper from 'react-easy-crop'
 import getCroppedImg from '../../utils/cropImage'
 import Image from 'next/image'
@@ -28,13 +30,14 @@ const eventSchema = z.object({
 
 function EventsPage() {
   const [events, setEvents] = useState([])
+  const { setLoading } = useLoading();
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const [banner, setBanner] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [visibilityFilter, setVisibilityFilter] = useState('')
   const [imagePreview, setImagePreview] = useState(null)
-  // Estados para crop de imagem
+  const [date, setDate] = useState('');
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
@@ -62,6 +65,7 @@ function EventsPage() {
   }, [watchedImage])
 
   const fetchEvents = async () => {
+    setLoading(true);
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`)
       const data = await response.json()
@@ -75,6 +79,8 @@ function EventsPage() {
       setEvents(sortedEvents)
     } catch (err) {
       console.error('Erro ao buscar eventos:', err)
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -124,6 +130,7 @@ function EventsPage() {
   }
 
   const onSubmit = async (values) => {
+    setLoading(true);
     const formData = new FormData()
     formData.append('name', values.name)
     formData.append('description', values.description || '')
@@ -170,10 +177,13 @@ function EventsPage() {
     } catch (err) {
       console.error(err)
       showBanner('Erro ao salvar evento', 'error')
+    } finally {
+      setLoading(false);
     }
   }
 
   const handleDelete = async (id) => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token')
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${id}`, {
@@ -184,10 +194,13 @@ function EventsPage() {
       fetchEvents()
     } catch (err) {
       console.error(err)
+    } finally {
+      setLoading(false);
     }
   }
 
   const handleDuplicate = async (event) => {
+    setLoading(true);
     try {
       let fileBlob = null
       if (event.image) {
@@ -217,6 +230,8 @@ function EventsPage() {
     } catch (err) {
       console.error(err)
       showBanner('Erro ao duplicar evento', 'error')
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -230,6 +245,7 @@ function EventsPage() {
 
   // Função para alternar visibilidade do evento
   const toggleVisibility = async (event) => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${event.id}`, {
@@ -243,16 +259,17 @@ function EventsPage() {
     } catch (err) {
       console.error(err)
       showBanner('Erro ao atualizar visibilidade', 'error')
+    } finally {
+      setLoading(false);
     }
   }
 
-  // Modal de crop de imagem
-  // Função para resetar o input file visualmente
-  // (Não necessário pois react-hook-form já reseta, mas podemos simular input para atualizar preview)
-
   return (
-    <div className="events-page flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">
-      <title>Eventos | Área Admin</title>
+    <>
+      <Head>
+        <title>Eventos | Área Admin</title>
+      </Head>
+      <div className="events-page flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">
       <Header />
       {banner && <Banner type={banner.type} message={banner.message} />}
       <div className="container mx-auto p-6 flex-grow">
@@ -462,18 +479,23 @@ function EventsPage() {
             </label>
             <CustomField name="name" {...register('name')} isInvalid={!!errors.name} />
           </div>
-          <div>
-            <label className="block mb-2 font-semibold pl-2 dark:text-white/70" htmlFor="description">
-              Descrição
-            </label>
-            <CustomField name="description" {...register('description')} />
-          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block mb-2 font-semibold pl-2 dark:text-white/70" htmlFor="date_event">
                 Data do evento
               </label>
-              <CustomField type="date" name="date_event" {...register('date_event')} isInvalid={!!errors.date_event} />
+              <CustomField
+                label="Data do evento"
+                type="date"
+                placeholder="Selecione a data"
+                {...register("date_event")}
+                value={watch("date_event")}
+                className={`text-sm ${
+                  watch("date_event")
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+                }`}
+              />
             </div>
             <div>
               <label className="block mb-2 font-semibold pl-2 dark:text-white/70" htmlFor="local">
@@ -481,6 +503,12 @@ function EventsPage() {
               </label>
               <CustomField name="local" {...register('local')} />
             </div>
+          </div>
+          <div>
+            <label className="block mb-2 pl-2 dark:text-white/70 font-semibold" htmlFor="description">
+              Descrição
+            </label>
+            <CustomField name="description" {...register('description')} />
           </div>
           <div className="flex justify-end gap-4 pt-4">
             <CustomButton
@@ -511,7 +539,8 @@ function EventsPage() {
           box-shadow: 0 0 18px rgba(255, 165, 0, 0.5);
         }
       `}</style>
-    </div>
+      </div>
+    </>
   )
 }
 
