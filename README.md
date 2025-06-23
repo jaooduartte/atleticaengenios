@@ -27,7 +27,7 @@ O projeto será desenvolvido utilizando as seguintes tecnologias:
 
 **📌 Back-end**:
 - 🏗️ [Node.js](https://nodejs.org/en/) - Ambiente para execução do JavaScript no servidor.
-- ⚡ [Fastify](https://www.fastify.io/) - Framework rápido para API e rotas REST.
+- ⚡ [Express.js](https://expressjs.com/) - Utilizado pela equipe por maior familiaridade.
 - 🔑 [JSON Web Token (JWT)](https://jwt.io/) - Autenticação segura.
 
 **📌 Banco de Dados**:
