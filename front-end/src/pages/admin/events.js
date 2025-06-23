@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import PropTypes from 'prop-types';
 import clsx from "clsx";
 import { ArchiveIcon } from "lucide-react";
 import { useLoading } from "@/context/LoadingContext";
@@ -66,12 +67,11 @@ function EventsPage() {
     }
   }, [watchedImage])
 
-  const fetchEvents = async () => {
-    setLoading(true);
+  const fetchEvents = useCallback(async () => {
+    setLoading(true)
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`)
       const data = await response.json()
-      // Ordenar eventos: visíveis primeiro, depois por data
       const sortedEvents = (Array.isArray(data) ? data : []).sort((a, b) => {
         if (a.visible === b.visible) {
           return new Date(a.date_event) - new Date(b.date_event)
@@ -82,13 +82,13 @@ function EventsPage() {
     } catch (err) {
       console.error('Erro ao buscar eventos:', err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }
+  }, [setLoading])
 
   useEffect(() => {
     fetchEvents()
-  }, [])
+  }, [fetchEvents])
 
   const [formData, setFormData] = useState({
     name: '',
@@ -210,13 +210,6 @@ function EventsPage() {
       setLoading(false);
     }
   }
-  // Handler para atualização dos campos do formulário (incluindo description)
-  const handleChange = (field, value) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      [field]: value,
-    }));
-  };
 
   const handleDelete = async (id) => {
     setLoading(true);
@@ -550,8 +543,8 @@ function EventsPage() {
                   {...register("date_event")}
                   value={watch("date_event")}
                   className={`text-sm ${watch("date_event")
-                      ? "text-foreground"
-                      : "text-muted-foreground"
+                    ? "text-foreground"
+                    : "text-muted-foreground"
                     }`}
                 />
               </div>
@@ -609,7 +602,6 @@ function EventsPage() {
 
 export default withAdminProtection(EventsPage)
 
-// Button component that allows custom className (for event page)
 function Button({ variant, size, title, onClick, children, className }) {
   return (
     <button
@@ -618,21 +610,20 @@ function Button({ variant, size, title, onClick, children, className }) {
       onClick={onClick}
       className={
         className ||
-        `items-center p-2 rounded-full text-sm shadow-sm transition-all duration-200 ${
-          variant === "outline"
-            ? "bg-red-900 text-white shadow-[0_0_12px_rgba(255,0,0,0.7)]"
-            : "text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20"
+        `items-center p-2 rounded-full text-sm shadow-sm transition-all duration-200 ${variant === "outline"
+          ? "bg-red-900 text-white shadow-[0_0_12px_rgba(255,0,0,0.7)]"
+          : "text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20"
         }`
       }
       style={
         size === "icon"
           ? {
-              width: 36,
-              height: 36,
-              display: "inline-flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }
+            width: 36,
+            height: 36,
+            display: "inline-flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }
           : {}
       }
     >
@@ -640,3 +631,12 @@ function Button({ variant, size, title, onClick, children, className }) {
     </button>
   );
 }
+
+Button.propTypes = {
+  variant: PropTypes.string,
+  size: PropTypes.string,
+  title: PropTypes.string,
+  onClick: PropTypes.func,
+  children: PropTypes.node,
+  className: PropTypes.string,
+};

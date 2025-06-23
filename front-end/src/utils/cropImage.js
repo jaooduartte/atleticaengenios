@@ -26,6 +26,6 @@ export default function getCroppedImg(imageSrc, crop) {
         resolve(fileUrl);
       }, 'image/jpeg');
     };
-    image.onerror = (e) => reject(e);
+    image.onerror = (e) => reject(new Error(`Image failed to load: ${e?.message || e}`));
   });
 }
