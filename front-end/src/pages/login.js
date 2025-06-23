@@ -310,7 +310,6 @@ export default function Login() {
               </form>
             </div>
 
-            {/* Formulário Registro */}
             <div className={`absolute w-full top-0 left-0 transition-opacity duration-500 ease-in-out ${isRegistering ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
               <form className="grid grid-cols-2 gap-4 " onSubmit={handleRegister}>
                 <div className='col-span-2'>
