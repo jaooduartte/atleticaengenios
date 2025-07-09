@@ -19,6 +19,7 @@ import ActionsDropdown from '../../components/ActionsDropdown';
 import Banner from '../../components/banner';
 import dynamic from 'next/dynamic';
 import { useLoading } from '../../context/LoadingContext';
+import Loading from '../../components/Loading';
 
 const Bar = dynamic(() => import('react-chartjs-2').then(mod => mod.Bar), { ssr: false });
 
@@ -110,6 +111,7 @@ function FinancialPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { setLoading } = useLoading();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const filterMenuRef = useRef(null);
 
   const filterButtonRefs = useRef({
@@ -170,6 +172,7 @@ function FinancialPage() {
     if (isLoadingUser) return;
 
     const fetchTransactions = async () => {
+      setIsFetching(true);
       try {
         const token = localStorage.getItem('token');
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/financial/transactions`, {
@@ -201,6 +204,8 @@ function FinancialPage() {
         }
       } catch (error) {
         console.error('Erro ao buscar transações:', error);
+      } finally {
+        setIsFetching(false);
       }
     };
     fetchTransactions();
@@ -447,7 +452,7 @@ function FinancialPage() {
     return new Date(b.date) - new Date(a.date);
   });
 
-  if (isLoadingUser) return null;
+  if (isLoadingUser || isFetching) return <Loading />;
 
   return (
     <div className="financial-page flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">

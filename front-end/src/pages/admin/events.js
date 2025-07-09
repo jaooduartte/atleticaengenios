@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
-import PropTypes from 'prop-types';
-import clsx from "clsx";
-import { ArchiveIcon } from "lucide-react";
-import { useLoading } from "@/context/LoadingContext";
+import PropTypes from 'prop-types'
+import clsx from 'clsx'
+import { ArchiveIcon } from 'lucide-react'
+import { useLoading } from '@/context/LoadingContext'
+import Loading from '../../components/Loading'
 import Head from "next/head";
 import Cropper from 'react-easy-crop'
 import getCroppedImg from '../../utils/cropImage'
@@ -35,6 +36,7 @@ const eventSchema = z.object({
 function EventsPage() {
   const [events, setEvents] = useState([])
   const { setLoading } = useLoading();
+  const [isFetching, setIsFetching] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const [banner, setBanner] = useState(null)
@@ -68,6 +70,7 @@ function EventsPage() {
   }, [watchedImage])
 
   const fetchEvents = useCallback(async () => {
+    setIsFetching(true)
     setLoading(true)
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`)
@@ -83,6 +86,7 @@ function EventsPage() {
       console.error('Erro ao buscar eventos:', err)
     } finally {
       setLoading(false)
+      setIsFetching(false)
     }
   }, [setLoading])
 
@@ -290,6 +294,10 @@ function EventsPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (isFetching) {
+    return <Loading />
   }
 
   return (
