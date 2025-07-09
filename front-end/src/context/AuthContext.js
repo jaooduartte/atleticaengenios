@@ -31,7 +31,6 @@ export function AuthProvider({ children }) {
         try {
           setUser(JSON.parse(cached))
         } catch {
-          // ignore malformed cache
         }
       }
 

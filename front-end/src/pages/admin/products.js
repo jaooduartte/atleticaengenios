@@ -275,7 +275,6 @@ function ProductsPage() {
 		<div className="products-page flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">
 			<Header />
 			<title>Produtos | Área Admin</title>
-			{/* Banner após exclusão ou outras ações */}
 			{showBanner && (
 				<Banner
 					type={bannerType}
@@ -565,7 +564,6 @@ function ProductsPage() {
 						</div>
 					</form>
 				</Modal>
-				{/* Modal de confirmação de exclusão */}
 				<Modal
 					isOpen={Boolean(productToDelete)}
 					onRequestClose={() => setProductToDelete(null)}

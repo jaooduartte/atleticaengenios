@@ -532,7 +532,6 @@ function UsersPage() {
           </div>
           <div className="w-1 h-5 bg-gray-300 dark:bg-white/20" />
           <div className="flex flex-row gap-6 justify-center pb-2">
-            {/* Vice-Presidente */}
             <div className="flex flex-col items-center">
               <span className="font-bold text-red-800 dark:text-white mb-1">Vice-Presidente</span>
               {estruturaGestao['Vice-Presidente'] ? (

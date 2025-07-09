@@ -1,10 +1,13 @@
 # Planejamento do Desenvolvimento da Plataforma Atlética Engênios
 
+## Introdução
+A plataforma **Atlética Engênios** trata do domínio de **gestão de atléticas universitárias**, reunindo em um único sistema o cadastro de membros da diretoria, o controle de estoque de produtos e o acompanhamento financeiro.
+
 ## **1. Ajustes sugeridos da primeira interação (25/02)**
 Na primeira interação, foram feitas as seguintes decisões e ajustes para aprimorar o projeto:
 
 - **Escolha do front-end:** Inicialmente, React foi considerado, mas optamos por **Next.js** devido ao melhor suporte para SEO e SSR (Server-Side Rendering), essencial para a futura expansão da plataforma.
-- **Adoção do Fastify:** Para melhor performance, escolhemos **Fastify** no back-end ao invés de Express.js.
+- **Uso do Express.js:** Para melhor performance, utilizamos **Express.js** no back-end por maior familiaridade da equipe e ampla comunidade.
 
 ---
 
@@ -34,7 +37,7 @@ Na primeira interação, foram feitas as seguintes decisões e ajustes para apri
 
 1. **Escalabilidade**: O sistema deve suportar um aumento no número de membros sem perda de desempenho.
 2. **Segurança**: Implementação de **JWT**, hashing de senhas e restrições de acesso.
-3. **Performance**: Uso do **Fastify** para API rápida e **Next.js** para renderização otimizada.
+3. **Performance**: Uso do **Express.js** (por familiaridade) para API e **Next.js** para renderização otimizada.
 4. **Banco de Dados Gerenciado**: **Supabase** para facilitar autenticação e armazenamento de dados.
 5. **Versionamento e Colaboração**: Código hospedado no **GitHub**, seguindo boas práticas de Git.
 6. **Responsividade**: Design responsivo via **Tailwind CSS**.
@@ -61,7 +64,7 @@ Optamos por uma **arquitetura monolítica modular**, pois:
 | Camada | Tecnologia | Justificativa |
 |--------|-------------|-----------------|
 | **Front-end** | **Next.js + Tailwind CSS** | Melhor para SEO, escalável e responsivo. |
-| **Back-end** | **Node.js + Fastify** | Rápido, otimizado para APIs e modular. |
+| **Back-end** | **Node.js + Express.js** | Maior familiaridade e extensa comunidade. |
 | **Banco de Dados** | **Supabase** | Fácil autenticação e armazenamento de dados. |
 | **Autenticação** | **JWT** | Segurança e controle de acesso. |
 | **Versionamento** | **GitHub** | Centralizado e fácil colaboração. |
@@ -79,7 +82,7 @@ Criar estrutura de pastas do projeto.
 Desenvolver o design no FIGMA para o desenvolvimento.
 Criar tarefas de gestão de software no Jira para dividir os trabalhos.
 Configurar Next.js com Tailwind CSS.  
-Configurar Fastify e criar primeira rota REST.  
+Configurar Express.js e criar primeira rota REST.  
 Criar conexão com o banco de dados Supabase.  
 
 
@@ -92,3 +95,20 @@ Criar sistema de login com validação de acesso.
 Criar sistema de movimentação financeira.
 Melhorias na interface e experiência do usuário.
 Testes e deploy final.
+
+## **5. Integração Contínua (CI)**
+
+O repositório possui um workflow definido em `.github/workflows/ci.yml`.
+Ele é executado sempre que há `push` ou `pull_request` para as branches `main` e `develop`.
+Duas etapas de teste são realizadas:
+
+1. **test-backend**
+   - checkout do código
+   - instalação do Node.js v18
+   - instalação das dependências em `back-end`
+   - execução dos testes com `npm test -- --passWithNoTests`
+
+2. **test-frontend**
+   - mesmos passos para o diretório `front-end`
+
+Até o momento não foi adotada a metodologia **TDD** e não existe configuração de ambiente de produção.

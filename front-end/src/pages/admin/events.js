@@ -101,13 +101,10 @@ function EventsPage() {
     local: '',
     image: undefined
   });
-
-  // Atualiza formData ao criar/editar evento
   const openCreateModal = () => {
     document.activeElement?.blur()
     setEditingEvent(null)
     setImagePreview(null)
-    // Limpa campos do formulário para novo evento
     reset({
       name: '',
       description: '',
@@ -128,13 +125,11 @@ function EventsPage() {
   const openEditModal = (event) => {
     document.activeElement?.blur()
     setEditingEvent(event)
-    // Não inclui visible no reset, pois não queremos enviar visible no PUT
     reset({
       name: event.name,
       description: event.description,
       date_event: event.date_event,
       local: event.local
-      // visible: event.visible // REMOVIDO para não enviar visible no editar
     })
     setFormData({
       ...event,
@@ -169,11 +164,9 @@ function EventsPage() {
     fd.append('description', formData.description || '')
     fd.append('date_event', formData.date_event)
     fd.append('local', formData.local || '')
-    // Só envia visible no CREATE, nunca no EDIT
     if (!editingEvent && typeof values.visible !== 'undefined') {
       fd.append('visible', values.visible)
     }
-    // Lógica para imagem recortada
     if (croppedImage) {
       try {
         const response = await fetch(croppedImage)
@@ -181,7 +174,6 @@ function EventsPage() {
         const file = new File([blob], 'cropped-image.png', { type: 'image/png' })
         fd.append('image', file)
       } catch (e) {
-        // Fallback: não envia imagem se der erro
         console.error('Erro ao processar imagem recortada', e)
       }
     } else if (values.image && values.image[0]) {
@@ -284,8 +276,6 @@ function EventsPage() {
     }
     return a.visible ? -1 : 1;
   });
-
-  // Função para alternar visibilidade do evento
   const toggleVisibility = async (event) => {
     setLoading(true);
     try {
@@ -444,7 +434,6 @@ function EventsPage() {
           </div>
         </div>
 
-        {/* Modal de crop de imagem */}
         {showCropModal && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80">
             <div className="bg-white dark:bg-[#0e1117] p-6 rounded-md w-[90vw] max-w-3xl h-[60vh] relative flex flex-col">
@@ -465,7 +454,6 @@ function EventsPage() {
                     setShowCropModal(false);
                     setRawImage(null);
                     setCroppedImage(null);
-                    // remove reset() e setImagePreview(null) aqui
                   }}
                 >
                   Cancelar
