@@ -12,6 +12,7 @@ import Banner from '../components/banner';
 import PasswordRequirements from '../components/password-requirements';
 import Head from 'next/head';
 import withAuth from '../utils/withAuth';
+import Loading from '../components/Loading';
 
 function MyAccount() {
   const [formData, setFormData] = useState({
@@ -36,6 +37,7 @@ function MyAccount() {
   const [bannerType, setBannerType] = useState('');
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerDescription, setBannerDescription] = useState('');
+  const [isFetching, setIsFetching] = useState(true);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -43,6 +45,7 @@ function MyAccount() {
       if (!token) return;
 
       try {
+        setIsFetching(true);
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -66,7 +69,9 @@ function MyAccount() {
           });
         }
       } catch (error) {
-        console.error("Erro ao carregar perfil:", error);
+        console.error('Erro ao carregar perfil:', error);
+      } finally {
+        setIsFetching(false);
       }
     };
     fetchProfile();
@@ -185,6 +190,10 @@ function MyAccount() {
     setFormData(prev => ({ ...prev, photo: selectedImage }));
     setIsCropping(false);
   };
+
+  if (isFetching) {
+    return <Loading />;
+  }
 
   return (
     <>

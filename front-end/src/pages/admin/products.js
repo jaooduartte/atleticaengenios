@@ -12,6 +12,7 @@ import Banner from '../../components/banner';
 import withAdminProtection from '../../utils/withAdminProtection';
 import RichTextEditor from '../../components/rich-text-editor.js';
 import { useLoading } from '../../context/LoadingContext';
+import Loading from '../../components/Loading';
 
 function ProductsPage() {
 	const [products, setProducts] = useState([]);
@@ -19,9 +20,10 @@ function ProductsPage() {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [productToDelete, setProductToDelete] = useState(null);
 	const [productToEdit, setProductToEdit] = useState(null);
-	const [isDeleting, setIsDeleting] = useState(false);
-	const [isLoading, setIsLoading] = useState(false);
-	const { setLoading } = useLoading();
+        const [isDeleting, setIsDeleting] = useState(false);
+        const [isLoading, setIsLoading] = useState(false);
+        const [isFetching, setIsFetching] = useState(true);
+        const { setLoading } = useLoading();
 	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');
 	const [value, setValue] = useState('');
@@ -49,15 +51,20 @@ function ProductsPage() {
 		setTimeout(() => setShowBanner(false), 4500);
 	};
 
-	const fetchProducts = async () => {
-		try {
-			const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`);
-			const data = await response.json();
-			setProducts(data);
-		} catch (error) {
-			console.error('Erro ao buscar produtos:', error);
-		}
-	};
+        const fetchProducts = async () => {
+                setIsFetching(true);
+                setLoading(true);
+                try {
+                        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products`);
+                        const data = await response.json();
+                        setProducts(data);
+                } catch (error) {
+                        console.error('Erro ao buscar produtos:', error);
+                } finally {
+                        setIsFetching(false);
+                        setLoading(false);
+                }
+        };
 
 	useEffect(() => {
 		fetchProducts();
@@ -227,8 +234,8 @@ function ProductsPage() {
 		}
 	};
 
-	const handleDuplicateProduct = async (product) => {
-		try {
+        const handleDuplicateProduct = async (product) => {
+                try {
 			const formData = new FormData();
 			formData.append('title', `${product.title} (Cópia)`);
 			formData.append('description', product.description);
@@ -254,13 +261,17 @@ function ProductsPage() {
 
 			showBannerMessage('Produto duplicado com sucesso!', 'success');
 			fetchProducts();
-		} catch (error) {
-			console.error('Erro ao duplicar produto:', error);
-			showBannerMessage('Erro ao duplicar produto', 'error');
-		}
-	};
+                } catch (error) {
+                        console.error('Erro ao duplicar produto:', error);
+                        showBannerMessage('Erro ao duplicar produto', 'error');
+                }
+        };
 
-	return (
+        if (isFetching) {
+                return <Loading />;
+        }
+
+        return (
 		<div className="products-page flex flex-col min-h-screen bg-white text-black dark:bg-[#0e1117] dark:text-white transition-colors duration-500 ease-in-out">
 			<Header />
 			<title>Produtos | Área Admin</title>

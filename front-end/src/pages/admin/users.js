@@ -4,6 +4,8 @@ import { remove as removeAccents } from 'diacritics';
 import Header from '../../components/header-admin';
 import Footer from '../../components/footer-admin';
 import Banner from '../../components/banner';
+import { useLoading } from '../../context/LoadingContext';
+import Loading from '../../components/Loading';
 import CustomField from '../../components/custom-field';
 import Modal from 'react-modal';
 import CustomButton from '../../components/custom-buttom';
@@ -32,6 +34,8 @@ function UsersPage() {
   const [isGestor, setIsGestor] = useState(false);
   const [usuariosSugestoes, setUsuariosSugestoes] = useState({});
   const [estruturaInicialCarregada, setEstruturaInicialCarregada] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const { setLoading } = useLoading();
   const verificaCargo = (cargo, userId) => cargo?.id === userId;
   const verificaListaCargo = (cargo, userId) =>
     Object.values(cargo).some(lista => lista.some(user => user.id === userId));
@@ -119,20 +123,27 @@ function UsersPage() {
   }, []);
 
   useEffect(() => {
-    fetchUsers();
-    const token = localStorage.getItem('token');
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => {
-        const usuario = data?.user || data;
-        setUserSession(usuario);
-        if (['Presidente', 'Vice-Presidente'].includes(usuario.role)) {
-          setIsGestor(true);
-        }
+    const loadData = async () => {
+      setIsFetching(true);
+      setLoading(true);
+      await fetchUsers();
+
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-  }, [fetchUsers]);
+      const data = await res.json();
+      const usuario = data?.user || data;
+      setUserSession(usuario);
+      if (['Presidente', 'Vice-Presidente'].includes(usuario.role)) {
+        setIsGestor(true);
+      }
+      setIsFetching(false);
+      setLoading(false);
+    };
+
+    loadData();
+  }, [fetchUsers, setLoading]);
   useEffect(() => {
     if (abaSelecionada === 'gestoes' && !estruturaInicialCarregada && users.length > 0) {
       const anoMaisRecente = Math.max(...gestoes);
@@ -189,12 +200,8 @@ function UsersPage() {
     setFilteredUsers(filtered);
   }, [searchTerm, users]);
 
-  if (!userSession) {
-    return (
-      <div className="flex items-center justify-center h-screen text-gray-500 dark:text-white">
-        Carregando informações do usuário...
-      </div>
-    );
+  if (isFetching || !userSession) {
+    return <Loading />;
   }
 
   const toggleAdmin = async (userId, currentValue) => {
