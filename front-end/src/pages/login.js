@@ -9,6 +9,7 @@ import CustomField from '../components/custom-field'
 import CustomButton from '../components/custom-buttom'
 import CustomDropdown from '../components/custom-dropdown';
 import PasswordRequirements from '../components/password-requirements';
+import useAuth from '../hooks/useAuth';
 import Head from 'next/head';
 
 const renderTogglePasswordButton = (show, setShow) => (
@@ -55,6 +56,7 @@ export default function Login() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isRegisteringLoading, setIsRegisteringLoading] = useState(false);
   const router = useRouter();
+  const { refreshUser } = useAuth();
 
   const [showBanner, setShowBanner] = useState(false);
   const [bannerMessage, setBannerMessage] = useState('');
@@ -123,6 +125,7 @@ export default function Login() {
     localStorage.setItem('token', data.token);
     const payload = JSON.parse(atob(data.token.split('.')[1]));
     localStorage.setItem('token_exp', payload.exp);
+    await refreshUser();
 
     router.push('/home');
     setIsLoggingIn(false);
